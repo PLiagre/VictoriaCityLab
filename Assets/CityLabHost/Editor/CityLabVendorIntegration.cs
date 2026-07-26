@@ -46,6 +46,21 @@ namespace Victoria.CityLab.Editor
             "Assets/Polytope Studio/Lowpoly_Environments/Prefabs/Trees/PT_Pine_Tree_03_green.prefab"
         };
 
+        static readonly HashSet<string> CharacterParts = new HashSet<string>
+        {
+            "Base Character Mesh",
+            "Chest Armor Type 2 Color 1",
+            "Arm Armor Type 2 Color 1",
+            "Legs Armor Type 2 Color 1",
+            "Feet Armor Type 2 Color 1",
+            "Belt Armor Type 2 Color 1",
+            "Hair Type 2 Color 2",
+            "Eyebrow Type 2 Color 2",
+            "Eyes Type 2 Color 2",
+            "Ears Type 1",
+            "Nose Type 2"
+        };
+
         [MenuItem("Victoria/CityLab/Integrate Vendor Assets")]
         public static void Integrate()
         {
@@ -113,6 +128,8 @@ namespace Victoria.CityLab.Editor
                 }
                 foreach (var collider in child.GetComponentsInChildren<Collider>(true))
                     UnityEngine.Object.DestroyImmediate(collider);
+                if (string.Equals(sourcePath, CharacterSource, StringComparison.Ordinal))
+                    PruneCharacterVariants(child);
                 ConvertMaterialsToUrp(child);
 
                 var bounds = CalculateBounds(child);
@@ -135,6 +152,26 @@ namespace Victoria.CityLab.Editor
             {
                 UnityEngine.Object.DestroyImmediate(root);
             }
+        }
+
+        static void PruneCharacterVariants(GameObject character)
+        {
+            var renderers = character.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+            var kept = 0;
+            foreach (var renderer in renderers)
+            {
+                if (CharacterParts.Contains(renderer.gameObject.name))
+                {
+                    renderer.enabled = true;
+                    renderer.updateWhenOffscreen = false;
+                    kept++;
+                }
+                else
+                {
+                    UnityEngine.Object.DestroyImmediate(renderer.gameObject);
+                }
+            }
+            Debug.Log($"CITYLAB_CHARACTER_PRUNED source={renderers.Length} kept={kept}");
         }
 
         static void ConvertMaterialsToUrp(GameObject root)
@@ -282,7 +319,7 @@ namespace Victoria.CityLab.Editor
             report.AppendLine();
             report.AppendLine($"- Catalogue runtime valide : **{(library != null && library.HasDurableSlice ? "oui" : "non")}**.");
             report.AppendLine("- EmaceArt : trois maisons composites, un bâtiment central et un tas de bois.");
-            report.AppendLine("- GanzSe : personnage complet copié, normalisé à 1,75 m et débarrassé des scripts de démonstration.");
+            report.AppendLine("- GanzSe : personnage modulaire normalisé et réduit à 11 pièces visibles (contre 216 renderers dans la source), débarrassé des scripts de démonstration ; la source Vendor reste intacte.");
             report.AppendLine("- Kevin Iglesias : idle et marche Humanoid sans root motion pilotés par CityLab.");
             report.AppendLine("- Polytope : deux arbres normalisés, distribués de façon déterministe en périphérie.");
             report.AppendLine("- DoubleL : pack conservé pour une future action de chantier ; aucun asset DoubleL n'est requis par le slice actuel.");

@@ -40,7 +40,10 @@ namespace Victoria.CityMode
 
         void Awake()
         {
-            var fixture = Resources.Load<TextAsset>("city_fixture_1001");
+            var arguments = Environment.GetCommandLineArgs();
+            var isSmoke = Array.Exists(arguments, item => item == "-citylabSmoke");
+            var isCapture = Array.Exists(arguments, item => item == "-citylabCapture");
+            var fixture = Resources.Load<TextAsset>(isSmoke ? "city_fixture_performance_1001" : "city_fixture_1001");
             if (fixture == null)
             {
                 Debug.LogError("CityLab: Resources/city_fixture_1001.json introuvable.");
@@ -62,14 +65,18 @@ namespace Victoria.CityMode
             hud = gameObject.AddComponent<CityLabHud>();
             hud.Initialize(this, buildController);
             SyncViews(simulation.GetSnapshot(CityId));
-            if (Array.Exists(Environment.GetCommandLineArgs(), item => item == "-citylabSmoke"))
+            if (isSmoke)
             {
                 var road = Submit(CityCommand.DrawRoad(new Vector3(-42f, 0f, 12f), new Vector3(42f, 0f, 12f)));
                 if (road.accepted)
                     Submit(CityCommand.ZoneResidential(road.createdId));
+                var secondRoad = Submit(CityCommand.DrawRoad(new Vector3(-42f, 0f, 40f), new Vector3(42f, 0f, 40f)));
+                if (secondRoad.accepted)
+                    Submit(CityCommand.ZoneResidential(secondRoad.createdId));
                 performanceProbe = gameObject.AddComponent<CityLabPerformanceProbe>();
+                performanceProbe.Initialize(this);
             }
-            else if (Array.Exists(Environment.GetCommandLineArgs(), item => item == "-citylabCapture"))
+            else if (isCapture)
             {
                 var road = Submit(CityCommand.DrawRoad(new Vector3(-42f, 0f, 12f), new Vector3(42f, 0f, 12f)));
                 if (road.accepted)
@@ -95,6 +102,16 @@ namespace Victoria.CityMode
                 SyncViews(simulation.GetSnapshot(CityId));
             hud?.ShowMessage(result.accepted ? "Ordre accepte" : $"Refus: {result.reason}");
             return result;
+        }
+
+        public void SetSelectedBuilding(int buildingId)
+        {
+            foreach (var pair in buildingViews)
+            {
+                var selectable = pair.Value.GetComponent<BuildingView>();
+                if (selectable != null)
+                    selectable.SetSelected(pair.Key == buildingId);
+            }
         }
 
         void CreateMaterials()
@@ -376,6 +393,7 @@ namespace Victoria.CityMode
                     building.position.ToVector3() + Vector3.up * 0.35f,
                     new Vector3(7f, 0.7f, 9f), foundationMaterial);
                 view.transform.rotation = Quaternion.Euler(0f, building.yaw, 0f);
+                view.AddComponent<BuildingView>().Initialize(building.id, baseMaterial);
                 buildingViews.Add(building.id, view);
             }
 
@@ -393,6 +411,12 @@ namespace Victoria.CityMode
                     view.transform.localScale = Vector3.one;
                     view.transform.position = building.position.ToVector3();
                     renderer.enabled = false;
+                    var framingCollider = view.GetComponent<BoxCollider>();
+                    if (framingCollider != null)
+                    {
+                        framingCollider.center = new Vector3(0f, 2f, 0f);
+                        framingCollider.size = new Vector3(7f, 4.5f, 9f);
+                    }
                     EnsureFramingVisual(view).SetActive(true);
                     break;
                 case BuildingPhase.Complete:
@@ -511,6 +535,59 @@ namespace Victoria.CityMode
         public int RoadId { get; set; }
     }
 
+    public sealed class BuildingView : MonoBehaviour
+    {
+        static readonly Vector3[] SelectionCorners =
+        {
+            new Vector3(-3.8f, 0f, -4.8f), new Vector3(-3.8f, 0f, 4.8f),
+            new Vector3(3.8f, 0f, 4.8f), new Vector3(3.8f, 0f, -4.8f)
+        };
+        LineRenderer selection;
+
+        public int BuildingId { get; private set; }
+
+        public void Initialize(int buildingId, Material baseMaterial)
+        {
+            BuildingId = buildingId;
+            var marker = new GameObject($"Building {buildingId} selection");
+            selection = marker.AddComponent<LineRenderer>();
+            selection.loop = true;
+            selection.useWorldSpace = true;
+            selection.positionCount = 4;
+            selection.startWidth = 0.18f;
+            selection.endWidth = 0.18f;
+            selection.numCornerVertices = 2;
+            selection.sharedMaterial = new Material(baseMaterial)
+            {
+                name = "Runtime Selection Gold",
+                color = new Color(1f, 0.72f, 0.16f)
+            };
+            selection.enabled = false;
+        }
+
+        public void SetSelected(bool selected)
+        {
+            if (selection != null)
+                selection.enabled = selected;
+        }
+
+        void LateUpdate()
+        {
+            if (selection == null || !selection.enabled)
+                return;
+            var rotation = Quaternion.Euler(0f, transform.eulerAngles.y, 0f);
+            var center = transform.position + Vector3.up * 0.16f;
+            for (var i = 0; i < SelectionCorners.Length; i++)
+                selection.SetPosition(i, center + rotation * SelectionCorners[i]);
+        }
+
+        void OnDestroy()
+        {
+            if (selection != null)
+                Destroy(selection.gameObject);
+        }
+    }
+
     public sealed class StockpileMarker : MonoBehaviour { }
 
     public sealed class DirectionalLightCycle : MonoBehaviour
@@ -533,7 +610,15 @@ namespace Victoria.CityMode
         const int WarmupFrames = 120;
         const int SampleFrames = 600;
         readonly List<float> samples = new List<float>(SampleFrames);
+        CityLabGame game;
         int frames;
+
+        public void Initialize(CityLabGame owner)
+        {
+            game = owner;
+            var snapshot = game.StateSource.GetSnapshot(1001);
+            Debug.Log($"CITYLAB_SMOKE_SCENARIO households={snapshot.households.Count} buildings={snapshot.buildings.Count} villagers={snapshot.villagers.Count}");
+        }
 
         void Update()
         {
@@ -549,6 +634,14 @@ namespace Victoria.CityMode
             foreach (var sample in samples) sum += sample;
             var average = sum / samples.Count;
             var p95 = samples[Mathf.Clamp(Mathf.CeilToInt(samples.Count * 0.95f) - 1, 0, samples.Count - 1)];
+            var snapshot = game.StateSource.GetSnapshot(1001);
+            if (snapshot.households.Count < 20 || snapshot.buildings.Count < 30 || snapshot.villagers.Count < 30)
+            {
+                Debug.LogError($"CITYLAB_PERF_FAIL scenario households={snapshot.households.Count} buildings={snapshot.buildings.Count} villagers={snapshot.villagers.Count}");
+                Application.Quit(2);
+                enabled = false;
+                return;
+            }
             Debug.Log($"CITYLAB_PERF_OK frames={samples.Count} avg_ms={average:F3} p95_ms={p95:F3} avg_fps={1000f / average:F1}");
             Application.Quit(0);
             enabled = false;
@@ -571,11 +664,22 @@ namespace Victoria.CityMode
                 controller.transform.SetPositionAndRotation(
                     new Vector3(0f, 0f, 6f) - rotation * Vector3.forward * 82f, rotation);
             }
+            var game = FindFirstObjectByType<CityLabGame>();
+            var tools = FindFirstObjectByType<CityBuildController>();
+            if (game != null && tools != null)
+            {
+                var snapshot = game.StateSource.GetSnapshot(1001);
+                var site = snapshot.buildings.Find(item => item.phase != BuildingPhase.Complete);
+                if (site != null)
+                    tools.SelectBuilding(site.id);
+            }
         }
 
         void Update()
         {
             frames++;
+            if (frames == 450)
+                SelectActiveSite();
             if (frames == 480)
             {
                 var path = System.IO.Path.GetFullPath("Logs/citylab-vendor.png");
@@ -590,6 +694,18 @@ namespace Victoria.CityMode
                 Application.Quit(0);
                 enabled = false;
             }
+        }
+
+        static void SelectActiveSite()
+        {
+            var game = FindFirstObjectByType<CityLabGame>();
+            var tools = FindFirstObjectByType<CityBuildController>();
+            if (game == null || tools == null)
+                return;
+            var snapshot = game.StateSource.GetSnapshot(1001);
+            var site = snapshot.buildings.Find(item => item.phase != BuildingPhase.Complete);
+            if (site != null)
+                tools.SelectBuilding(site.id);
         }
     }
 }

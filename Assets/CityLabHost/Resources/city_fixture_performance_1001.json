@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1, "cityId": 1001, "seed": 140001, "stockWood": 180,
+  "households": [
+    {"id":1,"memberCount":3},{"id":2,"memberCount":3},{"id":3,"memberCount":3},{"id":4,"memberCount":3},{"id":5,"memberCount":3},
+    {"id":6,"memberCount":3},{"id":7,"memberCount":3},{"id":8,"memberCount":3},{"id":9,"memberCount":3},{"id":10,"memberCount":3},
+    {"id":11,"memberCount":3},{"id":12,"memberCount":3},{"id":13,"memberCount":3},{"id":14,"memberCount":3},{"id":15,"memberCount":3},
+    {"id":16,"memberCount":3},{"id":17,"memberCount":3},{"id":18,"memberCount":3},{"id":19,"memberCount":3},{"id":20,"memberCount":3}
+  ],
+  "roads": [],
+  "parcels": [
+    {"id":1,"center":{"x":-54,"z":-32},"width":10,"depth":14,"accessible":true,"buildingId":1},
+    {"id":2,"center":{"x":-42,"z":-32},"width":10,"depth":14,"accessible":true,"buildingId":2},
+    {"id":3,"center":{"x":-30,"z":-32},"width":10,"depth":14,"accessible":true,"buildingId":3},
+    {"id":4,"center":{"x":-18,"z":-32},"width":10,"depth":14,"accessible":true,"buildingId":4},
+    {"id":5,"center":{"x":-6,"z":-32},"width":10,"depth":14,"accessible":true,"buildingId":5},
+    {"id":6,"center":{"x":6,"z":-32},"width":10,"depth":14,"accessible":true,"buildingId":6},
+    {"id":7,"center":{"x":18,"z":-32},"width":10,"depth":14,"accessible":true,"buildingId":7},
+    {"id":8,"center":{"x":30,"z":-32},"width":10,"depth":14,"accessible":true,"buildingId":8},
+    {"id":9,"center":{"x":42,"z":-32},"width":10,"depth":14,"accessible":true,"buildingId":9},
+    {"id":10,"center":{"x":54,"z":-32},"width":10,"depth":14,"accessible":true,"buildingId":10}
+  ],
+  "buildings": [
+    {"id":1,"parcelId":1,"position":{"x":-54,"z":-32},"yaw":90,"priority":1,"requiredWood":6,"deliveredWood":6,"phase":2},
+    {"id":2,"parcelId":2,"position":{"x":-42,"z":-32},"yaw":90,"priority":1,"requiredWood":6,"deliveredWood":6,"phase":2},
+    {"id":3,"parcelId":3,"position":{"x":-30,"z":-32},"yaw":90,"priority":1,"requiredWood":6,"deliveredWood":6,"phase":2},
+    {"id":4,"parcelId":4,"position":{"x":-18,"z":-32},"yaw":90,"priority":1,"requiredWood":6,"deliveredWood":6,"phase":2},
+    {"id":5,"parcelId":5,"position":{"x":-6,"z":-32},"yaw":90,"priority":1,"requiredWood":6,"deliveredWood":6,"phase":2},
+    {"id":6,"parcelId":6,"position":{"x":6,"z":-32},"yaw":90,"priority":1,"requiredWood":6,"deliveredWood":6,"phase":2},
+    {"id":7,"parcelId":7,"position":{"x":18,"z":-32},"yaw":90,"priority":1,"requiredWood":6,"deliveredWood":6,"phase":2},
+    {"id":8,"parcelId":8,"position":{"x":30,"z":-32},"yaw":90,"priority":1,"requiredWood":6,"deliveredWood":6,"phase":2},
+    {"id":9,"parcelId":9,"position":{"x":42,"z":-32},"yaw":90,"priority":1,"requiredWood":6,"deliveredWood":6,"phase":2},
+    {"id":10,"parcelId":10,"position":{"x":54,"z":-32},"yaw":90,"priority":1,"requiredWood":6,"deliveredWood":6,"phase":2}
+  ],
+  "villagers": [
+    {"id":1,"householdId":1,"position":{"x":-15,"z":-8}},{"id":2,"householdId":1,"position":{"x":-14,"z":-7}},
+    {"id":3,"householdId":2,"position":{"x":-13,"z":-8}},{"id":4,"householdId":3,"position":{"x":-12,"z":-7}},
+    {"id":5,"householdId":4,"position":{"x":-11,"z":-8}},{"id":6,"householdId":4,"position":{"x":-10,"z":-7}},
+    {"id":7,"householdId":5,"position":{"x":-9,"z":-8}},{"id":8,"householdId":6,"position":{"x":-8,"z":-7}},
+    {"id":9,"householdId":7,"position":{"x":-7,"z":-8}},{"id":10,"householdId":7,"position":{"x":-6,"z":-7}},
+    {"id":11,"householdId":8,"position":{"x":-5,"z":-8}},{"id":12,"householdId":9,"position":{"x":-4,"z":-7}},
+    {"id":13,"householdId":10,"position":{"x":-3,"z":-8}},{"id":14,"householdId":10,"position":{"x":-2,"z":-7}},
+    {"id":15,"householdId":11,"position":{"x":-1,"z":-8}},{"id":16,"householdId":12,"position":{"x":0,"z":-7}},
+    {"id":17,"householdId":13,"position":{"x":1,"z":-8}},{"id":18,"householdId":13,"position":{"x":2,"z":-7}},
+    {"id":19,"householdId":14,"position":{"x":3,"z":-8}},{"id":20,"householdId":15,"position":{"x":4,"z":-7}},
+    {"id":21,"householdId":16,"position":{"x":5,"z":-8}},{"id":22,"householdId":16,"position":{"x":6,"z":-7}},
+    {"id":23,"householdId":17,"position":{"x":7,"z":-8}},{"id":24,"householdId":18,"position":{"x":8,"z":-7}},
+    {"id":25,"householdId":19,"position":{"x":9,"z":-8}},{"id":26,"householdId":19,"position":{"x":10,"z":-7}},
+    {"id":27,"householdId":20,"position":{"x":11,"z":-8}},{"id":28,"householdId":20,"position":{"x":12,"z":-7}},
+    {"id":29,"householdId":1,"position":{"x":13,"z":-8}},{"id":30,"householdId":2,"position":{"x":14,"z":-7}}
+  ]
+}

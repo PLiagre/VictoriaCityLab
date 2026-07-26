@@ -33,6 +33,15 @@ namespace Victoria.CityMode.Tests
             Assert.Greater(snapshot.parcels.Count, 0);
             Assert.Greater(snapshot.buildings.Count, 0);
             Assert.IsNotNull(Object.FindFirstObjectByType<RoadView>());
+
+            var controller = Object.FindFirstObjectByType<CityBuildController>();
+            Assert.IsNotNull(controller);
+            var selectedId = snapshot.buildings[0].id;
+            controller.SelectBuilding(selectedId);
+            controller.SetSelectedPriority(3);
+            yield return null;
+            Assert.AreEqual(selectedId, controller.SelectedBuildingId);
+            Assert.AreEqual(3, game.StateSource.GetSnapshot(1001).buildings.Find(item => item.id == selectedId).priority);
         }
     }
 }

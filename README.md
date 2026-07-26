@@ -33,6 +33,7 @@ hors de ce verrou advisory.
 - l'apercu de route devient vert si le trace est valide et rouge sinon
 - `Z`, puis clic sur une route : creer des parcelles residentielles
 - `Echap` : annuler l'outil actif
+- en mode inspection, cliquer un chantier puis choisir sa priorite dans le HUD
 
 Le village commence avec huit habitants, six foyers sans logement et un stock
 de bois. Les habitants transportent physiquement le bois jusqu'aux chantiers.

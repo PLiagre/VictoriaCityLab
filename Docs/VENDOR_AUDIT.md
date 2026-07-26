@@ -14,7 +14,7 @@ Généré par l'outil d'admission CityLab. Les sources restent intactes dans leu
 
 - Catalogue runtime valide : **oui**.
 - EmaceArt : trois maisons composites, un bâtiment central et un tas de bois.
-- GanzSe : personnage complet copié, normalisé à 1,75 m et débarrassé des scripts de démonstration.
+- GanzSe : personnage modulaire normalisé et réduit à 11 pièces visibles (contre 216 renderers dans la source), débarrassé des scripts de démonstration ; la source Vendor reste intacte.
 - Kevin Iglesias : idle et marche Humanoid sans root motion pilotés par CityLab.
 - Polytope : deux arbres normalisés, distribués de façon déterministe en périphérie.
 - DoubleL : pack conservé pour une future action de chantier ; aucun asset DoubleL n'est requis par le slice actuel.

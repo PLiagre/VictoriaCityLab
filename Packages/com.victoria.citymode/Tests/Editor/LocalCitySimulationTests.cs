@@ -96,6 +96,23 @@ namespace Victoria.CityMode.Tests
             simulation.SetRoadBlocked(road.createdId, true);
             Assert.AreEqual("road-inaccessible", simulation.Submit(CityCommand.ZoneResidential(road.createdId)).reason);
         }
+
+        [Test]
+        public void ConstructionPriority_IsClampedAndDrivesWorkerAssignment()
+        {
+            var simulation = LocalCitySimulation.FromJson(Fixture);
+            var road = simulation.Submit(CityCommand.DrawRoad(new Vector3(-42, 0, 12), new Vector3(42, 0, 12)));
+            simulation.Submit(CityCommand.ZoneResidential(road.createdId));
+
+            Assert.IsTrue(simulation.Submit(CityCommand.SetPriority(2, 99)).accepted);
+            Assert.IsTrue(simulation.Submit(CityCommand.SetPriority(1, -4)).accepted);
+            simulation.Tick(0.1f);
+
+            var snapshot = simulation.GetSnapshot(1001);
+            Assert.AreEqual(3, snapshot.buildings.Find(item => item.id == 2).priority);
+            Assert.AreEqual(0, snapshot.buildings.Find(item => item.id == 1).priority);
+            Assert.AreEqual(2, snapshot.villagers.Find(item => item.id == 1).targetBuildingId);
+            Assert.AreEqual("building-unknown", simulation.Submit(CityCommand.SetPriority(999, 1)).reason);
+        }
     }
 }
-

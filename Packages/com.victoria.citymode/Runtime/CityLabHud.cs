@@ -13,6 +13,8 @@ namespace Victoria.CityMode
         Label construction;
         Label prompt;
         Label message;
+        Label selection;
+        VisualElement priorityControls;
         CitySnapshot pendingSnapshot;
 
         public void Initialize(CityLabGame owner, CityBuildController controller)
@@ -61,6 +63,7 @@ namespace Victoria.CityMode
             resources = MakeLabel("", 15, Color.white);
             population = MakeLabel("", 15, Color.white);
             construction = MakeLabel("", 15, Color.white);
+            selection = MakeLabel("Aucun chantier selectionne", 14, new Color(0.95f, 0.76f, 0.35f));
             prompt = MakeLabel("", 14, new Color(0.84f, 0.79f, 0.68f));
             prompt.style.whiteSpace = WhiteSpace.Normal;
             message = MakeLabel("", 13, new Color(0.72f, 0.82f, 0.62f));
@@ -70,10 +73,25 @@ namespace Victoria.CityMode
             StyleButton(routeButton);
             StyleButton(zoneButton);
 
+            priorityControls = new VisualElement();
+            priorityControls.style.flexDirection = FlexDirection.Row;
+            var low = new Button(() => tools.SetSelectedPriority(0)) { text = "Basse" };
+            var normal = new Button(() => tools.SetSelectedPriority(1)) { text = "Normale" };
+            var high = new Button(() => tools.SetSelectedPriority(3)) { text = "Haute" };
+            foreach (var button in new[] { low, normal, high })
+            {
+                StyleButton(button);
+                button.style.flexGrow = 1;
+                button.style.marginRight = 3;
+                priorityControls.Add(button);
+            }
+
             panel.Add(title);
             panel.Add(resources);
             panel.Add(population);
             panel.Add(construction);
+            panel.Add(selection);
+            panel.Add(priorityControls);
             panel.Add(routeButton);
             panel.Add(zoneButton);
             panel.Add(prompt);
@@ -110,6 +128,19 @@ namespace Victoria.CityMode
             resources.text = $"Bois: {snapshot.stockWood}  (reserve: {snapshot.reservedWood})";
             population.text = $"Habitants: {snapshot.villagers.Count}   Foyers loges: {housed}/{snapshot.households.Count}";
             construction.text = $"Chantiers: {active}   Maisons terminees: {complete}";
+            var selected = snapshot.buildings.Find(item => item.id == tools.SelectedBuildingId);
+            if (selected == null)
+            {
+                selection.text = "Aucun chantier selectionne";
+                priorityControls.SetEnabled(false);
+            }
+            else
+            {
+                selection.text = selected.phase == BuildingPhase.Complete
+                    ? $"Maison {selected.id} terminee"
+                    : $"Chantier {selected.id}  Priorite: {selected.priority}  Bois: {selected.deliveredWood}/{selected.requiredWood}";
+                priorityControls.SetEnabled(selected.phase != BuildingPhase.Complete);
+            }
             prompt.text = tools.Prompt;
         }
 

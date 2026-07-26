@@ -19,6 +19,7 @@ namespace Victoria.CityMode
         Material roadPreviewMaterial;
 
         public CityToolMode Mode { get; private set; }
+        public int SelectedBuildingId { get; private set; }
         public string Prompt { get; private set; } = "Selectionnez un outil";
 
         public void Initialize(CityLabGame owner)
@@ -59,6 +60,42 @@ namespace Victoria.CityMode
                 HandleRoadClick(ray);
             else if (Mode == CityToolMode.ZoneResidential)
                 HandleZoneClick(ray);
+            else
+                HandleInspectClick(ray);
+        }
+
+        void HandleInspectClick(Ray ray)
+        {
+            var selected = 0;
+            if (Physics.Raycast(ray, out var hit, 1000f))
+            {
+                var building = hit.collider.GetComponentInParent<BuildingView>();
+                if (building != null)
+                    selected = building.BuildingId;
+            }
+            SelectBuilding(selected);
+        }
+
+        public void SelectBuilding(int buildingId)
+        {
+            SelectedBuildingId = buildingId;
+            game.SetSelectedBuilding(buildingId);
+            Prompt = buildingId == 0
+                ? "R: route  |  Z: parcelles  |  Cliquez un chantier"
+                : $"Chantier {buildingId} selectionne: choisissez sa priorite";
+        }
+
+        public void SetSelectedPriority(int priority)
+        {
+            if (SelectedBuildingId == 0)
+            {
+                Prompt = "Selectionnez d'abord un chantier";
+                return;
+            }
+            var result = game.Submit(CityCommand.SetPriority(SelectedBuildingId, priority));
+            Prompt = result.accepted
+                ? $"Priorite du chantier {SelectedBuildingId}: {priority}"
+                : $"Priorite refusee: {result.reason}";
         }
 
         void HandleRoadClick(Ray ray)
