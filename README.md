@@ -45,6 +45,8 @@ passent des fondations a l'ossature en bois, puis au prefab final.
 Les tests et builds automatises passent toujours par `Tools/run_unity_locked.py`.
 Les resultats XML, journaux de build et captures du player Windows sont conserves
 sous `Logs/`; le build de travail est produit sous `Builds/Windows`.
+Le detail des portes, commandes et derniers resultats est conserve dans
+`Docs/VALIDATION.md`.
 
 ## Frontiere d'integration
 
