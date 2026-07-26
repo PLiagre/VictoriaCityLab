@@ -1,0 +1,11 @@
+{
+  "name": "Victoria.CityLab.Editor",
+  "rootNamespace": "Victoria.CityLab.Editor",
+  "references": [
+    "Victoria.CityMode",
+    "Unity.RenderPipelines.Universal.Runtime"
+  ],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": true
+}
+

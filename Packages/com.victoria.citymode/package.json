@@ -1,0 +1,13 @@
+{
+  "name": "com.victoria.citymode",
+  "version": "0.1.0",
+  "displayName": "Victoria City Mode",
+  "description": "Reusable city-builder presentation and prototype simulation contracts.",
+  "unity": "6000.0",
+  "dependencies": {
+    "com.unity.inputsystem": "1.13.1",
+    "com.unity.ai.navigation": "2.0.6",
+    "com.unity.render-pipelines.universal": "17.0.4"
+  }
+}
+

@@ -1,0 +1,11 @@
+{
+  "name": "Victoria.CityMode",
+  "rootNamespace": "Victoria.CityMode",
+  "references": [
+    "Unity.InputSystem",
+    "Unity.AI.Navigation",
+    "Unity.RenderPipelines.Universal.Runtime"
+  ],
+  "autoReferenced": true
+}
+
