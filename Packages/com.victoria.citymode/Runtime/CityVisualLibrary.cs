@@ -21,6 +21,8 @@ namespace Victoria.CityMode
     {
         Animator animator;
         Vector3 lastPosition;
+        GameObject carriedWood;
+        static Material carriedWoodMaterial;
 
         public void Initialize(RuntimeAnimatorController controller)
         {
@@ -30,7 +32,37 @@ namespace Victoria.CityMode
                 animator.runtimeAnimatorController = controller;
                 animator.applyRootMotion = false;
             }
+            CreateCarriedWood();
             lastPosition = transform.position;
+        }
+
+        void CreateCarriedWood()
+        {
+            carriedWood = new GameObject("Carried wood bundle");
+            carriedWood.transform.SetParent(transform, false);
+            carriedWood.transform.localPosition = new Vector3(0.35f, 0.88f, 0.16f);
+            if (carriedWoodMaterial == null)
+            {
+                var source = Resources.Load<Material>("CityLabBaseMaterial");
+                carriedWoodMaterial = new Material(source)
+                {
+                    name = "Runtime Carried Wood",
+                    color = new Color(0.46f, 0.24f, 0.07f)
+                };
+            }
+            for (var i = 0; i < 3; i++)
+            {
+                var log = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                log.name = "Log";
+                log.transform.SetParent(carriedWood.transform, false);
+                log.transform.localPosition = new Vector3(0f, (i - 1) * 0.13f, 0f);
+                log.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+                log.transform.localScale = new Vector3(0.075f, 0.28f, 0.075f);
+                log.GetComponent<Renderer>().sharedMaterial = carriedWoodMaterial;
+                var collider = log.GetComponent<Collider>();
+                if (collider != null) collider.enabled = false;
+            }
+            carriedWood.SetActive(false);
         }
 
         public void Refresh(VillagerActivity activity, int carryingWood)
@@ -46,6 +78,8 @@ namespace Victoria.CityMode
                 animator.SetFloat("Speed", moving ? 1f : 0f);
                 animator.SetBool("Working", activity == VillagerActivity.Building);
             }
+            if (carriedWood != null)
+                carriedWood.SetActive(carryingWood > 0);
             lastPosition = transform.position;
         }
     }

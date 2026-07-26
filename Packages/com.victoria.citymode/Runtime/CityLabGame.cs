@@ -31,6 +31,7 @@ namespace Victoria.CityMode
         Material villagerMaterial;
         Material woodMaterial;
         Material baseMaterial;
+        Terrain worldTerrain;
         CityLabPerformanceProbe performanceProbe;
 
         public ICityStateSource StateSource => simulation;
@@ -101,13 +102,13 @@ namespace Victoria.CityMode
             baseMaterial = Resources.Load<Material>("CityLabBaseMaterial");
             if (baseMaterial == null)
                 throw new System.InvalidOperationException("CityLabBaseMaterial is missing from Resources.");
-            roadMaterial = MakeMaterial("Road", new Color(0.16f, 0.12f, 0.09f));
-            parcelMaterial = MakeMaterial("Parcel", new Color(0.16f, 0.36f, 0.18f, 0.42f), true);
-            foundationMaterial = MakeMaterial("Foundation", new Color(0.28f, 0.25f, 0.22f));
-            framingMaterial = MakeMaterial("Framing", new Color(0.36f, 0.20f, 0.09f));
-            houseMaterial = MakeMaterial("House", new Color(0.24f, 0.09f, 0.075f));
-            villagerMaterial = MakeMaterial("Villager", new Color(0.18f, 0.23f, 0.34f));
-            woodMaterial = MakeMaterial("Wood", new Color(0.30f, 0.16f, 0.06f));
+            roadMaterial = MakeMaterial("Road", new Color(0.30f, 0.22f, 0.14f));
+            parcelMaterial = MakeMaterial("Parcel", new Color(0.34f, 0.57f, 0.25f, 0.28f), true);
+            foundationMaterial = MakeMaterial("Foundation", new Color(0.39f, 0.37f, 0.32f));
+            framingMaterial = MakeMaterial("Framing", new Color(0.48f, 0.29f, 0.12f));
+            houseMaterial = MakeMaterial("House", new Color(0.46f, 0.22f, 0.14f));
+            villagerMaterial = MakeMaterial("Villager", new Color(0.20f, 0.29f, 0.43f));
+            woodMaterial = MakeMaterial("Wood", new Color(0.43f, 0.24f, 0.09f));
         }
 
         Material MakeMaterial(string label, Color color, bool transparent = false)
@@ -146,14 +147,67 @@ namespace Victoria.CityMode
             var terrainObject = Terrain.CreateTerrainGameObject(terrainData);
             terrainObject.name = "European Terrain 512m";
             terrainObject.transform.position = new Vector3(-256f, -terrainData.GetInterpolatedHeight(0.5f, 0.5f), -256f);
-            var terrain = terrainObject.GetComponent<Terrain>();
-            terrain.drawInstanced = true;
-            terrain.materialTemplate = MakeMaterial("Terrain", new Color(0.18f, 0.27f, 0.12f));
+            worldTerrain = terrainObject.GetComponent<Terrain>();
+            worldTerrain.drawInstanced = true;
+            var terrainMaterial = Resources.Load<Material>("CityLabTerrainMaterial");
+            if (terrainMaterial != null)
+                worldTerrain.materialTemplate = terrainMaterial;
+            ConfigureTerrainLayers(terrainData);
 
             var surface = terrainObject.AddComponent<NavMeshSurface>();
             surface.collectObjects = CollectObjects.All;
             surface.useGeometry = NavMeshCollectGeometry.PhysicsColliders;
             surface.BuildNavMesh();
+        }
+
+        static void ConfigureTerrainLayers(TerrainData data)
+        {
+            var meadow = CreateTerrainLayer("Meadow", new Color(0.20f, 0.43f, 0.11f), 13.7f);
+            var grass = CreateTerrainLayer("Dry Grass", new Color(0.48f, 0.44f, 0.17f), 27.4f);
+            var earth = CreateTerrainLayer("Earth", new Color(0.36f, 0.20f, 0.08f), 41.8f);
+            data.terrainLayers = new[] { meadow, grass, earth };
+            data.alphamapResolution = 128;
+            var blend = new float[128, 128, 3];
+            for (var z = 0; z < 128; z++)
+            for (var x = 0; x < 128; x++)
+            {
+                var broad = Mathf.PerlinNoise(x * 0.035f + 8.1f, z * 0.035f + 3.7f);
+                var fine = Mathf.PerlinNoise(x * 0.09f + 1.9f, z * 0.09f + 6.2f);
+                var earthWeight = Mathf.Clamp01((fine - 0.57f) * 3.2f) * 0.60f;
+                var dryWeight = Mathf.Lerp(0.08f, 0.60f, broad) * (1f - earthWeight);
+                blend[z, x, 0] = 1f - dryWeight - earthWeight;
+                blend[z, x, 1] = dryWeight;
+                blend[z, x, 2] = earthWeight;
+            }
+            data.SetAlphamaps(0, 0, blend);
+        }
+
+        static TerrainLayer CreateTerrainLayer(string label, Color baseColor, float seed)
+        {
+            const int size = 64;
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, true)
+            {
+                name = label + " Texture",
+                wrapMode = TextureWrapMode.Repeat,
+                filterMode = FilterMode.Bilinear
+            };
+            var pixels = new Color[size * size];
+            for (var y = 0; y < size; y++)
+            for (var x = 0; x < size; x++)
+            {
+                var noise = Mathf.PerlinNoise(x * 0.16f + seed, y * 0.16f + seed * 0.37f);
+                pixels[y * size + x] = baseColor * Mathf.Lerp(0.78f, 1.16f, noise);
+            }
+            texture.SetPixels(pixels);
+            texture.Apply(true, true);
+            return new TerrainLayer
+            {
+                name = label,
+                diffuseTexture = texture,
+                tileSize = new Vector2(18f, 18f),
+                metallic = 0f,
+                smoothness = 0.08f
+            };
         }
 
         void CreateCamera()
@@ -164,6 +218,7 @@ namespace Victoria.CityMode
             worldCamera.nearClipPlane = 0.2f;
             worldCamera.farClipPlane = 1000f;
             worldCamera.clearFlags = CameraClearFlags.Skybox;
+            worldCamera.allowHDR = true;
             cameraObject.AddComponent<AudioListener>();
             cameraObject.AddComponent<RtsCameraController>();
         }
@@ -173,8 +228,30 @@ namespace Victoria.CityMode
             var lightObject = new GameObject("Sun");
             var light = lightObject.AddComponent<Light>();
             light.type = LightType.Directional;
-            light.intensity = 1.25f;
+            light.intensity = 1.35f;
+            light.color = new Color(1f, 0.91f, 0.75f);
             light.shadows = LightShadows.Soft;
+            light.shadowStrength = 0.82f;
+            RenderSettings.sun = light;
+            RenderSettings.ambientMode = AmbientMode.Trilight;
+            RenderSettings.ambientSkyColor = new Color(0.48f, 0.57f, 0.67f);
+            RenderSettings.ambientEquatorColor = new Color(0.31f, 0.34f, 0.30f);
+            RenderSettings.ambientGroundColor = new Color(0.15f, 0.13f, 0.10f);
+            RenderSettings.fog = true;
+            RenderSettings.fogMode = FogMode.ExponentialSquared;
+            RenderSettings.fogDensity = 0.0018f;
+            RenderSettings.fogColor = new Color(0.60f, 0.66f, 0.69f);
+            var skyShader = Shader.Find("Skybox/Procedural");
+            if (skyShader != null)
+            {
+                var sky = new Material(skyShader) { name = "CityLab Day Sky" };
+                sky.SetColor("_SkyTint", new Color(0.38f, 0.52f, 0.68f));
+                sky.SetColor("_GroundColor", new Color(0.38f, 0.35f, 0.29f));
+                sky.SetFloat("_AtmosphereThickness", 0.85f);
+                sky.SetFloat("_Exposure", 1.15f);
+                sky.SetFloat("_SunSize", 0.035f);
+                RenderSettings.skybox = sky;
+            }
             lightCycle = lightObject.AddComponent<DirectionalLightCycle>();
         }
 
@@ -197,11 +274,13 @@ namespace Victoria.CityMode
             if (visualLibrary == null || visualLibrary.treePrefabs == null)
                 return;
             var random = new System.Random(140001);
-            for (var i = 0; i < 72; i++)
+            for (var i = 0; i < 80; i++)
             {
-                var radius = Mathf.Lerp(85f, 225f, (float)random.NextDouble());
+                var radius = Mathf.Lerp(52f, 155f, (float)random.NextDouble());
                 var angle = (float)random.NextDouble() * Mathf.PI * 2f;
                 var position = new Vector3(Mathf.Cos(angle) * radius, 0f, Mathf.Sin(angle) * radius);
+                if (worldTerrain != null)
+                    position.y = worldTerrain.SampleHeight(position) + worldTerrain.transform.position.y;
                 var prefab = visualLibrary.treePrefabs[i % visualLibrary.treePrefabs.Length];
                 var tree = InstantiateVisual(prefab, $"Tree {i + 1}", position,
                     Quaternion.Euler(0f, (float)random.NextDouble() * 360f, 0f));
@@ -228,11 +307,25 @@ namespace Victoria.CityMode
                 return;
             var start = road.start.ToVector3();
             var end = road.end.ToVector3();
-            var center = (start + end) * 0.5f + Vector3.up * 0.15f;
+            var center = (start + end) * 0.5f + Vector3.up * 0.10f;
             var length = Vector3.Distance(start, end);
-            var view = CreatePrimitive($"Road {road.id}", PrimitiveType.Cube, center, new Vector3(4f, 0.3f, length), roadMaterial);
-            view.transform.rotation = Quaternion.LookRotation((end - start).normalized, Vector3.up);
+            var view = CreatePrimitive($"Road {road.id}", PrimitiveType.Cube, center, new Vector3(4.6f, 0.18f, length), roadMaterial);
+            var rotation = Quaternion.LookRotation((end - start).normalized, Vector3.up);
+            view.transform.rotation = rotation;
             view.AddComponent<RoadView>().RoadId = road.id;
+            var verge = MakeMaterial("Road Verge", new Color(0.43f, 0.34f, 0.20f));
+            var side = rotation * Vector3.right * 2.05f;
+            var left = CreatePrimitive("Left worn edge", PrimitiveType.Cube, center - side + Vector3.up * 0.04f,
+                new Vector3(0.24f, 0.06f, length), verge);
+            var right = CreatePrimitive("Right worn edge", PrimitiveType.Cube, center + side + Vector3.up * 0.04f,
+                new Vector3(0.24f, 0.06f, length), verge);
+            left.transform.rotation = rotation;
+            right.transform.rotation = rotation;
+            foreach (var edge in new[] { left, right })
+            {
+                var edgeCollider = edge.GetComponent<Collider>();
+                if (edgeCollider != null) edgeCollider.enabled = false;
+            }
             roadViews.Add(road.id, view);
         }
 
@@ -240,14 +333,39 @@ namespace Victoria.CityMode
         {
             if (!parcelViews.TryGetValue(parcel.id, out var view))
             {
-                view = CreatePrimitive($"Parcel {parcel.id}", PrimitiveType.Cube,
-                    parcel.center.ToVector3() + Vector3.up * 0.06f,
-                    new Vector3(parcel.width, 0.12f, parcel.depth), parcelMaterial);
-                var collider = view.GetComponent<Collider>();
+                view = new GameObject($"Parcel {parcel.id}");
+                view.transform.position = parcel.center.ToVector3() + Vector3.up * 0.06f;
+                var fill = CreatePrimitive("Zoning fill", PrimitiveType.Cube, Vector3.zero,
+                    new Vector3(parcel.width, 0.06f, parcel.depth), parcelMaterial);
+                fill.transform.SetParent(view.transform, false);
+                var collider = fill.GetComponent<Collider>();
                 if (collider != null) collider.enabled = false;
+                AddParcelBorder(view.transform, parcel.width, parcel.depth);
                 parcelViews.Add(parcel.id, view);
             }
             view.SetActive(parcel.buildingId == 0);
+        }
+
+        void AddParcelBorder(Transform root, float width, float depth)
+        {
+            var border = MakeMaterial("Parcel Border", new Color(0.67f, 0.72f, 0.38f));
+            var north = CreatePrimitive("Boundary North", PrimitiveType.Cube, Vector3.zero, new Vector3(width, 0.10f, 0.16f), border);
+            var south = CreatePrimitive("Boundary South", PrimitiveType.Cube, Vector3.zero, new Vector3(width, 0.10f, 0.16f), border);
+            var west = CreatePrimitive("Boundary West", PrimitiveType.Cube, Vector3.zero, new Vector3(0.16f, 0.10f, depth), border);
+            var east = CreatePrimitive("Boundary East", PrimitiveType.Cube, Vector3.zero, new Vector3(0.16f, 0.10f, depth), border);
+            north.transform.SetParent(root, false);
+            south.transform.SetParent(root, false);
+            west.transform.SetParent(root, false);
+            east.transform.SetParent(root, false);
+            north.transform.localPosition = new Vector3(0f, 0.06f, depth * 0.5f);
+            south.transform.localPosition = new Vector3(0f, 0.06f, -depth * 0.5f);
+            west.transform.localPosition = new Vector3(-width * 0.5f, 0.06f, 0f);
+            east.transform.localPosition = new Vector3(width * 0.5f, 0.06f, 0f);
+            foreach (Transform edge in root)
+            {
+                var edgeCollider = edge.GetComponent<Collider>();
+                if (edgeCollider != null) edgeCollider.enabled = false;
+            }
         }
 
         void SyncBuilding(BuildingState building)
@@ -265,15 +383,22 @@ namespace Victoria.CityMode
             switch (building.phase)
             {
                 case BuildingPhase.Foundation:
+                    SetFramingVisible(view, false);
+                    renderer.enabled = true;
                     view.transform.localScale = new Vector3(7f, 0.7f, 9f);
+                    view.transform.position = building.position.ToVector3() + Vector3.up * 0.35f;
                     renderer.sharedMaterial = foundationMaterial;
                     break;
                 case BuildingPhase.Framing:
-                    view.transform.localScale = new Vector3(7f, 3.5f, 9f);
-                    view.transform.position = building.position.ToVector3() + Vector3.up * 1.75f;
-                    renderer.sharedMaterial = framingMaterial;
+                    view.transform.localScale = Vector3.one;
+                    view.transform.position = building.position.ToVector3();
+                    renderer.enabled = false;
+                    EnsureFramingVisual(view).SetActive(true);
                     break;
                 case BuildingPhase.Complete:
+                    SetFramingVisible(view, false);
+                    view.transform.localScale = Vector3.one;
+                    view.transform.position = building.position.ToVector3();
                     if (visualLibrary != null && visualLibrary.housePrefabs != null && visualLibrary.housePrefabs.Length > 0)
                     {
                         renderer.enabled = false;
@@ -293,6 +418,42 @@ namespace Victoria.CityMode
                     }
                     break;
             }
+        }
+
+        GameObject EnsureFramingVisual(GameObject view)
+        {
+            var existing = view.transform.Find("Timber frame");
+            if (existing != null)
+                return existing.gameObject;
+            var frame = new GameObject("Timber frame");
+            frame.transform.SetParent(view.transform, false);
+            var postPositions = new[]
+            {
+                new Vector3(-3f, 1.7f, -4f), new Vector3(3f, 1.7f, -4f),
+                new Vector3(-3f, 1.7f, 4f), new Vector3(3f, 1.7f, 4f)
+            };
+            foreach (var position in postPositions)
+                AddFrameBeam(frame.transform, position, new Vector3(0.32f, 3.4f, 0.32f), Quaternion.identity);
+            AddFrameBeam(frame.transform, new Vector3(0f, 3.35f, -4f), new Vector3(6.5f, 0.32f, 0.32f), Quaternion.identity);
+            AddFrameBeam(frame.transform, new Vector3(0f, 3.35f, 4f), new Vector3(6.5f, 0.32f, 0.32f), Quaternion.identity);
+            AddFrameBeam(frame.transform, new Vector3(-3f, 3.35f, 0f), new Vector3(0.32f, 0.32f, 8.5f), Quaternion.identity);
+            AddFrameBeam(frame.transform, new Vector3(3f, 3.35f, 0f), new Vector3(0.32f, 0.32f, 8.5f), Quaternion.identity);
+            return frame;
+        }
+
+        void AddFrameBeam(Transform parent, Vector3 localPosition, Vector3 scale, Quaternion rotation)
+        {
+            var beam = CreatePrimitive("Timber beam", PrimitiveType.Cube, Vector3.zero, scale, framingMaterial);
+            beam.transform.SetParent(parent, false);
+            beam.transform.SetLocalPositionAndRotation(localPosition, rotation);
+            var collider = beam.GetComponent<Collider>();
+            if (collider != null) collider.enabled = false;
+        }
+
+        static void SetFramingVisible(GameObject view, bool visible)
+        {
+            var framing = view.transform.Find("Timber frame");
+            if (framing != null) framing.gameObject.SetActive(visible);
         }
 
         void SyncVillager(VillagerState villager)
@@ -359,10 +520,11 @@ namespace Victoria.CityMode
 
         void Update()
         {
-            normalizedTime = Mathf.Repeat(normalizedTime + Time.deltaTime / cycleSeconds, 1f);
-            transform.rotation = Quaternion.Euler(normalizedTime * 360f - 90f, 25f, 0f);
+            normalizedTime = Mathf.Repeat(normalizedTime + Time.unscaledDeltaTime / cycleSeconds, 1f);
+            var daylight = Mathf.Sin(normalizedTime * Mathf.PI);
+            transform.rotation = Quaternion.Euler(Mathf.Lerp(28f, 58f, daylight), -38f + normalizedTime * 22f, 0f);
             var light = GetComponent<Light>();
-            light.intensity = Mathf.Lerp(0.08f, 1.3f, Mathf.Clamp01(Mathf.Sin(normalizedTime * Mathf.PI)));
+            light.intensity = Mathf.Lerp(1.05f, 1.45f, daylight);
         }
     }
 
@@ -405,9 +567,9 @@ namespace Victoria.CityMode
             if (controller != null)
             {
                 controller.enabled = false;
-                var rotation = Quaternion.Euler(48f, 35f, 0f);
+                var rotation = Quaternion.Euler(39f, 27f, 0f);
                 controller.transform.SetPositionAndRotation(
-                    Vector3.zero - rotation * Vector3.forward * 85f, rotation);
+                    new Vector3(0f, 0f, 6f) - rotation * Vector3.forward * 82f, rotation);
             }
         }
 

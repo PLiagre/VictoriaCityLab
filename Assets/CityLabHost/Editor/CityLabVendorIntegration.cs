@@ -54,8 +54,8 @@ namespace Victoria.CityLab.Editor
             EnsureFolder(AdaptedRoot, "Materials");
 
             var houses = HouseSources.Select((path, index) =>
-                CreateNormalizedPrefab(path, $"CityLab House {index + 1}", 6.2f, 9.5f, 0.2f, true)).ToArray();
-            var centre = CreateNormalizedPrefab(TownCentreSource, "CityLab Town Centre", 7.2f, 12f, 0.2f, true);
+                CreateNormalizedPrefab(path, $"CityLab House {index + 1}", 6.2f, 9.5f, 1f, true)).ToArray();
+            var centre = CreateNormalizedPrefab(TownCentreSource, "CityLab Town Centre", 7.2f, 12f, 1f, true);
             var stock = CreateNormalizedPrefab(StockSource, "CityLab Wood Stock", 1.5f, 5f, 1f, true);
             var character = CreateNormalizedPrefab(CharacterSource, "CityLab Villager", 1.75f, 1.2f, 1f, true);
             var trees = TreeSources.Select((path, index) =>
@@ -125,6 +125,9 @@ namespace Victoria.CityLab.Editor
                 child.transform.localScale *= postScale;
                 child.transform.localPosition *= postScale;
 
+                var finalBounds = CalculateBounds(child);
+                Debug.Log($"CITYLAB_ADAPTED_BOUNDS label={label} size={finalBounds.size} center={finalBounds.center}");
+
                 var path = PrefabRoot + "/" + label.Replace(' ', '_') + ".prefab";
                 return PrefabUtility.SaveAsPrefabAsset(root, path);
             }
@@ -154,23 +157,49 @@ namespace Victoria.CityLab.Editor
                     if (adapted == null)
                     {
                         adapted = new Material(shader) { name = "CityLab URP " + source.name, enableInstancing = true };
-                        var texture = source.HasProperty("_BaseMap") ? source.GetTexture("_BaseMap") :
-                            source.HasProperty("_MainTex") ? source.GetTexture("_MainTex") : null;
-                        var color = source.HasProperty("_BaseColor") ? source.GetColor("_BaseColor") :
-                            source.HasProperty("_Color") ? source.GetColor("_Color") : Color.white;
-                        adapted.SetTexture("_BaseMap", texture);
-                        adapted.SetColor("_BaseColor", color);
-                        if (source.HasProperty("_BumpMap"))
-                        {
-                            var normal = source.GetTexture("_BumpMap");
-                            if (normal != null)
-                            {
-                                adapted.SetTexture("_BumpMap", normal);
-                                adapted.EnableKeyword("_NORMALMAP");
-                            }
-                        }
                         AssetDatabase.CreateAsset(adapted, assetPath);
                     }
+
+                    // Several Polytope shaders expose their albedo as _BaseTexture rather
+                    // than the Standard/URP property names. Missing it produced white tree
+                    // crowns in player builds even though the prefab itself was healthy.
+                    adapted.shader = shader;
+                    adapted.enableInstancing = true;
+                    var texture = source.HasProperty("_BaseMap") && source.GetTexture("_BaseMap") != null
+                        ? source.GetTexture("_BaseMap")
+                        : source.HasProperty("_MainTex") && source.GetTexture("_MainTex") != null
+                            ? source.GetTexture("_MainTex")
+                            : source.HasProperty("_BaseTexture") ? source.GetTexture("_BaseTexture") : null;
+                    var color = source.HasProperty("_BaseColor") ? source.GetColor("_BaseColor") :
+                        source.HasProperty("_Color") ? source.GetColor("_Color") : Color.white;
+                    adapted.SetTexture("_BaseMap", texture);
+                    adapted.SetColor("_BaseColor", color);
+                    adapted.SetFloat("_Smoothness", 0.2f);
+
+                    var alphaClipped = source.name.IndexOf("foliage", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                        source.name.IndexOf("leaves", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                        (source.HasProperty("_Mode") && source.GetFloat("_Mode") >= 2.5f);
+                    adapted.SetFloat("_AlphaClip", alphaClipped ? 1f : 0f);
+                    adapted.SetFloat("_Cutoff", 0.45f);
+                    adapted.SetFloat("_Cull", alphaClipped ? 0f : 2f);
+                    if (alphaClipped)
+                    {
+                        adapted.EnableKeyword("_ALPHATEST_ON");
+                        adapted.renderQueue = 2450;
+                    }
+                    else
+                    {
+                        adapted.DisableKeyword("_ALPHATEST_ON");
+                        adapted.renderQueue = -1;
+                    }
+                    if (source.HasProperty("_BumpMap"))
+                    {
+                        var normal = source.GetTexture("_BumpMap");
+                        adapted.SetTexture("_BumpMap", normal);
+                        if (normal != null) adapted.EnableKeyword("_NORMALMAP");
+                        else adapted.DisableKeyword("_NORMALMAP");
+                    }
+                    EditorUtility.SetDirty(adapted);
                     materials[i] = adapted;
                 }
                 renderer.sharedMaterials = materials;

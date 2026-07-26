@@ -30,11 +30,20 @@ hors de ce verrou advisory.
 - bouton droit + mouvement : rotation et inclinaison
 - `F` : recentrer la camera
 - `R`, puis deux clics au sol : tracer une route
+- l'apercu de route devient vert si le trace est valide et rouge sinon
 - `Z`, puis clic sur une route : creer des parcelles residentielles
 - `Echap` : annuler l'outil actif
 
 Le village commence avec huit habitants, six foyers sans logement et un stock
 de bois. Les habitants transportent physiquement le bois jusqu'aux chantiers.
+Le bois porte est materialise par un petit faisceau de buches. Les chantiers
+passent des fondations a l'ossature en bois, puis au prefab final.
+
+## Validation locale
+
+Les tests et builds automatises passent toujours par `Tools/run_unity_locked.py`.
+Les resultats XML, journaux de build et captures du player Windows sont conserves
+sous `Logs/`; le build de travail est produit sous `Builds/Windows`.
 
 ## Frontiere d'integration
 

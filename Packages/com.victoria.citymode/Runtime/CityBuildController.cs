@@ -15,6 +15,8 @@ namespace Victoria.CityMode
         CityLabGame game;
         bool hasRoadStart;
         Vector3 roadStart;
+        GameObject roadPreview;
+        Material roadPreviewMaterial;
 
         public CityToolMode Mode { get; private set; }
         public string Prompt { get; private set; } = "Selectionnez un outil";
@@ -29,6 +31,7 @@ namespace Victoria.CityMode
         {
             Mode = mode;
             hasRoadStart = false;
+            if (roadPreview != null) roadPreview.SetActive(false);
             Prompt = mode switch
             {
                 CityToolMode.DrawRoad => "Route: cliquez le point de depart",
@@ -47,6 +50,7 @@ namespace Victoria.CityMode
             if (keyboard.rKey.wasPressedThisFrame) SetMode(CityToolMode.DrawRoad);
             if (keyboard.zKey.wasPressedThisFrame) SetMode(CityToolMode.ZoneResidential);
             if (keyboard.escapeKey.wasPressedThisFrame) SetMode(CityToolMode.Inspect);
+            UpdateRoadPreview(mouse.position.ReadValue());
             if (!mouse.leftButton.wasPressedThisFrame)
                 return;
 
@@ -70,6 +74,7 @@ namespace Victoria.CityMode
             {
                 roadStart = point;
                 hasRoadStart = true;
+                EnsureRoadPreview();
                 Prompt = "Route: cliquez le point d'arrivee";
                 return;
             }
@@ -79,6 +84,53 @@ namespace Victoria.CityMode
             Prompt = result.accepted
                 ? "Route creee. Z puis clic sur la route pour lotir."
                 : $"Route refusee: {result.reason}";
+            if (roadPreview != null) roadPreview.SetActive(false);
+        }
+
+        void EnsureRoadPreview()
+        {
+            if (roadPreview != null)
+                return;
+            roadPreview = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            roadPreview.name = "Road placement preview";
+            var collider = roadPreview.GetComponent<Collider>();
+            if (collider != null) collider.enabled = false;
+            var baseMaterial = Resources.Load<Material>("CityLabBaseMaterial");
+            roadPreviewMaterial = new Material(baseMaterial) { name = "Runtime Road Preview" };
+            roadPreview.GetComponent<Renderer>().sharedMaterial = roadPreviewMaterial;
+        }
+
+        void UpdateRoadPreview(Vector2 pointer)
+        {
+            if (Mode != CityToolMode.DrawRoad || !hasRoadStart)
+            {
+                if (roadPreview != null) roadPreview.SetActive(false);
+                return;
+            }
+            EnsureRoadPreview();
+            var ray = game.WorldCamera.ScreenPointToRay(pointer);
+            if (!Physics.Raycast(ray, out var hit, 1000f))
+            {
+                roadPreview.SetActive(false);
+                return;
+            }
+            var end = hit.point;
+            end.y = 0f;
+            var delta = end - roadStart;
+            var length = delta.magnitude;
+            if (length < 0.01f)
+            {
+                roadPreview.SetActive(false);
+                return;
+            }
+            roadPreview.SetActive(true);
+            roadPreview.transform.SetPositionAndRotation((roadStart + end) * 0.5f + Vector3.up * 0.18f,
+                Quaternion.LookRotation(delta.normalized, Vector3.up));
+            roadPreview.transform.localScale = new Vector3(4.6f, 0.18f, length);
+            var valid = length >= 4f && length <= 150f && Mathf.Abs(end.x) <= 250f && Mathf.Abs(end.z) <= 250f;
+            roadPreviewMaterial.color = valid
+                ? new Color(0.32f, 0.72f, 0.30f, 0.82f)
+                : new Color(0.88f, 0.20f, 0.14f, 0.88f);
         }
 
         void HandleZoneClick(Ray ray)
@@ -101,4 +153,3 @@ namespace Victoria.CityMode
         }
     }
 }
-

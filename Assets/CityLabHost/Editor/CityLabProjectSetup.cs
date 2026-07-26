@@ -18,6 +18,7 @@ namespace Victoria.CityLab.Editor
         const string RendererPath = SettingsFolder + "/CityLabRenderer.asset";
         const string PipelinePath = SettingsFolder + "/CityLabURP.asset";
         const string RuntimeMaterialPath = "Assets/CityLabHost/Resources/CityLabBaseMaterial.mat";
+        const string TerrainMaterialPath = "Assets/CityLabHost/Resources/CityLabTerrainMaterial.mat";
         const string ScenePath = SceneFolder + "/CityLab.unity";
 
         [MenuItem("Victoria/CityLab/Configure Project")]
@@ -83,6 +84,19 @@ namespace Victoria.CityLab.Editor
                     throw new BuildFailedException("Shader URP Lit introuvable.");
                 var material = new Material(shader) { name = "CityLab Base Material", enableInstancing = true };
                 AssetDatabase.CreateAsset(material, RuntimeMaterialPath);
+            }
+
+            if (AssetDatabase.LoadAssetAtPath<Material>(TerrainMaterialPath) == null)
+            {
+                var terrainShader = Shader.Find("Universal Render Pipeline/Terrain/Lit");
+                if (terrainShader == null)
+                    throw new BuildFailedException("Shader URP Terrain Lit introuvable.");
+                var terrainMaterial = new Material(terrainShader)
+                {
+                    name = "CityLab Terrain Material",
+                    enableInstancing = true
+                };
+                AssetDatabase.CreateAsset(terrainMaterial, TerrainMaterialPath);
             }
         }
 
