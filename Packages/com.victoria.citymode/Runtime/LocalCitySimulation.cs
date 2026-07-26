@@ -225,7 +225,7 @@ namespace Victoria.CityMode
                     parcelId = parcel.id,
                     householdId = household.id,
                     position = parcel.center,
-                    yaw = RoadYaw(parcel.roadId),
+                    yaw = ParcelFacingYaw(parcel),
                     priority = 1,
                     requiredWood = WoodPerHouse,
                     deliveredWood = 0,
@@ -416,13 +416,20 @@ namespace Victoria.CityMode
             return parcel != null && parcel.accessible;
         }
 
-        float RoadYaw(int roadId)
+        float ParcelFacingYaw(ParcelState parcel)
         {
-            var road = FindRoad(roadId);
+            var road = FindRoad(parcel.roadId);
             if (road == null)
                 return 0f;
-            var direction = road.end.ToVector3() - road.start.ToVector3();
-            return Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg;
+            var start = road.start.ToVector3();
+            var segment = road.end.ToVector3() - start;
+            var lengthSquared = segment.sqrMagnitude;
+            if (lengthSquared <= 0.0001f)
+                return 0f;
+            var center = parcel.center.ToVector3();
+            var t = Mathf.Clamp01(Vector3.Dot(center - start, segment) / lengthSquared);
+            var facing = (start + segment * t - center).normalized;
+            return Mathf.Atan2(facing.x, facing.z) * Mathf.Rad2Deg;
         }
 
         RoadState FindRoad(int id) => state.roads.Find(item => item.id == id);
@@ -442,4 +449,3 @@ namespace Victoria.CityMode
         }
     }
 }
-

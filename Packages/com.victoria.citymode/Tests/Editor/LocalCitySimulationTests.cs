@@ -135,5 +135,28 @@ namespace Victoria.CityMode.Tests
             Assert.Less(elapsed, 600f);
             Assert.That(snapshot.buildings.Exists(item => item.phase == BuildingPhase.Complete), Is.True);
         }
+
+        [Test]
+        public void ZonedHouses_FaceTheirRoadFromBothSides()
+        {
+            var simulation = LocalCitySimulation.FromJson(Fixture);
+            var roadResult = simulation.Submit(CityCommand.DrawRoad(new Vector3(-42, 0, 12), new Vector3(42, 0, 12)));
+            simulation.Submit(CityCommand.ZoneResidential(roadResult.createdId));
+            var snapshot = simulation.GetSnapshot(1001);
+            var road = snapshot.roads.Find(item => item.id == roadResult.createdId);
+            var start = road.start.ToVector3();
+            var segment = road.end.ToVector3() - start;
+
+            foreach (var building in snapshot.buildings)
+            {
+                var parcel = snapshot.parcels.Find(item => item.id == building.parcelId);
+                var center = parcel.center.ToVector3();
+                var t = Mathf.Clamp01(Vector3.Dot(center - start, segment) / segment.sqrMagnitude);
+                var towardRoad = (start + segment * t - center).normalized;
+                var facadeForward = Quaternion.Euler(0f, building.yaw, 0f) * Vector3.forward;
+                Assert.Greater(Vector3.Dot(facadeForward, towardRoad), 0.999f,
+                    $"La maison {building.id} doit regarder la route depuis sa parcelle.");
+            }
+        }
     }
 }
