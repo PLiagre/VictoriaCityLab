@@ -20,7 +20,9 @@ namespace Victoria.CityMode
     public sealed class VillagerVisual : MonoBehaviour
     {
         Animator animator;
-        Vector3 lastPosition;
+        Vector3 targetPosition;
+        VillagerActivity activity;
+        int carryingWood;
         GameObject carriedWood;
         static Material carriedWoodMaterial;
 
@@ -33,7 +35,7 @@ namespace Victoria.CityMode
                 animator.applyRootMotion = false;
             }
             CreateCarriedWood();
-            lastPosition = transform.position;
+            targetPosition = transform.position;
         }
 
         void CreateCarriedWood()
@@ -65,10 +67,19 @@ namespace Victoria.CityMode
             carriedWood.SetActive(false);
         }
 
-        public void Refresh(VillagerActivity activity, int carryingWood)
+        public void Refresh(Vector3 position, VillagerActivity nextActivity, int nextCarryingWood)
         {
-            var delta = transform.position - lastPosition;
-            var moving = delta.sqrMagnitude > 0.00001f;
+            targetPosition = position;
+            activity = nextActivity;
+            carryingWood = nextCarryingWood;
+        }
+
+        void Update()
+        {
+            var before = transform.position;
+            transform.position = Vector3.Lerp(before, targetPosition, 1f - Mathf.Exp(-14f * Time.deltaTime));
+            var delta = transform.position - before;
+            var moving = delta.sqrMagnitude > 0.000001f;
             if (moving)
                 transform.rotation = Quaternion.Slerp(transform.rotation,
                     Quaternion.LookRotation(delta.normalized, Vector3.up), 0.35f);
@@ -80,7 +91,6 @@ namespace Victoria.CityMode
             }
             if (carriedWood != null)
                 carriedWood.SetActive(carryingWood > 0);
-            lastPosition = transform.position;
         }
     }
 }

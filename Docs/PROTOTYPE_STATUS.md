@@ -27,10 +27,11 @@ Les jalons visuels sont captures depuis le player Windows a 1920 x 1080 dans
 `Logs/Captures`. Le smoke test charge une fixture hote de 20 foyers, 30 batiments
 et 30 habitants et refuse de valider un scenario incomplet. Le jalon du 26 juillet
 2026 mesure 60,0 FPS moyens et 16,683 ms au p95 sur la machine de validation.
+Les snapshots metier sont rafraichis a 10 Hz et les vues d'habitants interpolent
+leur position a chaque frame, ce qui evite une serialisation JSON complete dans
+chaque `Update` sans sacrifier la fluidite visuelle.
 
 ## Limites connues et prochaines priorites
 
-- enrichir l'animation de chantier (l'ossature est lisible, mais l'animation dediee
-  reste a choisir dans le pack DoubleL) ;
 - densifier les details proches : herbes, pierres, clotures et traces de roues ;
 - ameliorer la variation des facades et la composition du noyau initial.

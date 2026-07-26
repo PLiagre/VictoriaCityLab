@@ -12,6 +12,7 @@ namespace Victoria.CityMode
     public sealed class CityLabGame : MonoBehaviour
     {
         const int CityId = 1001;
+        const float ViewRefreshInterval = 0.1f;
         readonly Dictionary<int, GameObject> roadViews = new Dictionary<int, GameObject>();
         readonly Dictionary<int, GameObject> parcelViews = new Dictionary<int, GameObject>();
         readonly Dictionary<int, GameObject> buildingViews = new Dictionary<int, GameObject>();
@@ -33,6 +34,7 @@ namespace Victoria.CityMode
         Material baseMaterial;
         Terrain worldTerrain;
         CityLabPerformanceProbe performanceProbe;
+        float viewRefreshTimer;
 
         public ICityStateSource StateSource => simulation;
         public ICityCommandSink CommandSink => simulation;
@@ -64,7 +66,7 @@ namespace Victoria.CityMode
             buildController.Initialize(this);
             hud = gameObject.AddComponent<CityLabHud>();
             hud.Initialize(this, buildController);
-            SyncViews(simulation.GetSnapshot(CityId));
+            RefreshSnapshotViews();
             if (isSmoke)
             {
                 var road = Submit(CityCommand.DrawRoad(new Vector3(-42f, 0f, 12f), new Vector3(42f, 0f, 12f)));
@@ -90,6 +92,14 @@ namespace Victoria.CityMode
             if (simulation == null)
                 return;
             simulation.Tick(Time.deltaTime);
+            viewRefreshTimer -= Time.deltaTime;
+            if (viewRefreshTimer <= 0f)
+                RefreshSnapshotViews();
+        }
+
+        void RefreshSnapshotViews()
+        {
+            viewRefreshTimer = ViewRefreshInterval;
             var snapshot = simulation.GetSnapshot(CityId);
             SyncViews(snapshot);
             hud?.Refresh(snapshot);
@@ -503,11 +513,14 @@ namespace Victoria.CityMode
             }
             var isDetailed = view.GetComponent<VillagerVisual>() != null;
             var target = villager.position.ToVector3() + (isDetailed ? Vector3.zero : Vector3.up);
-            view.transform.position = Vector3.Lerp(view.transform.position, target, 1f - Mathf.Exp(-15f * Time.deltaTime));
             if (isDetailed)
-                view.GetComponent<VillagerVisual>().Refresh(villager.activity, villager.carryingWood);
+                view.GetComponent<VillagerVisual>().Refresh(target, villager.activity, villager.carryingWood);
             else
+            {
+                view.transform.position = Vector3.Lerp(view.transform.position, target,
+                    1f - Mathf.Exp(-15f * ViewRefreshInterval));
                 view.transform.localScale = villager.carryingWood > 0 ? new Vector3(0.8f, 1f, 0.8f) : new Vector3(0.7f, 1f, 0.7f);
+            }
         }
 
         static GameObject InstantiateVisual(GameObject prefab, string label, Vector3 position, Quaternion rotation)
