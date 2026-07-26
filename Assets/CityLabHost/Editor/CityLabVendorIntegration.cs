@@ -39,6 +39,7 @@ namespace Victoria.CityLab.Editor
         const string CharacterSource = "Assets/URP GanzSe Free Modular Character Pack/Prefabs/Modular Character/GanzSe Free Modular Character Update 1_1.prefab";
         const string IdleSource = "Assets/Kevin Iglesias/Human Animations/Animations/Male/Idles/HumanM@Idle01.fbx";
         const string WalkSource = "Assets/Kevin Iglesias/Human Animations/Animations/Male/Movement/Walk/HumanM@Walk01_Forward.fbx";
+        const string WorkSource = "Assets/Kevin Iglesias/Human Animations/Animations/Male/Social/Conversation/HumanM@Talk01.fbx";
 
         static readonly string[] TreeSources =
         {
@@ -266,7 +267,10 @@ namespace Victoria.CityLab.Editor
             var work = machine.AddState("Work");
             idle.motion = LoadClip(IdleSource);
             walk.motion = LoadClip(WalkSource);
-            work.motion = idle.motion;
+            work.motion = LoadClip(WorkSource) ?? idle.motion;
+            idle.iKOnFeet = true;
+            walk.iKOnFeet = true;
+            work.iKOnFeet = true;
             machine.defaultState = idle;
 
             AddTransition(idle, walk, "Speed", AnimatorConditionMode.Greater, 0.1f);
@@ -274,6 +278,7 @@ namespace Victoria.CityLab.Editor
             var toWork = machine.AddAnyStateTransition(work);
             toWork.hasExitTime = false;
             toWork.duration = 0.12f;
+            toWork.canTransitionToSelf = false;
             toWork.AddCondition(AnimatorConditionMode.If, 0f, "Working");
             AddTransition(work, idle, "Working", AnimatorConditionMode.IfNot, 0f);
             return controller;

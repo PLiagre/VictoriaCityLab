@@ -114,5 +114,26 @@ namespace Victoria.CityMode.Tests
             Assert.AreEqual(2, snapshot.villagers.Find(item => item.id == 1).targetBuildingId);
             Assert.AreEqual("building-unknown", simulation.Submit(CityCommand.SetPriority(999, 1)).reason);
         }
+
+        [Test]
+        public void CompletePlayableLoop_HousesAHouseholdWithinTenSimulatedMinutes()
+        {
+            var simulation = LocalCitySimulation.FromJson(Fixture);
+            var road = simulation.Submit(CityCommand.DrawRoad(new Vector3(-42, 0, 12), new Vector3(42, 0, 12)));
+            Assert.IsTrue(road.accepted);
+            Assert.IsTrue(simulation.Submit(CityCommand.ZoneResidential(road.createdId)).accepted);
+
+            var elapsed = 0f;
+            while (elapsed < 600f && simulation.GetSnapshot(1001).households.TrueForAll(item => item.homeBuildingId == 0))
+            {
+                simulation.Tick(0.1f);
+                elapsed += 0.1f;
+            }
+
+            var snapshot = simulation.GetSnapshot(1001);
+            Assert.That(snapshot.households.Exists(item => item.homeBuildingId != 0), Is.True);
+            Assert.Less(elapsed, 600f);
+            Assert.That(snapshot.buildings.Exists(item => item.phase == BuildingPhase.Complete), Is.True);
+        }
     }
 }

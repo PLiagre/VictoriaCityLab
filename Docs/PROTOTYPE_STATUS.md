@@ -8,7 +8,8 @@
 - zoning residentiel, parcelles des deux cotes et orientation vers la route ;
 - reservation, transport, livraison et conservation du bois ;
 - fondations, ossature en bois et maison Vendor terminee ;
-- habitants GanzSe animes par les clips Humanoid Kevin Iglesias ;
+- habitants GanzSe animes par les clips Humanoid Kevin Iglesias : idle, marche,
+  transport avec faisceau de buches et gestes actifs de chantier ;
 - HUD 1080p affichant ressources, population, foyers et chantiers ;
 - selection d'un chantier dans le monde, surlignage et priorite basse/normale/haute ;
 - fallbacks primitifs si le catalogue visuel hote est absent.
