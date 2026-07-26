@@ -31,6 +31,7 @@ namespace Victoria.CityMode
         Material houseMaterial;
         Material villagerMaterial;
         Material woodMaterial;
+        Material smokeMaterial;
         Material baseMaterial;
         Terrain worldTerrain;
         CityLabPerformanceProbe performanceProbe;
@@ -136,6 +137,7 @@ namespace Victoria.CityMode
             houseMaterial = MakeMaterial("House", new Color(0.46f, 0.22f, 0.14f));
             villagerMaterial = MakeMaterial("Villager", new Color(0.20f, 0.29f, 0.43f));
             woodMaterial = MakeMaterial("Wood", new Color(0.43f, 0.24f, 0.09f));
+            smokeMaterial = MakeMaterial("Hearth Smoke", new Color(0.14f, 0.15f, 0.14f, 0.20f), true);
         }
 
         Material MakeMaterial(string label, Color color, bool transparent = false)
@@ -442,6 +444,7 @@ namespace Victoria.CityMode
                             var detailed = Instantiate(prefab, view.transform);
                             detailed.name = "Completed House Visual";
                             detailed.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+                            AddOccupiedHomeDetails(view.transform);
                         }
                     }
                     else
@@ -452,6 +455,39 @@ namespace Victoria.CityMode
                     }
                     break;
             }
+        }
+
+        void AddOccupiedHomeDetails(Transform house)
+        {
+            var details = new GameObject("Occupied household");
+            details.transform.SetParent(house, false);
+
+            var hearth = new GameObject("Warm hearth light");
+            hearth.transform.SetParent(details.transform, false);
+            hearth.transform.localPosition = new Vector3(0f, 1.8f, -3.6f);
+            var light = hearth.AddComponent<Light>();
+            light.type = LightType.Point;
+            light.color = new Color(1f, 0.55f, 0.20f);
+            light.intensity = 1.25f;
+            light.range = 7f;
+            light.shadows = LightShadows.None;
+
+            var smokeRoot = new GameObject("Chimney smoke");
+            smokeRoot.transform.SetParent(details.transform, false);
+            var puffs = new Transform[4];
+            for (var i = 0; i < puffs.Length; i++)
+            {
+                var puff = CreatePrimitive($"Smoke puff {i + 1}", PrimitiveType.Sphere, Vector3.zero,
+                    Vector3.one * 0.45f, smokeMaterial);
+                puff.transform.SetParent(smokeRoot.transform, false);
+                var collider = puff.GetComponent<Collider>();
+                if (collider != null) collider.enabled = false;
+                var renderer = puff.GetComponent<Renderer>();
+                renderer.shadowCastingMode = ShadowCastingMode.Off;
+                renderer.receiveShadows = false;
+                puffs[i] = puff.transform;
+            }
+            smokeRoot.AddComponent<ChimneySmokeVisual>().Initialize(puffs);
         }
 
         GameObject EnsureFramingVisual(GameObject view)
@@ -602,6 +638,28 @@ namespace Victoria.CityMode
     }
 
     public sealed class StockpileMarker : MonoBehaviour { }
+
+    public sealed class ChimneySmokeVisual : MonoBehaviour
+    {
+        Transform[] puffs;
+
+        public void Initialize(Transform[] smokePuffs) => puffs = smokePuffs;
+
+        void Update()
+        {
+            if (puffs == null)
+                return;
+            for (var i = 0; i < puffs.Length; i++)
+            {
+                var phase = Mathf.Repeat(Time.unscaledTime * 0.16f + i / (float)puffs.Length, 1f);
+                puffs[i].localPosition = new Vector3(
+                    1.35f + Mathf.Sin(phase * Mathf.PI * 2f) * 0.22f,
+                    4.7f + phase * 2.4f,
+                    1.15f + Mathf.Cos(phase * Mathf.PI * 2f) * 0.16f);
+                puffs[i].localScale = Vector3.one * Mathf.Lerp(0.16f, 0.46f, phase);
+            }
+        }
+    }
 
     public sealed class DirectionalLightCycle : MonoBehaviour
     {

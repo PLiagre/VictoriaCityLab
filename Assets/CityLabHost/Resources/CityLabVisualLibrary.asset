@@ -17,7 +17,6 @@ MonoBehaviour:
   housePrefabs:
   - {fileID: 8604524913996652690, guid: f1daf0d5c65286941ac6d2749ea7c083, type: 3}
   - {fileID: 1093753060654180759, guid: 138b362f4bf0395449359f84ad977bb2, type: 3}
-  - {fileID: 446623010441353392, guid: 2f7aa53f486e4df4fae974481a3e6db7, type: 3}
   villagerPrefab: {fileID: 1655085116993674078, guid: ab3dcf334cee1d541bff4c544c86a819, type: 3}
   villagerAnimatorController: {fileID: 9100000, guid: a68dfa8514a990d40aaaccaa698ba566, type: 2}
   treePrefabs:

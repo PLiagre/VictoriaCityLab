@@ -86,7 +86,10 @@ namespace Victoria.CityLab.Editor
             }
             library.townCentrePrefab = centre;
             library.stockpilePrefab = stock;
-            library.housePrefabs = houses;
+            // The third free composite reads as an unroofed white slab from the RTS
+            // camera after URP conversion. Keep it admitted, but exclude it from the
+            // active catalogue until a reversible material adapter is available.
+            library.housePrefabs = houses.Take(2).ToArray();
             library.villagerPrefab = character;
             library.villagerAnimatorController = controller;
             library.treePrefabs = trees;
@@ -323,7 +326,7 @@ namespace Victoria.CityLab.Editor
             report.AppendLine("## Sélection active");
             report.AppendLine();
             report.AppendLine($"- Catalogue runtime valide : **{(library != null && library.HasDurableSlice ? "oui" : "non")}**.");
-            report.AppendLine("- EmaceArt : trois maisons composites, un bâtiment central et un tas de bois.");
+            report.AppendLine("- EmaceArt : deux maisons composites actives, une troisième variante admise mais écartée visuellement, un bâtiment central et un tas de bois.");
             report.AppendLine("- GanzSe : personnage modulaire normalisé et réduit à 11 pièces visibles (contre 216 renderers dans la source), débarrassé des scripts de démonstration ; la source Vendor reste intacte.");
             report.AppendLine("- Kevin Iglesias : idle et marche Humanoid sans root motion pilotés par CityLab.");
             report.AppendLine("- Polytope : deux arbres normalisés, distribués de façon déterministe en périphérie.");
