@@ -111,9 +111,24 @@ namespace Victoria.CityMode
             var result = simulation.Submit(command);
             if (result.accepted)
                 SyncViews(simulation.GetSnapshot(CityId));
-            hud?.ShowMessage(result.accepted ? "Ordre accepte" : $"Refus: {result.reason}");
+            hud?.ShowMessage(result.accepted ? "Ordre accepte" : $"Refus : {DescribeReason(result.reason)}", result.accepted);
             return result;
         }
+
+        public static string DescribeReason(string reason) => reason switch
+        {
+            "road-too-short" => "route trop courte",
+            "road-too-long" => "route trop longue",
+            "road-outside-map" => "hors des limites du domaine",
+            "road-unknown" => "route introuvable",
+            "road-inaccessible" => "route inaccessible",
+            "road-already-zoned" => "route deja lotie",
+            "no-valid-parcel" => "aucune parcelle valide",
+            "building-unknown" => "chantier introuvable",
+            "command-null" => "ordre vide",
+            "command-unknown" => "ordre inconnu",
+            _ => reason
+        };
 
         public void SetSelectedBuilding(int buildingId)
         {
@@ -777,6 +792,9 @@ namespace Victoria.CityMode
             var site = snapshot.buildings.Find(item => item.phase != BuildingPhase.Complete);
             if (site != null)
                 tools.SelectBuilding(site.id);
+            // The automated capture also exercises a harmless invalid command so
+            // the player-build screenshot proves the localized refusal treatment.
+            game.Submit(CityCommand.DrawRoad(Vector3.zero, Vector3.one));
         }
     }
 }

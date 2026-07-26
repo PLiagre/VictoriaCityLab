@@ -13,6 +13,8 @@ namespace Victoria.CityMode
         Label construction;
         Label prompt;
         Label message;
+        string lastMessage = "";
+        bool lastMessageSuccess = true;
         Label selection;
         VisualElement priorityControls;
         CitySnapshot pendingSnapshot;
@@ -128,6 +130,10 @@ namespace Victoria.CityMode
             resources.text = $"Bois: {snapshot.stockWood}  (reserve: {snapshot.reservedWood})";
             population.text = $"Habitants: {snapshot.villagers.Count}   Foyers loges: {housed}/{snapshot.households.Count}";
             construction.text = $"Chantiers: {active}   Maisons terminees: {complete}";
+            var missingWood = 0;
+            foreach (var building in snapshot.buildings)
+                if (building.phase != BuildingPhase.Complete)
+                    missingWood += Mathf.Max(0, building.requiredWood - building.deliveredWood);
             var selected = snapshot.buildings.Find(item => item.id == tools.SelectedBuildingId);
             if (selected == null)
             {
@@ -142,12 +148,31 @@ namespace Victoria.CityMode
                 priorityControls.SetEnabled(selected.phase != BuildingPhase.Complete);
             }
             prompt.text = tools.Prompt;
+            if (snapshot.stockWood == 0 && missingWood > 0)
+            {
+                message.text = $"Bois insuffisant : {missingWood} unites manquantes";
+                message.style.color = new Color(0.95f, 0.38f, 0.26f);
+            }
+            else
+            {
+                message.text = lastMessage;
+                message.style.color = lastMessageSuccess
+                    ? new Color(0.72f, 0.82f, 0.62f)
+                    : new Color(0.95f, 0.38f, 0.26f);
+            }
         }
 
-        public void ShowMessage(string text)
+        public void ShowMessage(string text, bool success)
         {
+            lastMessage = text;
+            lastMessageSuccess = success;
             if (message != null)
+            {
                 message.text = text;
+                message.style.color = success
+                    ? new Color(0.72f, 0.82f, 0.62f)
+                    : new Color(0.95f, 0.38f, 0.26f);
+            }
         }
 
         static Label MakeLabel(string text, int size, Color color)

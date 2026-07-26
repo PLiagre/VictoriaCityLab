@@ -95,7 +95,7 @@ namespace Victoria.CityMode
             var result = game.Submit(CityCommand.SetPriority(SelectedBuildingId, priority));
             Prompt = result.accepted
                 ? $"Priorite du chantier {SelectedBuildingId}: {priority}"
-                : $"Priorite refusee: {result.reason}";
+                : $"Priorite refusee : {CityLabGame.DescribeReason(result.reason)}";
         }
 
         void HandleRoadClick(Ray ray)
@@ -120,7 +120,7 @@ namespace Victoria.CityMode
             hasRoadStart = false;
             Prompt = result.accepted
                 ? "Route creee. Z puis clic sur la route pour lotir."
-                : $"Route refusee: {result.reason}";
+                : $"Route refusee : {CityLabGame.DescribeReason(result.reason)}";
             if (roadPreview != null) roadPreview.SetActive(false);
         }
 
@@ -186,7 +186,7 @@ namespace Victoria.CityMode
             var result = game.Submit(CityCommand.ZoneResidential(road.RoadId));
             Prompt = result.accepted
                 ? "Parcelles creees: les foyers lancent leurs chantiers"
-                : $"Lotissement refuse: {result.reason}";
+                : $"Lotissement refuse : {CityLabGame.DescribeReason(result.reason)}";
         }
     }
 }
