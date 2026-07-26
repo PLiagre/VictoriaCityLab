@@ -122,6 +122,7 @@ namespace Victoria.CityMode
         static Label MakeLabel(string text, int size, Color color)
         {
             var label = new Label(text);
+            label.style.unityFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             label.style.fontSize = size;
             label.style.color = color;
             label.style.marginBottom = 7;
@@ -130,6 +131,7 @@ namespace Victoria.CityMode
 
         static void StyleButton(Button button)
         {
+            button.style.unityFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             button.style.height = 34;
             button.style.marginTop = 5;
             button.style.marginBottom = 5;
@@ -138,4 +140,3 @@ namespace Victoria.CityMode
         }
     }
 }
-

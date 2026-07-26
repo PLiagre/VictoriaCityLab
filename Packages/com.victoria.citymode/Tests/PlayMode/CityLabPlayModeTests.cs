@@ -20,6 +20,9 @@ namespace Victoria.CityMode.Tests
             Assert.IsNotNull(game.WorldCamera, "La camera RTS doit exister.");
             Assert.IsNotNull(Object.FindFirstObjectByType<Terrain>(), "Le terrain 512 m doit exister.");
             Assert.IsNotNull(Object.FindFirstObjectByType<CityLabHud>(), "Le HUD UI Toolkit doit exister.");
+            var visuals = Resources.Load<CityVisualLibrary>("CityLabVisualLibrary");
+            Assert.IsNotNull(visuals, "Le catalogue d'assets admis doit être chargé depuis l'hôte.");
+            Assert.IsTrue(visuals.HasDurableSlice, "Le catalogue visuel doit contenir le slice durable.");
 
             var road = game.Submit(CityCommand.DrawRoad(new Vector3(-30f, 0f, 8f), new Vector3(30f, 0f, 8f)));
             Assert.IsTrue(road.accepted);
@@ -33,4 +36,3 @@ namespace Victoria.CityMode.Tests
         }
     }
 }
-

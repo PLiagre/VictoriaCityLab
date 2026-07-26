@@ -44,5 +44,13 @@ adaptateur de prototype et devra etre remplacee par un adaptateur Victoria.
 
 ## Assets tiers
 
-Tout pack externe reste intact sous `Assets/Vendor/<editeur>/<pack>`. Ajouter
-sa fiche dans `Assets/Vendor/THIRD_PARTY_ASSETS.md` avant utilisation.
+Les imports Unity Store restent intacts dans leur dossier racine d'origine afin
+de préserver les mises à jour. CityLab ne consomme que les copies normalisées
+de `Assets/CityLabHost/Adapted`; les sources et leur licence sont répertoriées
+dans `Assets/Vendor/THIRD_PARTY_ASSETS.md` et auditées dans
+`Docs/VENDOR_AUDIT.md`.
+
+L'AssetFactory reste la porte d'entrée pour les assets générés, les remplacements
+et les opérations de normalisation autorisées. Elle ne revendique jamais la
+paternité des packs Unity Store et son worktree séparé n'est pas modifié par
+CityLab.

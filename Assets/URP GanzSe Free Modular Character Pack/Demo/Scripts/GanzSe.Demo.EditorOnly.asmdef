@@ -1,0 +1,5 @@
+{
+  "name": "GanzSe.Demo.EditorOnly",
+  "includePlatforms": ["Editor"],
+  "autoReferenced": true
+}

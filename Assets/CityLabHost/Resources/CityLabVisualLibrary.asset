@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bb88e2a982ced4a49aed8ba641db7a8f, type: 3}
+  m_Name: CityLabVisualLibrary
+  m_EditorClassIdentifier: 
+  townCentrePrefab: {fileID: 3823107127983617859, guid: c53eb80666e1cad4bbaf4e192263890c, type: 3}
+  stockpilePrefab: {fileID: 5488905633760101370, guid: c87e65669a1575c4eaffb40b44688c81, type: 3}
+  housePrefabs:
+  - {fileID: 8604524913996652690, guid: f1daf0d5c65286941ac6d2749ea7c083, type: 3}
+  - {fileID: 1093753060654180759, guid: 138b362f4bf0395449359f84ad977bb2, type: 3}
+  - {fileID: 446623010441353392, guid: 2f7aa53f486e4df4fae974481a3e6db7, type: 3}
+  villagerPrefab: {fileID: 1655085116993674078, guid: ab3dcf334cee1d541bff4c544c86a819, type: 3}
+  villagerAnimatorController: {fileID: 9100000, guid: a68dfa8514a990d40aaaccaa698ba566, type: 2}
+  treePrefabs:
+  - {fileID: 5335393850322346717, guid: 10822c804b2fa434ba7d0b1f82ce97b9, type: 3}
+  - {fileID: 3274178029974945838, guid: fc97001d7240eb74e8943a6c030ab6a1, type: 3}
+  rockPrefabs: []
