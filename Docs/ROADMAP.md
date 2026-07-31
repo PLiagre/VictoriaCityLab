@@ -26,6 +26,7 @@ de jeu complet ou de qualité AAA que lorsque tous les critères de la section
 | Dernier jalon validé | `M0` — vertical slice forêt et construction |
 | Priorité immédiate | sauvegarde versionnée, navigation robuste, catalogue de bâtiments piloté par données |
 | Build de référence | `Builds/Windows/VictoriaCityLab.exe` |
+| Dépôt distant | `https://github.com/PLiagre/VictoriaCityLab` — branche `main` |
 | Preuves de référence | `Docs/VALIDATION.md` et `Logs/` |
 
 ### États autorisés
@@ -93,6 +94,7 @@ remplies :
 | `M0-ART-01` | Première passe dark-fantasy stylisée | DONE | Textures originales, assets adaptés, capture sans shader cassé. |
 | `M0-REL-01` | Build Windows et smoke test | DONE | `Docs/VALIDATION.md`. |
 | `META-ROADMAP-01` | Pilotage persistant du projet | DONE | `AGENTS.md`, `Tools/check_roadmap.ps1` et contrôle `CITYLAB_ROADMAP_OK`. |
+| `META-REPO-01` | Publication GitHub et Git LFS | DONE | Dépôt privé `PLiagre/VictoriaCityLab`, branche `main` et 790 objets LFS publiés. |
 
 ## M1 — fondations de production
 
@@ -225,3 +227,4 @@ Avant de terminer une session qui a modifié le projet :
 |---|---|---|---|---|
 | 2026-07-31 | `M0-*` | Vertical slice forêt/construction validé ; `M0` passe à `DONE`, `M1-SAVE-01` devient `ACTIVE`. | `Docs/VALIDATION.md`, build Windows et capture player. | Concevoir et tester la sauvegarde versionnée. |
 | 2026-07-31 | `META-ROADMAP-01` | Roadmap 1.0, règles de session et vérificateur de démarrage ajoutés. | `CITYLAB_ROADMAP_OK`, `git diff --check`. | `M1-SAVE-01`. |
+| 2026-07-31 | `META-REPO-01` | Projet publié sur GitHub ; `main` configurée pour suivre `origin/main`. | Commit `8a4b728`, push Git et 790 objets LFS transférés. | `M1-SAVE-01`. |
