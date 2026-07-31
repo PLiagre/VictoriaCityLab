@@ -16,12 +16,20 @@ namespace Victoria.CityMode
         public const int WoodPerHouse = 6;
         public const float WorkPerHouse = 12f;
         public const float MapHalfExtent = 256f;
+        public const int LumberCampCost = 8;
+        public const int LumberCampMaxWorkers = 2;
+        public const int LumberCampInitialTimber = 24;
+        public const float LumberCampWorkPerWood = 5f;
+        public const float LumberCampMinDistanceFromCentre = 35f;
+        public const float LumberCampMaxDistanceFromCentre = 190f;
+        public const float LumberCampMinSpacing = 28f;
 
         static readonly Vector3 StockPosition = new Vector3(0f, 0f, -12f);
         readonly CitySnapshot state;
         int nextRoadId = 1;
         int nextParcelId = 1;
         int nextBuildingId = 1;
+        int nextProductionSiteId = 1;
 
         public LocalCitySimulation(CitySnapshot initial)
         {
@@ -31,9 +39,11 @@ namespace Victoria.CityMode
             state.parcels ??= new List<ParcelState>();
             state.buildings ??= new List<BuildingState>();
             state.villagers ??= new List<VillagerState>();
+            state.productionSites ??= new List<ProductionSiteState>();
             nextRoadId = NextId(state.roads, item => item.id);
             nextParcelId = NextId(state.parcels, item => item.id);
             nextBuildingId = NextId(state.buildings, item => item.id);
+            nextProductionSiteId = NextId(state.productionSites, item => item.id);
         }
 
         public static LocalCitySimulation FromJson(string json)
@@ -62,6 +72,7 @@ namespace Victoria.CityMode
                 CityCommandKind.DrawRoad => DrawRoad(command),
                 CityCommandKind.ZoneResidential => ZoneResidential(command.targetId),
                 CityCommandKind.SetConstructionPriority => SetPriority(command.targetId, command.priority),
+                CityCommandKind.PlaceLumberCamp => PlaceLumberCamp(command.position),
                 _ => CityCommandResult.Reject("command-unknown")
             };
         }
@@ -72,6 +83,8 @@ namespace Victoria.CityMode
                 return;
             var step = Mathf.Min(deltaTime, 0.1f);
             state.elapsedSeconds += step;
+
+            TickProductionSites(step);
 
             state.villagers.Sort((a, b) => a.id.CompareTo(b.id));
             for (var i = 0; i < state.villagers.Count; i++)
@@ -197,6 +210,93 @@ namespace Victoria.CityMode
                 return CityCommandResult.Reject("building-unknown");
             building.priority = Mathf.Clamp(priority, 0, 3);
             return CityCommandResult.Accept(buildingId);
+        }
+
+        CityCommandResult PlaceLumberCamp(CityPoint requestedPosition)
+        {
+            var position = requestedPosition.ToVector3();
+            position.y = 0f;
+            if (!InsideMap(position))
+                return CityCommandResult.Reject("lumber-camp-outside-map");
+
+            var distanceFromCentre = PlanarDistance(position, Vector3.zero);
+            if (distanceFromCentre < LumberCampMinDistanceFromCentre)
+                return CityCommandResult.Reject("lumber-camp-too-close-to-centre");
+            if (distanceFromCentre > LumberCampMaxDistanceFromCentre)
+                return CityCommandResult.Reject("lumber-camp-too-far-from-centre");
+
+            foreach (var existing in state.productionSites)
+            {
+                if (existing.kind == ProductionSiteKind.LumberCamp &&
+                    PlanarDistance(position, existing.position.ToVector3()) < LumberCampMinSpacing)
+                    return CityCommandResult.Reject("lumber-camp-too-close-to-another-camp");
+            }
+
+            if (state.stockWood - state.reservedWood < LumberCampCost)
+                return CityCommandResult.Reject("lumber-camp-insufficient-wood");
+
+            var camp = new ProductionSiteState
+            {
+                id = nextProductionSiteId++,
+                kind = ProductionSiteKind.LumberCamp,
+                position = CityPoint.From(position),
+                assignedWorkers = 0,
+                maxWorkers = LumberCampMaxWorkers,
+                productionProgress = 0f,
+                remainingTimber = LumberCampInitialTimber
+            };
+            state.stockWood -= LumberCampCost;
+            state.productionSites.Add(camp);
+            RefreshProductionAssignments();
+            return CityCommandResult.Accept(camp.id);
+        }
+
+        void TickProductionSites(float deltaTime)
+        {
+            if (state.productionSites.Count == 0)
+                return;
+
+            RefreshProductionAssignments();
+            foreach (var site in state.productionSites)
+            {
+                if (site.kind != ProductionSiteKind.LumberCamp || site.assignedWorkers <= 0 ||
+                    site.remainingTimber <= 0)
+                    continue;
+
+                site.productionProgress += deltaTime * site.assignedWorkers;
+                while (site.productionProgress + 0.000001f >= LumberCampWorkPerWood &&
+                       site.remainingTimber > 0)
+                {
+                    site.productionProgress = Mathf.Max(0f, site.productionProgress - LumberCampWorkPerWood);
+                    site.remainingTimber -= 1;
+                    state.stockWood += 1;
+                }
+
+                if (site.remainingTimber == 0)
+                {
+                    site.productionProgress = 0f;
+                    site.assignedWorkers = 0;
+                }
+            }
+            RefreshProductionAssignments();
+        }
+
+        void RefreshProductionAssignments()
+        {
+            state.productionSites.Sort((left, right) => left.id.CompareTo(right.id));
+            var availableWorkers = state.villagers.Count;
+            foreach (var site in state.productionSites)
+            {
+                if (site.kind != ProductionSiteKind.LumberCamp || site.remainingTimber <= 0)
+                {
+                    site.assignedWorkers = 0;
+                    continue;
+                }
+
+                var capacity = Mathf.Clamp(site.maxWorkers, 0, LumberCampMaxWorkers);
+                site.assignedWorkers = Mathf.Min(capacity, availableWorkers);
+                availableWorkers -= site.assignedWorkers;
+            }
         }
 
         void ClaimParcelsAndCreateSites()
@@ -436,6 +536,13 @@ namespace Victoria.CityMode
         ParcelState FindParcel(int id) => state.parcels.Find(item => item.id == id);
         BuildingState FindBuilding(int id) => state.buildings.Find(item => item.id == id);
         HouseholdState FindHousehold(int id) => state.households.Find(item => item.id == id);
+
+        static float PlanarDistance(Vector3 left, Vector3 right)
+        {
+            var deltaX = left.x - right.x;
+            var deltaZ = left.z - right.z;
+            return Mathf.Sqrt(deltaX * deltaX + deltaZ * deltaZ);
+        }
 
         static bool InsideMap(Vector3 point) =>
             Mathf.Abs(point.x) <= MapHalfExtent - 4f && Mathf.Abs(point.z) <= MapHalfExtent - 4f;

@@ -7,7 +7,8 @@ namespace Victoria.CityMode
     {
         Inspect = 0,
         DrawRoad = 1,
-        ZoneResidential = 2
+        ZoneResidential = 2,
+        PlaceLumberCamp = 3
     }
 
     public sealed class CityBuildController : MonoBehaviour
@@ -17,6 +18,9 @@ namespace Victoria.CityMode
         Vector3 roadStart;
         GameObject roadPreview;
         Material roadPreviewMaterial;
+        GameObject lumberCampPreview;
+        Material lumberCampPreviewMaterial;
+        Terrain terrain;
 
         public CityToolMode Mode { get; private set; }
         public int SelectedBuildingId { get; private set; }
@@ -25,6 +29,7 @@ namespace Victoria.CityMode
         public void Initialize(CityLabGame owner)
         {
             game = owner;
+            terrain = FindFirstObjectByType<Terrain>();
             SetMode(CityToolMode.Inspect);
         }
 
@@ -33,11 +38,13 @@ namespace Victoria.CityMode
             Mode = mode;
             hasRoadStart = false;
             if (roadPreview != null) roadPreview.SetActive(false);
+            if (lumberCampPreview != null) lumberCampPreview.SetActive(false);
             Prompt = mode switch
             {
                 CityToolMode.DrawRoad => "Route: cliquez le point de depart",
                 CityToolMode.ZoneResidential => "Parcelles: cliquez une route",
-                _ => "R: route  |  Z: parcelles  |  Echap: annuler"
+                CityToolMode.PlaceLumberCamp => "Camp forestier: choisissez une clairiere hors du bourg",
+                _ => "R: route  |  Z: parcelles  |  B: camp forestier  |  Echap: annuler"
             };
         }
 
@@ -50,9 +57,13 @@ namespace Victoria.CityMode
 
             if (keyboard.rKey.wasPressedThisFrame) SetMode(CityToolMode.DrawRoad);
             if (keyboard.zKey.wasPressedThisFrame) SetMode(CityToolMode.ZoneResidential);
+            if (keyboard.bKey.wasPressedThisFrame) SetMode(CityToolMode.PlaceLumberCamp);
             if (keyboard.escapeKey.wasPressedThisFrame) SetMode(CityToolMode.Inspect);
             UpdateRoadPreview(mouse.position.ReadValue());
+            UpdateLumberCampPreview(mouse.position.ReadValue());
             if (!mouse.leftButton.wasPressedThisFrame)
+                return;
+            if (game.IsPointerOverHud(mouse.position.ReadValue()))
                 return;
 
             var ray = game.WorldCamera.ScreenPointToRay(mouse.position.ReadValue());
@@ -60,6 +71,8 @@ namespace Victoria.CityMode
                 HandleRoadClick(ray);
             else if (Mode == CityToolMode.ZoneResidential)
                 HandleZoneClick(ray);
+            else if (Mode == CityToolMode.PlaceLumberCamp)
+                HandleLumberCampClick(ray);
             else
                 HandleInspectClick(ray);
         }
@@ -81,7 +94,7 @@ namespace Victoria.CityMode
             SelectedBuildingId = buildingId;
             game.SetSelectedBuilding(buildingId);
             Prompt = buildingId == 0
-                ? "R: route  |  Z: parcelles  |  Cliquez un chantier"
+                ? "R: route  |  Z: parcelles  |  B: camp forestier  |  Cliquez un chantier"
                 : $"Chantier {buildingId} selectionne: choisissez sa priorite";
         }
 
@@ -128,13 +141,25 @@ namespace Victoria.CityMode
         {
             if (roadPreview != null)
                 return;
-            roadPreview = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            roadPreview = new GameObject("Road placement preview");
             roadPreview.name = "Road placement preview";
-            var collider = roadPreview.GetComponent<Collider>();
-            if (collider != null) collider.enabled = false;
             var baseMaterial = Resources.Load<Material>("CityLabBaseMaterial");
             roadPreviewMaterial = new Material(baseMaterial) { name = "Runtime Road Preview" };
-            roadPreview.GetComponent<Renderer>().sharedMaterial = roadPreviewMaterial;
+            roadPreviewMaterial.SetFloat("_Surface", 1f);
+            roadPreviewMaterial.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            roadPreviewMaterial.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            roadPreviewMaterial.SetFloat("_ZWrite", 0f);
+            roadPreviewMaterial.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            roadPreviewMaterial.renderQueue = 3000;
+            var line = roadPreview.AddComponent<LineRenderer>();
+            line.useWorldSpace = true;
+            line.widthMultiplier = 4.8f;
+            line.numCornerVertices = 3;
+            line.numCapVertices = 3;
+            line.textureMode = LineTextureMode.Tile;
+            line.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            line.receiveShadows = false;
+            line.sharedMaterial = roadPreviewMaterial;
         }
 
         void UpdateRoadPreview(Vector2 pointer)
@@ -161,9 +186,17 @@ namespace Victoria.CityMode
                 return;
             }
             roadPreview.SetActive(true);
-            roadPreview.transform.SetPositionAndRotation((roadStart + end) * 0.5f + Vector3.up * 0.18f,
-                Quaternion.LookRotation(delta.normalized, Vector3.up));
-            roadPreview.transform.localScale = new Vector3(4.6f, 0.18f, length);
+            var line = roadPreview.GetComponent<LineRenderer>();
+            var segments = Mathf.Clamp(Mathf.CeilToInt(length / 2.5f), 2, 96);
+            line.positionCount = segments + 1;
+            for (var i = 0; i <= segments; i++)
+            {
+                var position = Vector3.Lerp(roadStart, end, i / (float)segments);
+                position.y = terrain != null
+                    ? terrain.SampleHeight(position) + terrain.transform.position.y + 0.09f
+                    : 0.09f;
+                line.SetPosition(i, position);
+            }
             var valid = length >= 4f && length <= 150f && Mathf.Abs(end.x) <= 250f && Mathf.Abs(end.z) <= 250f;
             roadPreviewMaterial.color = valid
                 ? new Color(0.32f, 0.72f, 0.30f, 0.82f)
@@ -187,6 +220,87 @@ namespace Victoria.CityMode
             Prompt = result.accepted
                 ? "Parcelles creees: les foyers lancent leurs chantiers"
                 : $"Lotissement refuse : {CityLabGame.DescribeReason(result.reason)}";
+        }
+
+        void HandleLumberCampClick(Ray ray)
+        {
+            if (!Physics.Raycast(ray, out var hit, 1000f))
+            {
+                Prompt = "Camp refuse: aucun terrain sous le curseur";
+                return;
+            }
+            var point = hit.point;
+            point.y = 0f;
+            var result = game.Submit(CityCommand.PlaceLumberCamp(point));
+            if (result.accepted)
+            {
+                SetMode(CityToolMode.Inspect);
+                Prompt = "Camp forestier fonde: deux habitants produisent du bois";
+            }
+            else
+            {
+                Prompt = $"Camp refuse : {CityLabGame.DescribeReason(result.reason)}";
+            }
+        }
+
+        void UpdateLumberCampPreview(Vector2 pointer)
+        {
+            if (Mode != CityToolMode.PlaceLumberCamp)
+            {
+                if (lumberCampPreview != null) lumberCampPreview.SetActive(false);
+                return;
+            }
+            EnsureLumberCampPreview();
+            var ray = game.WorldCamera.ScreenPointToRay(pointer);
+            if (!Physics.Raycast(ray, out var hit, 1000f))
+            {
+                lumberCampPreview.SetActive(false);
+                return;
+            }
+
+            var position = hit.point;
+            var planar = new Vector2(position.x, position.z);
+            var valid = planar.magnitude >= LocalCitySimulation.LumberCampMinDistanceFromCentre &&
+                        planar.magnitude <= LocalCitySimulation.LumberCampMaxDistanceFromCentre &&
+                        Mathf.Abs(position.x) <= LocalCitySimulation.MapHalfExtent - 4f &&
+                        Mathf.Abs(position.z) <= LocalCitySimulation.MapHalfExtent - 4f;
+            var snapshot = game.StateSource.GetSnapshot(1001);
+            valid &= snapshot.stockWood >= LocalCitySimulation.LumberCampCost;
+            foreach (var site in snapshot.productionSites)
+            {
+                var existing = site.position.ToVector3();
+                if (Vector2.Distance(planar, new Vector2(existing.x, existing.z)) < LocalCitySimulation.LumberCampMinSpacing)
+                    valid = false;
+            }
+
+            lumberCampPreview.SetActive(true);
+            position.y = terrain != null
+                ? terrain.SampleHeight(position) + terrain.transform.position.y + 0.06f
+                : 0.06f;
+            lumberCampPreview.transform.position = position;
+            lumberCampPreviewMaterial.color = valid
+                ? new Color(0.26f, 0.66f, 0.24f, 0.38f)
+                : new Color(0.84f, 0.16f, 0.10f, 0.45f);
+        }
+
+        void EnsureLumberCampPreview()
+        {
+            if (lumberCampPreview != null)
+                return;
+            lumberCampPreview = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            lumberCampPreview.name = "Lumber camp placement preview";
+            lumberCampPreview.transform.localScale = new Vector3(5.8f, 0.035f, 4.6f);
+            var collider = lumberCampPreview.GetComponent<Collider>();
+            if (collider != null) collider.enabled = false;
+            var baseMaterial = Resources.Load<Material>("CityLabBaseMaterial");
+            lumberCampPreviewMaterial = new Material(baseMaterial) { name = "Runtime Lumber Camp Preview" };
+            lumberCampPreviewMaterial.SetFloat("_Surface", 1f);
+            lumberCampPreviewMaterial.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            lumberCampPreviewMaterial.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            lumberCampPreviewMaterial.SetFloat("_ZWrite", 0f);
+            lumberCampPreviewMaterial.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            lumberCampPreviewMaterial.renderQueue = 3000;
+            lumberCampPreview.GetComponent<Renderer>().sharedMaterial = lumberCampPreviewMaterial;
         }
     }
 }

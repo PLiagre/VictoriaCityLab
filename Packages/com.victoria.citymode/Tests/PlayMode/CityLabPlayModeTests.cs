@@ -32,7 +32,18 @@ namespace Victoria.CityMode.Tests
             var snapshot = game.StateSource.GetSnapshot(1001);
             Assert.Greater(snapshot.parcels.Count, 0);
             Assert.Greater(snapshot.buildings.Count, 0);
-            Assert.IsNotNull(Object.FindFirstObjectByType<RoadView>());
+            var roadView = Object.FindFirstObjectByType<RoadView>();
+            Assert.IsNotNull(roadView);
+            var roadMesh = roadView.GetComponent<MeshFilter>();
+            Assert.IsNotNull(roadMesh, "La route doit etre un ruban maille conforme au terrain.");
+            Assert.Greater(roadMesh.sharedMesh.vertexCount, 4);
+
+            var camp = game.Submit(CityCommand.PlaceLumberCamp(new Vector3(70f, 0f, 0f)));
+            Assert.IsTrue(camp.accepted);
+            yield return null;
+            Assert.AreEqual(1, game.StateSource.GetSnapshot(1001).productionSites.Count);
+            Assert.IsNotNull(Object.FindFirstObjectByType<LumberCampVisual>(),
+                "Le camp forestier doit avoir une presentation dans le monde.");
 
             var controller = Object.FindFirstObjectByType<CityBuildController>();
             Assert.IsNotNull(controller);
@@ -42,6 +53,13 @@ namespace Victoria.CityMode.Tests
             yield return null;
             Assert.AreEqual(selectedId, controller.SelectedBuildingId);
             Assert.AreEqual(3, game.StateSource.GetSnapshot(1001).buildings.Find(item => item.id == selectedId).priority);
+
+            game.SetSimulationSpeed(2f);
+            Assert.AreEqual(2f, game.SimulationSpeed);
+            game.TogglePause();
+            Assert.IsTrue(game.IsPaused);
+            game.TogglePause();
+            Assert.AreEqual(2f, game.SimulationSpeed);
         }
     }
 }

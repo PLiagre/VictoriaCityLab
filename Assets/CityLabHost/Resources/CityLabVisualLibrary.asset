@@ -22,4 +22,16 @@ MonoBehaviour:
   treePrefabs:
   - {fileID: 5335393850322346717, guid: 10822c804b2fa434ba7d0b1f82ce97b9, type: 3}
   - {fileID: 3274178029974945838, guid: fc97001d7240eb74e8943a6c030ab6a1, type: 3}
-  rockPrefabs: []
+  bushPrefabs:
+  - {fileID: 3653093322411788321, guid: d1b7f7d8a73b42a5bde4de3dca95d101, type: 3}
+  - {fileID: 726770209304437886, guid: 69077be94c264c75987025df1420fb02, type: 3}
+  rockPrefabs:
+  - {fileID: 1487456567395968, guid: ebc79b371d174aed94fa328d04f7a701, type: 3}
+  - {fileID: 862616610918316188, guid: 8090985aa37d4c83b8df29106ed67202, type: 3}
+  grassPrefabs:
+  - {fileID: 5084294881481711241, guid: 8f69d1fc3a7b4612be2f111a1dc2a801, type: 3}
+  - {fileID: 8151046382746499018, guid: 52f672e9e58842c39bb6d9db234d4402, type: 3}
+  propPrefabs:
+  - {fileID: 4942618445395523490, guid: 517cbdc22f8f4d03b23f742513d69201, type: 3}
+  - {fileID: 1154291972530608, guid: 093e3ae2df414c7eb085860eb1643f02, type: 3}
+  - {fileID: 1107262656423180, guid: c49fc76c464a420a96c198a0e8df2803, type: 3}

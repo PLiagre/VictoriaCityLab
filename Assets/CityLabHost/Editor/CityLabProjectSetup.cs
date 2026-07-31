@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 using Victoria.CityMode;
 
 namespace Victoria.CityLab.Editor
@@ -19,7 +20,11 @@ namespace Victoria.CityLab.Editor
         const string PipelinePath = SettingsFolder + "/CityLabURP.asset";
         const string RuntimeMaterialPath = "Assets/CityLabHost/Resources/CityLabBaseMaterial.mat";
         const string TerrainMaterialPath = "Assets/CityLabHost/Resources/CityLabTerrainMaterial.mat";
+        const string PanelSettingsPath = "Assets/CityLabHost/Resources/CityLabPanelSettings.asset";
+        const string RuntimeThemePath = "Assets/CityLabHost/Resources/CityLabRuntimeTheme.asset";
         const string ScenePath = SceneFolder + "/CityLab.unity";
+        const string DefaultPostProcessDataPath =
+            "Packages/com.unity.render-pipelines.universal/Runtime/Data/PostProcessData.asset";
 
         [MenuItem("Victoria/CityLab/Configure Project")]
         public static void Configure()
@@ -29,6 +34,7 @@ namespace Victoria.CityLab.Editor
             EnsureFolder("Assets/CityLabHost", "Scenes");
             ConfigureRenderPipeline();
             ConfigurePlayer();
+            ConfigureRuntimeUi();
             CreateBootstrapScene();
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
@@ -38,6 +44,17 @@ namespace Victoria.CityLab.Editor
         [MenuItem("Victoria/CityLab/Build Windows")]
         public static void BuildWindows()
         {
+            BuildWindowsPlayer(BuildOptions.None, "CITYLAB_BUILD_RELEASE_OK");
+        }
+
+        [MenuItem("Victoria/CityLab/Build Windows Development")]
+        public static void BuildWindowsDevelopment()
+        {
+            BuildWindowsPlayer(BuildOptions.Development, "CITYLAB_BUILD_DEVELOPMENT_OK");
+        }
+
+        static void BuildWindowsPlayer(BuildOptions buildOptions, string successMarker)
+        {
             Configure();
             Directory.CreateDirectory("Builds/Windows");
             var options = new BuildPlayerOptions
@@ -45,12 +62,12 @@ namespace Victoria.CityLab.Editor
                 scenes = new[] { ScenePath },
                 locationPathName = "Builds/Windows/VictoriaCityLab.exe",
                 target = BuildTarget.StandaloneWindows64,
-                options = BuildOptions.Development
+                options = buildOptions
             };
             var report = BuildPipeline.BuildPlayer(options);
             if (report.summary.result != BuildResult.Succeeded)
                 throw new BuildFailedException($"CityLab build failed: {report.summary.result}");
-            Debug.Log($"CITYLAB_BUILD_OK bytes={report.summary.totalSize} duration={report.summary.totalTime}");
+            Debug.Log($"{successMarker} bytes={report.summary.totalSize} duration={report.summary.totalTime}");
         }
 
         static void ConfigureRenderPipeline()
@@ -62,6 +79,37 @@ namespace Victoria.CityLab.Editor
                 renderer.name = "CityLab Renderer";
                 AssetDatabase.CreateAsset(renderer, RendererPath);
             }
+            if (renderer.postProcessData == null)
+            {
+                renderer.postProcessData = AssetDatabase.LoadAssetAtPath<PostProcessData>(DefaultPostProcessDataPath);
+                EditorUtility.SetDirty(renderer);
+            }
+            ScreenSpaceAmbientOcclusion ambientOcclusion = null;
+            foreach (var feature in renderer.rendererFeatures)
+            {
+                if (feature is ScreenSpaceAmbientOcclusion existingAmbientOcclusion)
+                {
+                    ambientOcclusion = existingAmbientOcclusion;
+                    break;
+                }
+            }
+            if (ambientOcclusion == null)
+            {
+                ambientOcclusion = ScriptableObject.CreateInstance<ScreenSpaceAmbientOcclusion>();
+                ambientOcclusion.name = "CityLab Contact Shadows";
+                ambientOcclusion.Create();
+                AssetDatabase.AddObjectToAsset(ambientOcclusion, renderer);
+                renderer.rendererFeatures.Add(ambientOcclusion);
+                EditorUtility.SetDirty(renderer);
+            }
+
+            // Keep creases readable without crushing the painterly palette in Linear color space.
+            var ambientOcclusionSettings = new SerializedObject(ambientOcclusion);
+            ambientOcclusionSettings.FindProperty("m_Settings.Intensity").floatValue = 0.75f;
+            ambientOcclusionSettings.FindProperty("m_Settings.DirectLightingStrength").floatValue = 0.10f;
+            ambientOcclusionSettings.FindProperty("m_Settings.Radius").floatValue = 0.018f;
+            ambientOcclusionSettings.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(ambientOcclusion);
 
             var pipeline = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(PipelinePath);
             if (pipeline == null)
@@ -73,6 +121,13 @@ namespace Victoria.CityLab.Editor
                 pipeline.shadowDistance = 140f;
                 AssetDatabase.CreateAsset(pipeline, PipelinePath);
             }
+            pipeline.renderScale = 1f;
+            pipeline.msaaSampleCount = 4;
+            pipeline.supportsCameraDepthTexture = true;
+            pipeline.mainLightShadowmapResolution = 4096;
+            pipeline.shadowDistance = 190f;
+            pipeline.shadowCascadeCount = 4;
+            EditorUtility.SetDirty(pipeline);
 
             GraphicsSettings.defaultRenderPipeline = pipeline;
             QualitySettings.renderPipeline = pipeline;
@@ -124,6 +179,7 @@ namespace Victoria.CityLab.Editor
             PlayerSettings.defaultScreenWidth = 1920;
             PlayerSettings.defaultScreenHeight = 1080;
             PlayerSettings.runInBackground = true;
+            PlayerSettings.colorSpace = ColorSpace.Linear;
 
             var assets = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/ProjectSettings.asset");
             if (assets.Length > 0)
@@ -138,8 +194,37 @@ namespace Victoria.CityLab.Editor
             }
         }
 
+        static void ConfigureRuntimeUi()
+        {
+            var theme = AssetDatabase.LoadAssetAtPath<ThemeStyleSheet>(RuntimeThemePath);
+            if (theme == null)
+            {
+                theme = ScriptableObject.CreateInstance<ThemeStyleSheet>();
+                theme.name = "CityLab Runtime Theme";
+                AssetDatabase.CreateAsset(theme, RuntimeThemePath);
+            }
+
+            var panel = AssetDatabase.LoadAssetAtPath<PanelSettings>(PanelSettingsPath);
+            if (panel == null)
+            {
+                panel = ScriptableObject.CreateInstance<PanelSettings>();
+                panel.name = "CityLab Runtime Panel";
+                AssetDatabase.CreateAsset(panel, PanelSettingsPath);
+            }
+            panel.scaleMode = PanelScaleMode.ScaleWithScreenSize;
+            panel.referenceResolution = new Vector2Int(1920, 1080);
+            panel.match = 0.5f;
+            panel.themeStyleSheet = theme;
+            EditorUtility.SetDirty(panel);
+        }
+
         static void CreateBootstrapScene()
         {
+            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(ScenePath) != null)
+            {
+                EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(ScenePath, true) };
+                return;
+            }
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             scene.name = "CityLab";
             var marker = new GameObject("CityLab Scene — runtime generated");

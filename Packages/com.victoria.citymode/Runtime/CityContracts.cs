@@ -27,7 +27,8 @@ namespace Victoria.CityMode
     {
         DrawRoad = 1,
         ZoneResidential = 2,
-        SetConstructionPriority = 3
+        SetConstructionPriority = 3,
+        PlaceLumberCamp = 4
     }
 
     [Serializable]
@@ -38,6 +39,7 @@ namespace Victoria.CityMode
         public int priority;
         public CityPoint start;
         public CityPoint end;
+        public CityPoint position;
 
         public static CityCommand DrawRoad(Vector3 start, Vector3 end) => new CityCommand
         {
@@ -57,6 +59,12 @@ namespace Victoria.CityMode
             kind = CityCommandKind.SetConstructionPriority,
             targetId = buildingId,
             priority = priority
+        };
+
+        public static CityCommand PlaceLumberCamp(Vector3 position) => new CityCommand
+        {
+            kind = CityCommandKind.PlaceLumberCamp,
+            position = CityPoint.From(position)
         };
     }
 
@@ -106,6 +114,7 @@ namespace Victoria.CityMode
         public List<ParcelState> parcels = new List<ParcelState>();
         public List<BuildingState> buildings = new List<BuildingState>();
         public List<VillagerState> villagers = new List<VillagerState>();
+        public List<ProductionSiteState> productionSites = new List<ProductionSiteState>();
 
         public CitySnapshot DeepCopy() => JsonUtility.FromJson<CitySnapshot>(JsonUtility.ToJson(this));
     }
@@ -183,5 +192,21 @@ namespace Victoria.CityMode
         public int carryingWood;
         public int reservedWood;
     }
-}
 
+    public enum ProductionSiteKind : byte
+    {
+        LumberCamp = 1
+    }
+
+    [Serializable]
+    public sealed class ProductionSiteState
+    {
+        public int id;
+        public ProductionSiteKind kind;
+        public CityPoint position;
+        public int assignedWorkers;
+        public int maxWorkers;
+        public float productionProgress;
+        public int remainingTimber;
+    }
+}

@@ -158,5 +158,119 @@ namespace Victoria.CityMode.Tests
                     $"La maison {building.id} doit regarder la route depuis sa parcelle.");
             }
         }
+
+        [Test]
+        public void PlaceLumberCamp_DeductsCostAndAssignsAvailableWorkers()
+        {
+            var simulation = LocalCitySimulation.FromJson(Fixture);
+            var initialWood = simulation.GetSnapshot(1001).stockWood;
+
+            var result = simulation.Submit(CityCommand.PlaceLumberCamp(new Vector3(70f, 9f, 0f)));
+
+            Assert.IsTrue(result.accepted);
+            Assert.AreEqual(1, result.createdId);
+            var snapshot = simulation.GetSnapshot(1001);
+            Assert.AreEqual(initialWood - LocalCitySimulation.LumberCampCost, snapshot.stockWood);
+            Assert.AreEqual(1, snapshot.productionSites.Count);
+            var camp = snapshot.productionSites[0];
+            Assert.AreEqual(result.createdId, camp.id);
+            Assert.AreEqual(ProductionSiteKind.LumberCamp, camp.kind);
+            Assert.AreEqual(70f, camp.position.x);
+            Assert.AreEqual(0f, camp.position.y);
+            Assert.AreEqual(0f, camp.position.z);
+            Assert.AreEqual(LocalCitySimulation.LumberCampMaxWorkers, camp.assignedWorkers);
+            Assert.AreEqual(LocalCitySimulation.LumberCampMaxWorkers, camp.maxWorkers);
+            Assert.AreEqual(0f, camp.productionProgress);
+            Assert.AreEqual(LocalCitySimulation.LumberCampInitialTimber, camp.remainingTimber);
+        }
+
+        [Test]
+        public void LumberCamp_ProducesWoodUntilLocalTimberIsExhausted()
+        {
+            var simulation = LocalCitySimulation.FromJson(Fixture);
+            Assert.IsTrue(simulation.Submit(CityCommand.PlaceLumberCamp(new Vector3(70f, 0f, 0f))).accepted);
+            var stockAfterPlacement = simulation.GetSnapshot(1001).stockWood;
+
+            for (var i = 0; i < 30; i++)
+                simulation.Tick(0.1f);
+
+            var producing = simulation.GetSnapshot(1001);
+            Assert.AreEqual(stockAfterPlacement + 1, producing.stockWood);
+            Assert.AreEqual(LocalCitySimulation.LumberCampInitialTimber - 1,
+                producing.productionSites[0].remainingTimber);
+            Assert.AreEqual(1f, producing.productionSites[0].productionProgress, 0.0001f);
+
+            for (var i = 0; i < 1000; i++)
+                simulation.Tick(0.1f);
+
+            var exhausted = simulation.GetSnapshot(1001);
+            Assert.AreEqual(stockAfterPlacement + LocalCitySimulation.LumberCampInitialTimber, exhausted.stockWood);
+            Assert.AreEqual(0, exhausted.productionSites[0].remainingTimber);
+            Assert.AreEqual(0, exhausted.productionSites[0].assignedWorkers);
+            Assert.AreEqual(0f, exhausted.productionSites[0].productionProgress);
+
+            for (var i = 0; i < 100; i++)
+                simulation.Tick(0.1f);
+            Assert.AreEqual(exhausted.stockWood, simulation.GetSnapshot(1001).stockWood);
+        }
+
+        [Test]
+        public void PlaceLumberCamp_RejectsInvalidPlacementAndInsufficientWoodWithStableReasons()
+        {
+            var outside = LocalCitySimulation.FromJson(Fixture);
+            Assert.AreEqual("lumber-camp-outside-map",
+                outside.Submit(CityCommand.PlaceLumberCamp(new Vector3(253f, 0f, 0f))).reason);
+
+            var nearCentre = LocalCitySimulation.FromJson(Fixture);
+            Assert.AreEqual("lumber-camp-too-close-to-centre",
+                nearCentre.Submit(CityCommand.PlaceLumberCamp(new Vector3(34f, 0f, 0f))).reason);
+
+            var farFromCentre = LocalCitySimulation.FromJson(Fixture);
+            Assert.AreEqual("lumber-camp-too-far-from-centre",
+                farFromCentre.Submit(CityCommand.PlaceLumberCamp(new Vector3(191f, 0f, 0f))).reason);
+
+            var overlapping = LocalCitySimulation.FromJson(Fixture);
+            Assert.IsTrue(overlapping.Submit(CityCommand.PlaceLumberCamp(new Vector3(70f, 0f, 0f))).accepted);
+            Assert.AreEqual("lumber-camp-too-close-to-another-camp",
+                overlapping.Submit(CityCommand.PlaceLumberCamp(new Vector3(95f, 0f, 0f))).reason);
+            Assert.AreEqual(1, overlapping.GetSnapshot(1001).productionSites.Count);
+
+            var lowWoodFixture = Fixture.Replace(@"""stockWood"":72", @"""stockWood"":7");
+            var insufficient = LocalCitySimulation.FromJson(lowWoodFixture);
+            Assert.AreEqual("lumber-camp-insufficient-wood",
+                insufficient.Submit(CityCommand.PlaceLumberCamp(new Vector3(70f, 0f, 0f))).reason);
+            var insufficientSnapshot = insufficient.GetSnapshot(1001);
+            Assert.AreEqual(7, insufficientSnapshot.stockWood);
+            Assert.AreEqual(0, insufficientSnapshot.productionSites.Count);
+
+            var reservedWoodFixture = Fixture.Replace(@"""stockWood"":72",
+                @"""stockWood"":8,""reservedWood"":1");
+            var reservedWood = LocalCitySimulation.FromJson(reservedWoodFixture);
+            Assert.AreEqual("lumber-camp-insufficient-wood",
+                reservedWood.Submit(CityCommand.PlaceLumberCamp(new Vector3(70f, 0f, 0f))).reason);
+            Assert.AreEqual(8, reservedWood.GetSnapshot(1001).stockWood,
+                "Le cout du camp ne doit pas consommer du bois deja reserve a un chantier.");
+        }
+
+        [Test]
+        public void LumberCamp_SameCommandsAndTicksProduceSameSnapshot()
+        {
+            var left = LocalCitySimulation.FromJson(Fixture);
+            var right = LocalCitySimulation.FromJson(Fixture);
+            var positions = new[] { new Vector3(70f, 0f, 0f), new Vector3(-70f, 0f, 0f) };
+            foreach (var position in positions)
+            {
+                Assert.IsTrue(left.Submit(CityCommand.PlaceLumberCamp(position)).accepted);
+                Assert.IsTrue(right.Submit(CityCommand.PlaceLumberCamp(position)).accepted);
+            }
+
+            for (var i = 0; i < 777; i++)
+            {
+                left.Tick(0.1f);
+                right.Tick(0.1f);
+            }
+
+            Assert.AreEqual(JsonUtility.ToJson(left.GetSnapshot(1001)), JsonUtility.ToJson(right.GetSnapshot(1001)));
+        }
     }
 }

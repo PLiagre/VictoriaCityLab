@@ -11,7 +11,10 @@ namespace Victoria.CityMode
         public GameObject villagerPrefab;
         public RuntimeAnimatorController villagerAnimatorController;
         public GameObject[] treePrefabs;
+        public GameObject[] bushPrefabs;
         public GameObject[] rockPrefabs;
+        public GameObject[] grassPrefabs;
+        public GameObject[] propPrefabs;
 
         public bool HasDurableSlice => townCentrePrefab != null && stockpilePrefab != null &&
             housePrefabs != null && housePrefabs.Length > 0 && villagerPrefab != null;

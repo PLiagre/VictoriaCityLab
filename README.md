@@ -1,7 +1,13 @@
 # Victoria CityLab
 
-Prototype Unity autonome du mode ville de Victoria. Ce depot ne partage ni
-`Library/`, ni caches d'import, ni verrou avec les projets Victoria.
+Vertical slice Unity autonome du mode ville de Victoria. Ce depot ne partage ni
+`Library/`, ni caches d'import, ni verrou avec les projets Victoria. Il valide
+une boucle de construction et une premiere economie forestiere ; ce n'est pas
+encore un jeu AAA complet.
+
+La source de vérité du développement est `Docs/ROADMAP.md`. Toute session doit
+la lire et exécuter `Tools/check_roadmap.ps1` avant de modifier le projet ; les
+règles permanentes correspondantes sont définies dans `AGENTS.md`.
 
 ## Ouvrir le projet
 
@@ -32,7 +38,10 @@ hors de ce verrou advisory.
 - `R`, puis deux clics au sol : tracer une route
 - l'apercu de route devient vert si le trace est valide et rouge sinon
 - `Z`, puis clic sur une route : creer des parcelles residentielles
+- `B`, puis clic au sol : fonder un camp de bucherons
 - `Echap` : annuler l'outil actif
+- `Espace` : mettre la simulation en pause ou la reprendre
+- `1`, `2`, `3` : regler la vitesse de simulation sur x1, x2 ou x4
 - en mode inspection, cliquer un chantier puis choisir sa priorite dans le HUD
 
 Le village commence avec huit habitants, six foyers sans logement et un stock
@@ -40,11 +49,35 @@ de bois. Les habitants transportent physiquement le bois jusqu'aux chantiers.
 Le bois porte est materialise par un petit faisceau de buches. Les chantiers
 passent des fondations a l'ossature en bois, puis au prefab final.
 
+Le camp forestier coute huit unites de bois disponible. Son placement est
+limite a la couronne forestiere autour du bourg et respecte un espacement entre
+camps. Il affecte de maniere deterministe jusqu'a deux habitants et transforme
+progressivement une reserve locale finie de bois en stock utilisable. Cette
+boucle permet de relancer la construction apres epuisement du stock initial,
+tant que la reserve locale du camp n'est pas epuisee.
+
+## Direction artistique
+
+La cible actuelle est un medieval dark-fantasy stylise : silhouettes lisibles,
+palette terre, bois, bronze et braises, vegetation peinte et interface de
+chronique seigneuriale. Les references d'intention sont la lisibilite de
+`World of Warcraft` et l'atmosphere de `Warhammer`, sans reprendre leurs assets.
+
+Deux textures originales propres a CityLab sont integrees au rendu :
+`StylizedMeadow_Albedo.png` et `StylizedRoad_Albedo.png`, toutes deux en
+1254 x 1254. Elles accompagnent les materiaux URP, le relief, les chemins fondus
+au terrain, le couvert vegetal, les clotures, le puits, le marche, le feu, les
+particules et l'ambiance sonore procedurale. Le rendu constitue une base
+artistique coherente de vertical slice ; les contenus, animations, effets et
+variations requis pour une production AAA restent a developper.
+
 ## Validation locale
 
 Les tests et builds automatises passent toujours par `Tools/run_unity_locked.py`.
 Les resultats XML, journaux de build et captures du player Windows sont conserves
 sous `Logs/`; le build de travail est produit sous `Builds/Windows`.
+La livraison du 31 juillet 2026 valide 12 tests EditMode, 1 test PlayMode, le
+build Windows x64 et un smoke test a 60,0 FPS sur la machine de validation.
 Le detail des portes, commandes et derniers resultats est conserve dans
 `Docs/VALIDATION.md`.
 

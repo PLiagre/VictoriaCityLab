@@ -4,8 +4,10 @@
   "references": [
     "Unity.InputSystem",
     "Unity.AI.Navigation",
-    "Unity.RenderPipelines.Universal.Runtime"
+    "Unity.RenderPipelines.Universal.Runtime",
+    "Unity.RenderPipelines.Core.Runtime",
+    "UnityEngine.ParticleSystemModule",
+    "UnityEngine.WindModule"
   ],
   "autoReferenced": true
 }
-
