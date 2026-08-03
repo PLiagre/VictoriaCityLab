@@ -1,11 +1,13 @@
 using System.Collections.Generic;
 using System;
+using System.IO;
 using Unity.AI.Navigation;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
+using Unity.Profiling;
 
 namespace Victoria.CityMode
 {
@@ -13,6 +15,7 @@ namespace Victoria.CityMode
     {
         const int CityId = 1001;
         const float ViewRefreshInterval = 0.1f;
+        const float AutosaveIntervalSeconds = 120f;
         readonly Dictionary<int, GameObject> roadViews = new Dictionary<int, GameObject>();
         readonly Dictionary<int, GameObject> parcelViews = new Dictionary<int, GameObject>();
         readonly Dictionary<int, GameObject> buildingViews = new Dictionary<int, GameObject>();
@@ -20,6 +23,7 @@ namespace Victoria.CityMode
         readonly Dictionary<int, GameObject> productionSiteViews = new Dictionary<int, GameObject>();
         readonly HashSet<int> completedBuildingVisuals = new HashSet<int>();
         LocalCitySimulation simulation;
+        BuildingCatalog buildingCatalog;
         CityVisualLibrary visualLibrary;
         Camera worldCamera;
         DirectionalLightCycle lightCycle;
@@ -27,6 +31,8 @@ namespace Victoria.CityMode
         CityLabHud hud;
         Material roadMaterial;
         Material parcelMaterial;
+        Material gardenMaterial;
+        Material extensionMaterial;
         Material foundationMaterial;
         Material framingMaterial;
         Material houseMaterial;
@@ -35,37 +41,55 @@ namespace Victoria.CityMode
         Material smokeMaterial;
         Material baseMaterial;
         Terrain worldTerrain;
+        NavMeshSurface navigationSurface;
+        AsyncOperation navigationMeshOperation;
         CityLabPerformanceProbe performanceProbe;
         float viewRefreshTimer;
-        float lastRunningSpeed = 1f;
+        float nextAutosaveTime;
         bool automatedRun;
+        bool navigationMeshDirty;
+        float nextNavigationMeshUpdateTime;
 
         public ICityStateSource StateSource => simulation;
         public ICityCommandSink CommandSink => simulation;
+        public BuildingCatalog Catalog => buildingCatalog;
         public Camera WorldCamera => worldCamera;
-        public float SimulationSpeed { get; private set; } = 1f;
-        public bool IsPaused => SimulationSpeed <= 0f;
+        public float SimulationSpeed => simulation?.SimulationSpeed ?? 1f;
+        public bool IsPaused => simulation?.IsPaused ?? false;
         public bool IsPointerOverHud(Vector2 screenPoint) => hud != null && hud.ContainsPointer(screenPoint);
 
         void Awake()
         {
             var arguments = Environment.GetCommandLineArgs();
             var isSmoke = Array.Exists(arguments, item => item == "-citylabSmoke");
+            var isPerformance = Array.Exists(arguments, item => item == "-citylabPerf");
             var isCapture = Array.Exists(arguments, item => item == "-citylabCapture");
-            automatedRun = isSmoke || isCapture;
-            var fixture = Resources.Load<TextAsset>(isSmoke ? "city_fixture_performance_1001" : "city_fixture_1001");
+            var isCharacterReview = Array.Exists(arguments, item => item == "-citylabCharacterReview");
+            var isBuildingReview = Array.Exists(arguments, item => item == "-citylabBuildingReview");
+            automatedRun = isSmoke || isPerformance || isCapture || isCharacterReview || isBuildingReview;
+            var fixture = Resources.Load<TextAsset>(isSmoke || isPerformance || isBuildingReview
+                ? "city_fixture_performance_1001"
+                : "city_fixture_1001");
             if (fixture == null)
             {
                 Debug.LogError("CityLab: Resources/city_fixture_1001.json introuvable.");
                 enabled = false;
                 return;
             }
-            simulation = LocalCitySimulation.FromJson(fixture.text);
+            buildingCatalog = BuildingCatalog.LoadDefault();
+            var initialSnapshot = JsonUtility.FromJson<CitySnapshot>(fixture.text);
+            EnsureInitialFoodSources(initialSnapshot);
+            EnsureInitialAgriculturalFields(initialSnapshot);
+            EnsureInitialProductionFacilities(initialSnapshot);
+            if (isPerformance)
+                ExpandPerformancePopulation(initialSnapshot, 100);
+            simulation = new LocalCitySimulation(initialSnapshot, buildingCatalog);
             visualLibrary = Resources.Load<CityVisualLibrary>("CityLabVisualLibrary");
             if (visualLibrary == null || !visualLibrary.HasDurableSlice)
                 Debug.LogWarning("CityLab: catalogue visuel absent ou incomplet, utilisation des primitives de secours.");
             CreateMaterials();
             CreateWorld();
+            simulation.SetParcelTerrainSampler(new TerrainParcelSampler(worldTerrain));
             CreateCamera();
             CreateLighting();
             CreateVillageCore();
@@ -77,17 +101,19 @@ namespace Victoria.CityMode
             hud = gameObject.AddComponent<CityLabHud>();
             hud.Initialize(this, buildController);
             RefreshSnapshotViews();
-            if (isSmoke)
+            nextAutosaveTime = Time.unscaledTime + AutosaveIntervalSeconds;
+            if (isSmoke || isPerformance)
             {
-                var road = Submit(CityCommand.DrawRoad(new Vector3(-42f, 0f, 12f), new Vector3(42f, 0f, 12f)));
+                var road = Submit(CityCommand.DrawRoad(new Vector3(-42f, 0f, 20f), new Vector3(42f, 0f, 20f)));
                 if (road.accepted)
                     Submit(CityCommand.ZoneResidential(road.createdId));
-                var secondRoad = Submit(CityCommand.DrawRoad(new Vector3(-42f, 0f, 40f), new Vector3(42f, 0f, 40f)));
+                var secondRoad = Submit(CityCommand.DrawRoad(new Vector3(-42f, 0f, 100f), new Vector3(42f, 0f, 100f)));
                 if (secondRoad.accepted)
                     Submit(CityCommand.ZoneResidential(secondRoad.createdId));
                 Submit(CityCommand.PlaceLumberCamp(new Vector3(38f, 0f, -10f)));
+                RunSaveRuntimeSmoke();
                 performanceProbe = gameObject.AddComponent<CityLabPerformanceProbe>();
-                performanceProbe.Initialize(this);
+                performanceProbe.Initialize(this, isPerformance);
             }
             else if (isCapture)
             {
@@ -97,6 +123,14 @@ namespace Victoria.CityMode
                 Submit(CityCommand.PlaceLumberCamp(new Vector3(38f, 0f, -10f)));
                 gameObject.AddComponent<CityLabCaptureProbe>();
             }
+            else if (isCharacterReview)
+            {
+                gameObject.AddComponent<CityLabCharacterReviewProbe>();
+            }
+            else if (isBuildingReview)
+            {
+                gameObject.AddComponent<CityLabBuildingReviewProbe>();
+            }
         }
 
         void Update()
@@ -105,6 +139,8 @@ namespace Victoria.CityMode
                 return;
             UpdateSimulationClockInput();
             simulation.Tick(Time.deltaTime * SimulationSpeed);
+            UpdateAutosave();
+            UpdateNavigationMesh();
             viewRefreshTimer -= Time.deltaTime;
             if (viewRefreshTimer <= 0f)
                 RefreshSnapshotViews();
@@ -112,16 +148,131 @@ namespace Victoria.CityMode
 
         public void SetSimulationSpeed(float speed)
         {
-            if (speed <= 0f)
-            {
-                SimulationSpeed = 0f;
-                return;
-            }
-            SimulationSpeed = speed <= 1f ? 1f : speed <= 2f ? 2f : 4f;
-            lastRunningSpeed = SimulationSpeed;
+            simulation?.SetSimulationSpeed(speed);
         }
 
-        public void TogglePause() => SetSimulationSpeed(IsPaused ? lastRunningSpeed : 0f);
+        static void ExpandPerformancePopulation(CitySnapshot snapshot, int target)
+        {
+            snapshot.villagers ??= new List<VillagerState>();
+            var nextId = 1;
+            foreach (var villager in snapshot.villagers)
+                nextId = Mathf.Max(nextId, villager.id + 1);
+            while (snapshot.villagers.Count < target)
+            {
+                var index = snapshot.villagers.Count;
+                snapshot.villagers.Add(new VillagerState
+                {
+                    id = nextId++,
+                    householdId = index % Mathf.Max(1, snapshot.households.Count) + 1,
+                    position = CityPoint.From(new Vector3(-18f + index % 20 * 1.8f,
+                        0f, -18f + index / 20 * 1.8f))
+                });
+            }
+        }
+
+        static void EnsureInitialFoodSources(CitySnapshot snapshot)
+        {
+            snapshot.foodSources ??= new List<FoodSourceState>();
+            if (snapshot.foodSources.Count > 0)
+                return;
+            snapshot.foodSources.Add(new FoodSourceState
+            {
+                id = 1,
+                kind = FoodSourceKind.BerryGrove,
+                position = CityPoint.From(new Vector3(-72f, 0f, -54f)),
+                accessible = true,
+                remainingFood = 180,
+                maxWorkers = 2,
+                workPerFood = 5f
+            });
+            snapshot.foodSources.Add(new FoodSourceState
+            {
+                id = 2,
+                kind = FoodSourceKind.HuntingGround,
+                position = CityPoint.From(new Vector3(82f, 0f, 48f)),
+                accessible = true,
+                remainingFood = 240,
+                maxWorkers = 2,
+                workPerFood = 8f
+            });
+        }
+
+        static void EnsureInitialAgriculturalFields(CitySnapshot snapshot)
+        {
+            snapshot.fields ??= new List<AgriculturalFieldState>();
+            if (snapshot.fields.Count > 0)
+                return;
+            snapshot.fields.Add(new AgriculturalFieldState
+            {
+                id = 1,
+                position = CityPoint.From(new Vector3(-58f, 0f, -72f)),
+                fertilityPermille = 820,
+                phase = FieldPhase.Fallow,
+                lastProcessedDay = snapshot.calendar?.absoluteDay ?? -1
+            });
+            snapshot.fields.Add(new AgriculturalFieldState
+            {
+                id = 2,
+                position = CityPoint.From(new Vector3(-24f, 0f, -72f)),
+                fertilityPermille = 680,
+                phase = FieldPhase.Fallow,
+                lastProcessedDay = snapshot.calendar?.absoluteDay ?? -1
+            });
+        }
+
+        static void EnsureInitialProductionFacilities(CitySnapshot snapshot)
+        {
+            snapshot.productionSites ??= new List<ProductionSiteState>();
+            if (snapshot.productionSites.Exists(item => item.kind != ProductionSiteKind.LumberCamp))
+                return;
+            var positions = new[]
+            {
+                new Vector3(52f, 0f, -66f), new Vector3(78f, 0f, -60f),
+                new Vector3(70f, 0f, -30f), new Vector3(48f, 0f, -36f),
+                new Vector3(25f, 0f, -55f), new Vector3(4f, 0f, -66f),
+                new Vector3(-18f, 0f, -50f)
+            };
+            var kinds = new[]
+            {
+                ProductionSiteKind.Sawmill, ProductionSiteKind.Quarry,
+                ProductionSiteKind.Forge, ProductionSiteKind.Mill,
+                ProductionSiteKind.Oven, ProductionSiteKind.Weaving,
+                ProductionSiteKind.Workshop
+            };
+            var nextId = 1;
+            foreach (var site in snapshot.productionSites)
+                nextId = Mathf.Max(nextId, site.id + 1);
+            var recipes = new ProductionRecipeCatalog();
+            for (var index = 0; index < kinds.Length; index++)
+            {
+                var recipe = recipes.Get(kinds[index]);
+                snapshot.productionSites.Add(new ProductionSiteState
+                {
+                    id = nextId++,
+                    kind = kinds[index],
+                    position = CityPoint.From(positions[index]),
+                    assignedWorkers = 1,
+                    maxWorkers = 1,
+                    constructionPhase = BuildingPhase.Complete,
+                    rawRemaining = recipe.defaultRawReserve
+                });
+            }
+        }
+
+        public void TogglePause() =>
+            SetSimulationSpeed(IsPaused ? simulation.LastRunningSpeed : 0f);
+
+        internal void AdvanceAutomatedSimulation(float seconds)
+        {
+            if (!automatedRun || simulation == null || seconds <= 0f)
+                return;
+            while (seconds > 0f)
+            {
+                var step = Mathf.Min(0.1f, seconds);
+                simulation.Tick(step);
+                seconds -= step;
+            }
+        }
 
         void UpdateSimulationClockInput()
         {
@@ -134,6 +285,95 @@ namespace Victoria.CityMode
             if (keyboard.digit1Key.wasPressedThisFrame) SetSimulationSpeed(1f);
             if (keyboard.digit2Key.wasPressedThisFrame) SetSimulationSpeed(2f);
             if (keyboard.digit3Key.wasPressedThisFrame) SetSimulationSpeed(4f);
+            if (keyboard.f5Key.wasPressedThisFrame) SaveCurrent(false);
+            if (keyboard.f9Key.wasPressedThisFrame) LoadManualSave();
+        }
+
+        void UpdateAutosave()
+        {
+            if (automatedRun || Time.unscaledTime < nextAutosaveTime)
+                return;
+            nextAutosaveTime = Time.unscaledTime + AutosaveIntervalSeconds;
+            SaveCurrent(true);
+        }
+
+        string SaveDirectory => Path.Combine(Application.persistentDataPath, "CityLab", "Saves");
+
+        void SaveCurrent(bool autosave)
+        {
+            try
+            {
+                var snapshot = simulation.GetSnapshot(CityId);
+                var path = autosave
+                    ? CitySaveService.SaveAutosave(SaveDirectory, snapshot)
+                    : CitySaveService.SaveManual(SaveDirectory, snapshot);
+                hud?.ShowMessage(autosave ? "Sauvegarde automatique" : "Partie sauvegardee", true);
+                Debug.Log($"CityLab: sauvegarde ecrite dans {path}");
+            }
+            catch (Exception exception)
+            {
+                hud?.ShowMessage("Echec de sauvegarde", false);
+                Debug.LogError($"CityLab: echec de sauvegarde: {exception.Message}");
+            }
+        }
+
+        void LoadManualSave()
+        {
+            var path = Path.Combine(SaveDirectory, CitySaveService.ManualFileName(CityId));
+            if (!CitySaveService.TryLoad(path, out var snapshot, out var reason))
+            {
+                hud?.ShowMessage($"Chargement refuse : {reason}", false);
+                return;
+            }
+            simulation = new LocalCitySimulation(snapshot, buildingCatalog);
+            simulation.SetParcelTerrainSampler(new TerrainParcelSampler(worldTerrain));
+            ClearSnapshotViews();
+            RefreshSnapshotViews();
+            hud?.ShowMessage("Partie chargee", true);
+        }
+
+        void RunSaveRuntimeSmoke()
+        {
+            var path = Path.Combine(Application.temporaryCachePath, "CityLabSaveSmoke",
+                CitySaveService.ManualFileName(CityId));
+            try
+            {
+                var before = simulation.GetSnapshot(CityId);
+                CitySaveService.SaveAtomic(path, before);
+                if (!CitySaveService.TryLoad(path, out var after, out var reason) ||
+                    JsonUtility.ToJson(before) != JsonUtility.ToJson(after))
+                    throw new InvalidOperationException("runtime-roundtrip-" + reason);
+                Debug.Log("CITYLAB_SAVE_RUNTIME_OK format=1 schema=1 atomic=true checksum=true");
+            }
+            finally
+            {
+                if (File.Exists(path))
+                    File.Delete(path);
+                var directory = Path.GetDirectoryName(path);
+                if (!string.IsNullOrEmpty(directory) && Directory.Exists(directory) &&
+                    Directory.GetFileSystemEntries(directory).Length == 0)
+                    Directory.Delete(directory);
+            }
+        }
+
+        void ClearSnapshotViews()
+        {
+            DestroyViews(roadViews);
+            DestroyViews(parcelViews);
+            DestroyViews(buildingViews);
+            DestroyViews(villagerViews);
+            DestroyViews(productionSiteViews);
+            completedBuildingVisuals.Clear();
+        }
+
+        static void DestroyViews(Dictionary<int, GameObject> views)
+        {
+            foreach (var view in views.Values)
+            {
+                if (view != null)
+                    UnityEngine.Object.Destroy(view);
+            }
+            views.Clear();
         }
 
         void RefreshSnapshotViews()
@@ -167,7 +407,12 @@ namespace Victoria.CityMode
             "lumber-camp-too-close-to-centre" => "camp trop proche du bourg",
             "lumber-camp-too-far-from-centre" => "camp trop eloigne du bourg",
             "lumber-camp-too-close-to-another-camp" => "un camp forestier est deja trop proche",
-            "lumber-camp-insufficient-wood" => "8 unites de bois sont requises",
+            "lumber-camp-insufficient-wood" => "bois disponible insuffisant",
+            "building-archetype-not-placeable" => "type de bâtiment non constructible",
+            "building-outside-map" => "bâtiment hors des limites du domaine",
+            "building-insufficient-wood" => "bois disponible insuffisant",
+            "building-overlap" => "emplacement déjà occupé",
+            "building-limit-reached" => "limite de bâtiments atteinte",
             "command-null" => "ordre vide",
             "command-unknown" => "ordre inconnu",
             _ => reason
@@ -201,6 +446,8 @@ namespace Victoria.CityMode
                 roadMaterial.SetFloat("_Smoothness", 0.03f);
             }
             parcelMaterial = MakeMaterial("Parcel", new Color(0.18f, 0.36f, 0.13f, 0.14f), true);
+            gardenMaterial = MakeMaterial("Kitchen garden", new Color(0.20f, 0.34f, 0.08f));
+            extensionMaterial = MakeMaterial("House extension", new Color(0.36f, 0.20f, 0.09f));
             foundationMaterial = MakeMaterial("Foundation", new Color(0.39f, 0.37f, 0.32f));
             framingMaterial = MakeMaterial("Framing", new Color(0.48f, 0.29f, 0.12f));
             houseMaterial = MakeMaterial("House", new Color(0.46f, 0.22f, 0.14f));
@@ -289,10 +536,21 @@ namespace Victoria.CityMode
                 worldTerrain.materialTemplate = terrainMaterial;
             ConfigureTerrainLayers(terrainData);
 
-            var surface = terrainObject.AddComponent<NavMeshSurface>();
-            surface.collectObjects = CollectObjects.All;
-            surface.useGeometry = NavMeshCollectGeometry.PhysicsColliders;
-            surface.BuildNavMesh();
+            navigationSurface = terrainObject.AddComponent<NavMeshSurface>();
+            navigationSurface.collectObjects = CollectObjects.All;
+            navigationSurface.useGeometry = NavMeshCollectGeometry.PhysicsColliders;
+            navigationSurface.BuildNavMesh();
+        }
+
+        void UpdateNavigationMesh()
+        {
+            if (!navigationMeshDirty || navigationSurface == null ||
+                navigationSurface.navMeshData == null || Time.unscaledTime < nextNavigationMeshUpdateTime ||
+                navigationMeshOperation != null && !navigationMeshOperation.isDone)
+                return;
+            navigationMeshDirty = false;
+            nextNavigationMeshUpdateTime = Time.unscaledTime + 0.25f;
+            navigationMeshOperation = navigationSurface.UpdateNavMesh(navigationSurface.navMeshData);
         }
 
         static void ConfigureTerrainLayers(TerrainData data)
@@ -543,16 +801,88 @@ namespace Victoria.CityMode
         void SyncProductionSite(ProductionSiteState site)
         {
             if (site.kind != ProductionSiteKind.LumberCamp)
+            {
+                SyncProductionFacility(site);
                 return;
+            }
             if (!productionSiteViews.TryGetValue(site.id, out var view))
             {
-                view = StylizedEnvironment.CreateLumberCamp($"Lumber camp {site.id}", site.position.ToVector3(),
-                    worldTerrain, baseMaterial, roadMaterial, woodMaterial);
+                var position = site.position.ToVector3();
+                var lumberCampPrefab = SelectLumberCampPrefab(site.id);
+                if (lumberCampPrefab != null)
+                {
+                    position.y = worldTerrain != null
+                        ? worldTerrain.SampleHeight(position) + worldTerrain.transform.position.y
+                        : position.y;
+                    var flat = new Vector3(position.x, 0f, position.z);
+                    var rotation = flat.sqrMagnitude > 0.01f
+                        ? Quaternion.LookRotation(-flat.normalized, Vector3.up)
+                        : Quaternion.identity;
+                    view = InstantiateVisual(lumberCampPrefab,
+                        $"Lumber camp {site.id}", position, rotation);
+                }
+                else
+                {
+                    view = StylizedEnvironment.CreateLumberCamp($"Lumber camp {site.id}", position,
+                        worldTerrain, baseMaterial, roadMaterial, woodMaterial);
+                }
                 productionSiteViews.Add(site.id, view);
+                navigationMeshDirty = true;
             }
             var camp = view.GetComponent<LumberCampVisual>();
-            if (camp != null)
-                camp.Refresh(site.remainingTimber, site.assignedWorkers);
+            if (camp == null)
+                camp = view.AddComponent<LumberCampVisual>();
+            camp.Refresh(site.remainingTimber, site.assignedWorkers);
+            var construction = view.GetComponent<FactoryConstructionVisual>();
+            if (construction != null)
+                construction.ShowStage(ToFactoryStage(site.constructionPhase));
+        }
+
+        void SyncProductionFacility(ProductionSiteState site)
+        {
+            if (productionSiteViews.ContainsKey(site.id))
+                return;
+            var archetype = site.kind switch
+            {
+                ProductionSiteKind.Sawmill => BuildingArchetype.LumberCamp,
+                ProductionSiteKind.Forge => BuildingArchetype.Blacksmith,
+                ProductionSiteKind.Mill => BuildingArchetype.Granary,
+                ProductionSiteKind.Oven => BuildingArchetype.Market,
+                ProductionSiteKind.Weaving => BuildingArchetype.Barn,
+                ProductionSiteKind.Workshop => BuildingArchetype.Warehouse,
+                _ => BuildingArchetype.Warehouse
+            };
+            var position = site.position.ToVector3();
+            if (worldTerrain != null)
+                position.y = worldTerrain.SampleHeight(position) + worldTerrain.transform.position.y;
+            var prefab = visualLibrary?.SelectBuildingPrefab(
+                buildingCatalog.Get(archetype).visualFamily, site.id);
+            var view = prefab != null
+                ? InstantiateVisual(prefab, $"Production {site.kind} {site.id}", position,
+                    Quaternion.Euler(0f, 180f, 0f))
+                : StylizedEnvironment.CreateLumberCamp($"Production {site.kind} {site.id}",
+                    position, worldTerrain, baseMaterial, roadMaterial, woodMaterial);
+            productionSiteViews.Add(site.id, view);
+            navigationMeshDirty = true;
+        }
+
+        static FactoryConstructionStage ToFactoryStage(BuildingPhase phase)
+        {
+            return phase switch
+            {
+                BuildingPhase.Foundation => FactoryConstructionStage.Foundation,
+                BuildingPhase.Framing => FactoryConstructionStage.Frame,
+                BuildingPhase.Roofing => FactoryConstructionStage.Roof,
+                _ => FactoryConstructionStage.Details
+            };
+        }
+
+        GameObject SelectLumberCampPrefab(int siteId)
+        {
+            var definition = buildingCatalog.Get(BuildingArchetype.LumberCamp);
+            return visualLibrary != null
+                ? visualLibrary.SelectBuildingPrefab(definition.visualFamily, siteId)
+                : null;
         }
 
         void SyncRoad(RoadState road)
@@ -572,15 +902,64 @@ namespace Victoria.CityMode
             {
                 view = new GameObject($"Parcel {parcel.id}");
                 view.transform.position = parcel.center.ToVector3() + Vector3.up * 0.06f;
+                view.transform.rotation = Quaternion.Euler(0f, parcel.yaw, 0f);
                 var fill = CreatePrimitive("Zoning fill", PrimitiveType.Cube, Vector3.zero,
                     new Vector3(parcel.width, 0.06f, parcel.depth), parcelMaterial);
                 fill.transform.SetParent(view.transform, false);
                 var collider = fill.GetComponent<Collider>();
                 if (collider != null) collider.enabled = false;
                 AddParcelBorder(view.transform, parcel.width, parcel.depth);
+                AddParcelGarden(view.transform, parcel);
+                AddParcelExtensions(view.transform, parcel);
                 parcelViews.Add(parcel.id, view);
             }
-            view.SetActive(parcel.buildingId == 0);
+            var zoningFill = view.transform.Find("Zoning fill");
+            if (zoningFill != null)
+                zoningFill.gameObject.SetActive(parcel.buildingId == 0);
+            var garden = view.transform.Find("Kitchen garden");
+            if (garden != null)
+                garden.gameObject.SetActive(parcel.gardenActive);
+            var extensionOne = view.transform.Find("House extension 1");
+            if (extensionOne != null)
+                extensionOne.gameObject.SetActive(parcel.extensionLevel >= 1);
+            var extensionTwo = view.transform.Find("House extension 2");
+            if (extensionTwo != null)
+                extensionTwo.gameObject.SetActive(parcel.extensionLevel >= 2);
+        }
+
+        void AddParcelGarden(Transform root, ParcelState parcel)
+        {
+            if (!parcel.hasGarden)
+                return;
+            var garden = CreatePrimitive("Kitchen garden", PrimitiveType.Cube, Vector3.zero,
+                new Vector3(Mathf.Max(2f, parcel.width - 1.2f), 0.08f,
+                    Mathf.Max(1f, parcel.gardenDepth - 0.8f)), gardenMaterial);
+            garden.transform.SetParent(root, false);
+            garden.transform.localPosition = new Vector3(0f, 0.01f,
+                parcel.depth * 0.5f - parcel.gardenDepth * 0.5f - 0.4f);
+            var collider = garden.GetComponent<Collider>();
+            if (collider != null) collider.enabled = false;
+            garden.SetActive(false);
+        }
+
+        void AddParcelExtensions(Transform root, ParcelState parcel)
+        {
+            if (parcel.extensionCapacity <= 0)
+                return;
+            var depth = 2.3f;
+            for (var level = 1; level <= parcel.extensionCapacity; level++)
+            {
+                var extension = CreatePrimitive($"House extension {level}", PrimitiveType.Cube,
+                    Vector3.zero, new Vector3(parcel.width * 0.34f, 2.7f, depth), extensionMaterial);
+                extension.transform.SetParent(root, false);
+                extension.transform.localPosition = new Vector3(
+                    level == 1 ? -parcel.width * 0.28f : parcel.width * 0.28f,
+                    1.35f,
+                    -parcel.depth * 0.5f + 1.5f + 14f + depth * 0.5f);
+                var collider = extension.GetComponent<Collider>();
+                if (collider != null) collider.enabled = false;
+                extension.SetActive(false);
+            }
         }
 
         void AddParcelBorder(Transform root, float width, float depth)
@@ -607,11 +986,13 @@ namespace Victoria.CityMode
 
         void SyncBuilding(BuildingState building)
         {
+            var definition = buildingCatalog.Get(building.archetype);
+            var footprint = new Vector3(definition.footprintWidth, 0.7f, definition.footprintDepth);
             if (!buildingViews.TryGetValue(building.id, out var view))
             {
                 view = CreatePrimitive($"House {building.id}", PrimitiveType.Cube,
                     building.position.ToVector3() + Vector3.up * 0.35f,
-                    new Vector3(7f, 0.7f, 9f), foundationMaterial);
+                    footprint, foundationMaterial);
                 view.transform.rotation = Quaternion.Euler(0f, building.yaw, 0f);
                 view.AddComponent<BuildingView>().Initialize(building.id, baseMaterial);
                 buildingViews.Add(building.id, view);
@@ -625,29 +1006,48 @@ namespace Victoria.CityMode
                     renderer.enabled = false;
                     view.transform.localScale = Vector3.one;
                     view.transform.position = building.position.ToVector3();
-                    EnsureFoundationVisual(view, building.id).SetActive(true);
-                    ConfigureBuildingCollider(view, new Vector3(0f, 0.45f, 0f), new Vector3(7.4f, 0.9f, 9.4f));
+                    EnsureEarthworksVisual(view, definition).SetActive(!building.terrainPrepared);
+                    EnsureFoundationVisual(view, building.id).SetActive(building.terrainPrepared);
+                    ConfigureBuildingCollider(view, new Vector3(0f, 0.45f, 0f),
+                        new Vector3(definition.footprintWidth + 0.4f, 0.9f, definition.footprintDepth + 0.4f));
                     break;
                 case BuildingPhase.Framing:
+                    SetEarthworksVisible(view, false);
                     view.transform.localScale = Vector3.one;
                     view.transform.position = building.position.ToVector3();
                     renderer.enabled = false;
                     EnsureFoundationVisual(view, building.id).SetActive(true);
-                    ConfigureBuildingCollider(view, new Vector3(0f, 2f, 0f), new Vector3(7f, 4.5f, 9f));
+                    ConfigureBuildingCollider(view, new Vector3(0f, 2f, 0f),
+                        new Vector3(definition.footprintWidth, 4.5f, definition.footprintDepth));
+                    EnsureFramingVisual(view).SetActive(true);
+                    break;
+                case BuildingPhase.Roofing:
+                case BuildingPhase.Detailing:
+                    SetEarthworksVisible(view, false);
+                    view.transform.localScale = Vector3.one;
+                    view.transform.position = building.position.ToVector3();
+                    renderer.enabled = false;
+                    EnsureFoundationVisual(view, building.id).SetActive(true);
+                    ConfigureBuildingCollider(view, new Vector3(0f, 2.5f, 0f),
+                        new Vector3(definition.footprintWidth, 5.5f, definition.footprintDepth));
                     EnsureFramingVisual(view).SetActive(true);
                     break;
                 case BuildingPhase.Complete:
                     SetFramingVisible(view, false);
                     SetFoundationVisible(view, false);
+                    SetEarthworksVisible(view, false);
                     view.transform.localScale = Vector3.one;
                     view.transform.position = building.position.ToVector3();
-                    if (visualLibrary != null && visualLibrary.housePrefabs != null && visualLibrary.housePrefabs.Length > 0)
+                    var completedPrefab = visualLibrary != null
+                        ? visualLibrary.SelectBuildingPrefab(definition.visualFamily, building.id)
+                        : null;
+                    var newlyCompleted = completedBuildingVisuals.Add(building.id);
+                    if (completedPrefab != null)
                     {
                         renderer.enabled = false;
-                        if (completedBuildingVisuals.Add(building.id))
+                        if (newlyCompleted)
                         {
-                            var prefab = visualLibrary.housePrefabs[Mathf.Abs(building.id) % visualLibrary.housePrefabs.Length];
-                            var detailed = Instantiate(prefab, view.transform);
+                            var detailed = Instantiate(completedPrefab, view.transform);
                             detailed.name = "Completed House Visual";
                             detailed.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
                             AddOccupiedHomeDetails(view.transform);
@@ -655,10 +1055,13 @@ namespace Victoria.CityMode
                     }
                     else
                     {
-                        view.transform.localScale = new Vector3(7f, 5.5f, 9f);
+                        view.transform.localScale = new Vector3(
+                            definition.footprintWidth, 5.5f, definition.footprintDepth);
                         view.transform.position = building.position.ToVector3() + Vector3.up * 2.75f;
                         renderer.sharedMaterial = houseMaterial;
                     }
+                    if (newlyCompleted)
+                        navigationMeshDirty = true;
                     break;
             }
         }
@@ -760,6 +1163,21 @@ namespace Victoria.CityMode
             return root;
         }
 
+        GameObject EnsureEarthworksVisual(GameObject view, BuildingDefinition definition)
+        {
+            var existing = view.transform.Find("Earthworks");
+            if (existing != null)
+                return existing.gameObject;
+            var earthworks = CreatePrimitive("Earthworks", PrimitiveType.Cube, Vector3.zero,
+                new Vector3(definition.footprintWidth + 1.4f, 0.18f,
+                    definition.footprintDepth + 1.4f), foundationMaterial);
+            earthworks.transform.SetParent(view.transform, false);
+            earthworks.transform.localPosition = new Vector3(0f, -0.08f, 0f);
+            var collider = earthworks.GetComponent<Collider>();
+            if (collider != null) collider.enabled = false;
+            return earthworks;
+        }
+
         void AddFoundationSide(Transform parent, System.Random random, Vector3 center, Vector3 axis, int count, float spacing)
         {
             var midpoint = (count - 1) * 0.5f;
@@ -813,12 +1231,18 @@ namespace Victoria.CityMode
             if (foundation != null) foundation.gameObject.SetActive(visible);
         }
 
+        static void SetEarthworksVisible(GameObject view, bool visible)
+        {
+            var earthworks = view.transform.Find("Earthworks");
+            if (earthworks != null) earthworks.gameObject.SetActive(visible);
+        }
+
         void SyncVillager(VillagerState villager)
         {
             if (!villagerViews.TryGetValue(villager.id, out var view))
             {
                 var position = villager.position.ToVector3();
-                view = InstantiateVisual(visualLibrary != null ? visualLibrary.villagerPrefab : null,
+                view = InstantiateVisual(SelectVillagerPrefab(villager.id),
                     $"Villager {villager.id}", position, Quaternion.identity);
                 if (view == null)
                 {
@@ -846,6 +1270,15 @@ namespace Victoria.CityMode
             }
         }
 
+        GameObject SelectVillagerPrefab(int villagerId)
+        {
+            if (visualLibrary == null)
+                return null;
+            if (visualLibrary.villagerPrefabs != null && visualLibrary.villagerPrefabs.Length > 0)
+                return visualLibrary.villagerPrefabs[(villagerId & int.MaxValue) % visualLibrary.villagerPrefabs.Length];
+            return visualLibrary.villagerPrefab;
+        }
+
         static GameObject InstantiateVisual(GameObject prefab, string label, Vector3 position, Quaternion rotation)
         {
             if (prefab == null)
@@ -863,6 +1296,20 @@ namespace Victoria.CityMode
             result.transform.localScale = scale;
             result.GetComponent<Renderer>().sharedMaterial = material;
             return result;
+        }
+
+        sealed class TerrainParcelSampler : IParcelTerrainSampler
+        {
+            readonly Terrain terrain;
+
+            public TerrainParcelSampler(Terrain terrain)
+            {
+                this.terrain = terrain;
+            }
+
+            public float SampleHeight(Vector3 worldPosition) => terrain != null
+                ? terrain.SampleHeight(worldPosition) + terrain.transform.position.y
+                : 0f;
         }
     }
 
@@ -973,16 +1420,30 @@ namespace Victoria.CityMode
     public sealed class CityLabPerformanceProbe : MonoBehaviour
     {
         const int WarmupFrames = 120;
-        const int SampleFrames = 600;
-        const float MaximumAverageMilliseconds = 20f;
-        const float MaximumP95Milliseconds = 25f;
-        readonly List<float> samples = new List<float>(SampleFrames);
+        const int SmokeFrames = 600;
+        const int PerformanceFrames = 1800;
+        const long MaximumP95AllocatedBytes = 64 * 1024;
+        readonly List<float> samples = new List<float>(PerformanceFrames);
+        readonly List<long> allocationSamples = new List<long>(PerformanceFrames);
         CityLabGame game;
         int frames;
+        int requiredVillagers;
+        int sampleFrames;
+        float maximumAverageMilliseconds;
+        float maximumP95Milliseconds;
+        bool strictPerformance;
+        ProfilerRecorder gcAllocatedRecorder;
 
-        public void Initialize(CityLabGame owner)
+        public void Initialize(CityLabGame owner, bool strict)
         {
             game = owner;
+            strictPerformance = strict;
+            sampleFrames = strict ? PerformanceFrames : SmokeFrames;
+            requiredVillagers = strict ? 100 : 30;
+            maximumAverageMilliseconds = strict ? 16.7f : 20f;
+            maximumP95Milliseconds = strict ? 16.7f : 25f;
+            gcAllocatedRecorder = ProfilerRecorder.StartNew(ProfilerCategory.Memory,
+                "GC Allocated In Frame", 1);
             var snapshot = game.StateSource.GetSnapshot(1001);
             Debug.Log($"CITYLAB_SMOKE_SCENARIO households={snapshot.households.Count} buildings={snapshot.buildings.Count} villagers={snapshot.villagers.Count}");
         }
@@ -993,33 +1454,54 @@ namespace Victoria.CityMode
             if (frames <= WarmupFrames)
                 return;
             samples.Add(Time.unscaledDeltaTime * 1000f);
-            if (samples.Count < SampleFrames)
+            allocationSamples.Add(gcAllocatedRecorder.Valid ? gcAllocatedRecorder.LastValue : 0L);
+            if (samples.Count < sampleFrames)
                 return;
 
             samples.Sort();
+            allocationSamples.Sort();
             var sum = 0f;
             foreach (var sample in samples) sum += sample;
             var average = sum / samples.Count;
             var p95 = samples[Mathf.Clamp(Mathf.CeilToInt(samples.Count * 0.95f) - 1, 0, samples.Count - 1)];
+            var allocationP95 = allocationSamples[Mathf.Clamp(
+                Mathf.CeilToInt(allocationSamples.Count * 0.95f) - 1, 0, allocationSamples.Count - 1)];
+            var allocationMaximum = allocationSamples[allocationSamples.Count - 1];
             var snapshot = game.StateSource.GetSnapshot(1001);
-            if (snapshot.households.Count < 20 || snapshot.buildings.Count < 30 || snapshot.villagers.Count < 30)
+            if (snapshot.households.Count < 20 || snapshot.buildings.Count < 30 ||
+                snapshot.villagers.Count < requiredVillagers)
             {
                 Debug.LogError($"CITYLAB_PERF_FAIL scenario households={snapshot.households.Count} buildings={snapshot.buildings.Count} villagers={snapshot.villagers.Count}");
                 Application.Quit(2);
                 enabled = false;
                 return;
             }
-            if (average > MaximumAverageMilliseconds || p95 > MaximumP95Milliseconds)
+            if (average > maximumAverageMilliseconds || p95 > maximumP95Milliseconds)
             {
                 Debug.LogError($"CITYLAB_PERF_FAIL timing avg_ms={average:F3} p95_ms={p95:F3} " +
-                               $"limits={MaximumAverageMilliseconds:F1}/{MaximumP95Milliseconds:F1}");
+                               $"limits={maximumAverageMilliseconds:F1}/{maximumP95Milliseconds:F1}");
                 Application.Quit(3);
                 enabled = false;
                 return;
             }
-            Debug.Log($"CITYLAB_PERF_OK frames={samples.Count} avg_ms={average:F3} p95_ms={p95:F3} avg_fps={1000f / average:F1}");
+            if (strictPerformance && allocationP95 > MaximumP95AllocatedBytes)
+            {
+                Debug.LogError($"CITYLAB_PERF_FAIL allocation p95_bytes={allocationP95} " +
+                    $"max_bytes={allocationMaximum} limit={MaximumP95AllocatedBytes}");
+                Application.Quit(4);
+                enabled = false;
+                return;
+            }
+            Debug.Log($"CITYLAB_PERF_OK frames={samples.Count} villagers={snapshot.villagers.Count} " +
+                $"avg_ms={average:F3} p95_ms={p95:F3} avg_fps={1000f / average:F1} " +
+                $"gc_p95_bytes={allocationP95} gc_max_bytes={allocationMaximum}");
             Application.Quit(0);
             enabled = false;
+        }
+
+        void OnDestroy()
+        {
+            gcAllocatedRecorder.Dispose();
         }
     }
 
@@ -1058,9 +1540,9 @@ namespace Victoria.CityMode
                 SelectActiveSite();
             if (frames == 480)
             {
-                var path = System.IO.Path.GetFullPath("Logs/Captures/milestone-forest-revival-20260731.png");
-                System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path));
-                ScreenCapture.CaptureScreenshot(path, 1);
+                var path = Path.GetFullPath("Logs/Captures/m1-factory-runtime-20260801.png");
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+                CaptureOffscreen(path);
                 Debug.Log("CITYLAB_CAPTURE_WRITTEN path=" + path);
                 captureFrame = frames;
             }
@@ -1069,6 +1551,33 @@ namespace Victoria.CityMode
                 Time.timeScale = 1f;
                 Application.Quit(0);
                 enabled = false;
+            }
+        }
+
+        internal static void CaptureOffscreen(string path)
+        {
+            var camera = Camera.main ?? FindFirstObjectByType<Camera>();
+            if (camera == null)
+                throw new InvalidOperationException("CityLab capture camera is missing.");
+            var target = RenderTexture.GetTemporary(1920, 1080, 24, RenderTextureFormat.ARGB32);
+            var previousTarget = camera.targetTexture;
+            var previousActive = RenderTexture.active;
+            var texture = new Texture2D(1920, 1080, TextureFormat.RGB24, false);
+            try
+            {
+                camera.targetTexture = target;
+                camera.Render();
+                RenderTexture.active = target;
+                texture.ReadPixels(new Rect(0f, 0f, 1920f, 1080f), 0, 0);
+                texture.Apply(false, false);
+                File.WriteAllBytes(path, texture.EncodeToPNG());
+            }
+            finally
+            {
+                camera.targetTexture = previousTarget;
+                RenderTexture.active = previousActive;
+                Destroy(texture);
+                RenderTexture.ReleaseTemporary(target);
             }
         }
 
@@ -1085,6 +1594,162 @@ namespace Victoria.CityMode
             // The automated capture also exercises a harmless invalid command so
             // the player-build screenshot proves the localized refusal treatment.
             game.Submit(CityCommand.DrawRoad(Vector3.zero, Vector3.one));
+        }
+    }
+
+    public sealed class CityLabCharacterReviewProbe : MonoBehaviour
+    {
+        static readonly string[] States = { "Idle", "Walk", "Work" };
+        readonly List<Animator> animators = new List<Animator>();
+        Camera reviewCamera;
+        int stateIndex;
+        int framesInState;
+
+        void Awake()
+        {
+            Time.timeScale = 1f;
+            var controller = FindFirstObjectByType<RtsCameraController>();
+            if (controller != null)
+                controller.enabled = false;
+            reviewCamera = Camera.main ?? FindFirstObjectByType<Camera>();
+            if (reviewCamera == null)
+                throw new InvalidOperationException("CityLab character review camera is missing.");
+
+            const float boardHeight = 1000f;
+            reviewCamera.transform.SetPositionAndRotation(new Vector3(0f, boardHeight + 3.2f, -13f),
+                Quaternion.LookRotation(new Vector3(0f, boardHeight + 1.25f, 0f) -
+                    new Vector3(0f, boardHeight + 3.2f, -13f), Vector3.up));
+            reviewCamera.fieldOfView = 38f;
+            reviewCamera.nearClipPlane = 0.1f;
+            reviewCamera.farClipPlane = 80f;
+
+            var ground = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            ground.name = "Character review ground";
+            ground.transform.position = new Vector3(0f, boardHeight - 0.15f, 0f);
+            ground.transform.localScale = new Vector3(26f, 0.25f, 30f);
+            var reviewMaterial = new Material(Resources.Load<Material>("CityLabBaseMaterial"))
+            {
+                name = "Character review ground material",
+                color = new Color(0.055f, 0.065f, 0.075f, 1f)
+            };
+            ground.GetComponent<Renderer>().sharedMaterial = reviewMaterial;
+
+            var library = Resources.Load<CityVisualLibrary>("CityLabVisualLibrary");
+            if (library == null || library.villagerPrefabs == null || library.villagerPrefabs.Length != 8)
+                throw new InvalidOperationException("CityLab character review requires eight role prefabs.");
+            for (var index = 0; index < library.villagerPrefabs.Length; index++)
+            {
+                var role = Instantiate(library.villagerPrefabs[index],
+                    new Vector3((index - 3.5f) * 2f, boardHeight, 0f), Quaternion.Euler(0f, 180f, 0f));
+                role.name = "Character Review " + index;
+                var animator = role.GetComponentInChildren<Animator>(true);
+                if (animator == null || animator.avatar == null || !animator.avatar.isHuman)
+                    throw new InvalidOperationException("Character review Humanoid validation failed at role " + index);
+                animator.runtimeAnimatorController = library.villagerAnimatorController;
+                animator.applyRootMotion = false;
+                animators.Add(animator);
+            }
+            ApplyState();
+        }
+
+        void Update()
+        {
+            framesInState++;
+            if (framesInState < 12)
+                return;
+            var path = Path.GetFullPath($"Logs/Captures/Characters/m1-characters-{States[stateIndex].ToLowerInvariant()}-20260801.png");
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            CityLabCaptureProbe.CaptureOffscreen(path);
+            Debug.Log($"CITYLAB_CHARACTER_REVIEW_WRITTEN state={States[stateIndex]} roles={animators.Count} path={path}");
+            stateIndex++;
+            if (stateIndex >= States.Length)
+            {
+                Debug.Log("CITYLAB_CHARACTER_REVIEW_OK roles=8 states=3 humanoid=true lods=3");
+                Application.Quit(0);
+                enabled = false;
+                return;
+            }
+            framesInState = 0;
+            ApplyState();
+        }
+
+        void ApplyState()
+        {
+            var normalizedTime = stateIndex == 0 ? 0.35f : stateIndex == 1 ? 0.42f : 0.58f;
+            foreach (var animator in animators)
+            {
+                animator.Play(States[stateIndex], 0, normalizedTime);
+                animator.Update(0f);
+            }
+        }
+    }
+
+    public sealed class CityLabBuildingReviewProbe : MonoBehaviour
+    {
+        static readonly BuildingArchetype[] Archetypes =
+        {
+            BuildingArchetype.Granary, BuildingArchetype.Warehouse, BuildingArchetype.Market,
+            BuildingArchetype.Blacksmith, BuildingArchetype.Barn, BuildingArchetype.Chapel
+        };
+        CityLabGame game;
+        int frames;
+        int completedFrame;
+
+        void Awake()
+        {
+            Time.timeScale = 100f;
+            var controller = FindFirstObjectByType<RtsCameraController>();
+            if (controller != null)
+            {
+                controller.enabled = false;
+                var rotation = Quaternion.Euler(58f, 0f, 0f);
+                controller.transform.SetPositionAndRotation(new Vector3(0f, 118f, 18f), rotation);
+            }
+            game = FindFirstObjectByType<CityLabGame>();
+            if (game == null)
+                throw new InvalidOperationException("CityLab building review game is missing.");
+            game.SetSimulationSpeed(4f);
+            for (var index = 0; index < Archetypes.Length; index++)
+            {
+                var result = game.Submit(CityCommand.PlaceBuilding(Archetypes[index],
+                    new Vector3(-90f + index * 36f, 0f, 72f)));
+                if (!result.accepted)
+                    throw new InvalidOperationException(Archetypes[index] + " review placement failed: " + result.reason);
+            }
+        }
+
+        void Update()
+        {
+            frames++;
+            game.AdvanceAutomatedSimulation(0.5f);
+            var snapshot = game.StateSource.GetSnapshot(1001);
+            var civic = snapshot.buildings.FindAll(item => item.archetype >= BuildingArchetype.Granary);
+            if (completedFrame == 0 && civic.Count == Archetypes.Length &&
+                civic.TrueForAll(item => item.phase == BuildingPhase.Complete))
+                completedFrame = frames;
+            if (completedFrame > 0 && frames >= completedFrame + 20)
+            {
+                var path = Path.GetFullPath("Logs/Captures/Buildings/m1-eight-functions-runtime-20260801.png");
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+                CityLabCaptureProbe.CaptureOffscreen(path);
+                Debug.Log($"CITYLAB_BUILDING_REVIEW_OK functions=8 civic=6 " +
+                    $"food={snapshot.foodStorageCapacity} goods={snapshot.goodsStorageCapacity} " +
+                    $"market={snapshot.marketServiceCapacity} tools={snapshot.toolProductionCapacity} " +
+                    $"livestock={snapshot.livestockCapacity} faith={snapshot.faithServiceCapacity} " +
+                    $"employed={snapshot.villagers.FindAll(item => item.job != VillagerJob.None).Count} " +
+                    $"replacements={snapshot.jobReplacements} path={path}");
+                Time.timeScale = 1f;
+                Application.Quit(0);
+                enabled = false;
+            }
+            else if (frames > 7000)
+            {
+                Debug.LogError("CITYLAB_BUILDING_REVIEW_FAIL timeout civic=" + civic.Count +
+                    " complete=" + civic.FindAll(item => item.phase == BuildingPhase.Complete).Count +
+                    " elapsed=" + snapshot.elapsedSeconds.ToString("F1"));
+                Application.Quit(5);
+                enabled = false;
+            }
         }
     }
 }

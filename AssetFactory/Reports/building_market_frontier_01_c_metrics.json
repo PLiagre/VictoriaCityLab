@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "id": "building_market_frontier_01_c",
+  "family": "building_market_frontier_01",
+  "function": "market",
+  "wall_system": "stone_timber",
+  "roof_system": "clay_tile",
+  "identity_markers": [
+    "arcade",
+    "stalls",
+    "awnings",
+    "goods",
+    "hanging_sign"
+  ],
+  "variant": "c",
+  "seed": 2026081603,
+  "blender": "5.2.0 LTS",
+  "vendor_input": {
+    "path": "Assets/EmaceArt/Slavic World Free/Meshes/EA03_Prop_Town_Bench_01a.fbx",
+    "sha256": "465fbf3ed8d7ec3d7c688e4ed43f910e8223c33eda920694d183760da4b5e66e"
+  },
+  "triangles": {
+    "lod0": 41120,
+    "lod1": 20560,
+    "lod2": 8218
+  },
+  "construction_phase_triangles": {
+    "foundation": {
+      "lod0": 4428,
+      "lod1": 2214,
+      "lod2": 884
+    },
+    "frame": {
+      "lod0": 6076,
+      "lod1": 3038,
+      "lod2": 1214
+    },
+    "roof": {
+      "lod0": 22148,
+      "lod1": 11074,
+      "lod2": 4428
+    },
+    "details": {
+      "lod0": 8468,
+      "lod1": 4234,
+      "lod2": 1692
+    }
+  },
+  "canonical_mesh_sha256": "152470b1643c420ac436dafdedcefb11cc3def9c275582db83e6e863758dbe57",
+  "outputs": {
+    "glb": "AssetFactory/Raw/building_market_frontier_01_c.glb",
+    "fbx": "AssetFactory/Workbench/Models/building_market_frontier_01_c.fbx",
+    "hero": "AssetFactory/Workbench/Previews/building_market_frontier_01_c_hero.png",
+    "rts": "AssetFactory/Workbench/Previews/building_market_frontier_01_c_rts.png"
+  }
+}

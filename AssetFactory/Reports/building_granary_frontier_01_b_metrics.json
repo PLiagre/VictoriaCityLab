@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "id": "building_granary_frontier_01_b",
+  "family": "building_granary_frontier_01",
+  "function": "granary",
+  "wall_system": "timber_plank",
+  "roof_system": "wood_shingle",
+  "identity_markers": [
+    "raised_floor",
+    "grain_sacks",
+    "ventilation_slits",
+    "hoist",
+    "grain_emblem"
+  ],
+  "variant": "b",
+  "seed": 2026081301,
+  "blender": "5.2.0 LTS",
+  "vendor_input": {
+    "path": "Assets/EmaceArt/Slavic World Free/Meshes/EA03_Prop_Village_Ladder_02a.fbx",
+    "sha256": "cad61c0e50822b07fa18dbb8bafa96e0bc54583544d8aef23504d624e20e84f1"
+  },
+  "triangles": {
+    "lod0": 37288,
+    "lod1": 18644,
+    "lod2": 7454
+  },
+  "construction_phase_triangles": {
+    "foundation": {
+      "lod0": 3564,
+      "lod1": 1782,
+      "lod2": 712
+    },
+    "frame": {
+      "lod0": 11068,
+      "lod1": 5534,
+      "lod2": 2212
+    },
+    "roof": {
+      "lod0": 14156,
+      "lod1": 7078,
+      "lod2": 2830
+    },
+    "details": {
+      "lod0": 8500,
+      "lod1": 4250,
+      "lod2": 1700
+    }
+  },
+  "canonical_mesh_sha256": "9bea8e1f58273e2e08389f40724efa35db98844e0bd1888199f7ab34ad7e347f",
+  "outputs": {
+    "glb": "AssetFactory/Raw/building_granary_frontier_01_b.glb",
+    "fbx": "AssetFactory/Workbench/Models/building_granary_frontier_01_b.fbx",
+    "hero": "AssetFactory/Workbench/Previews/building_granary_frontier_01_b_hero.png",
+    "rts": "AssetFactory/Workbench/Previews/building_granary_frontier_01_b_rts.png"
+  }
+}

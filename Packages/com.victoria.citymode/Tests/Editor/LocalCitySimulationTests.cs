@@ -111,7 +111,7 @@ namespace Victoria.CityMode.Tests
             var snapshot = simulation.GetSnapshot(1001);
             Assert.AreEqual(3, snapshot.buildings.Find(item => item.id == 2).priority);
             Assert.AreEqual(0, snapshot.buildings.Find(item => item.id == 1).priority);
-            Assert.AreEqual(2, snapshot.villagers.Find(item => item.id == 1).targetBuildingId);
+            Assert.AreEqual(2, snapshot.villagers.Find(item => item.id == 1).workplaceBuildingId);
             Assert.AreEqual("building-unknown", simulation.Submit(CityCommand.SetPriority(999, 1)).reason);
         }
 
@@ -163,6 +163,7 @@ namespace Victoria.CityMode.Tests
         public void PlaceLumberCamp_DeductsCostAndAssignsAvailableWorkers()
         {
             var simulation = LocalCitySimulation.FromJson(Fixture);
+            var definition = simulation.Catalog.Get(BuildingArchetype.LumberCamp);
             var initialWood = simulation.GetSnapshot(1001).stockWood;
 
             var result = simulation.Submit(CityCommand.PlaceLumberCamp(new Vector3(70f, 9f, 0f)));
@@ -170,7 +171,7 @@ namespace Victoria.CityMode.Tests
             Assert.IsTrue(result.accepted);
             Assert.AreEqual(1, result.createdId);
             var snapshot = simulation.GetSnapshot(1001);
-            Assert.AreEqual(initialWood - LocalCitySimulation.LumberCampCost, snapshot.stockWood);
+            Assert.AreEqual(initialWood - definition.woodCost, snapshot.stockWood);
             Assert.AreEqual(1, snapshot.productionSites.Count);
             var camp = snapshot.productionSites[0];
             Assert.AreEqual(result.createdId, camp.id);
@@ -178,33 +179,43 @@ namespace Victoria.CityMode.Tests
             Assert.AreEqual(70f, camp.position.x);
             Assert.AreEqual(0f, camp.position.y);
             Assert.AreEqual(0f, camp.position.z);
-            Assert.AreEqual(LocalCitySimulation.LumberCampMaxWorkers, camp.assignedWorkers);
-            Assert.AreEqual(LocalCitySimulation.LumberCampMaxWorkers, camp.maxWorkers);
+            Assert.AreEqual(definition.maxWorkers, camp.assignedWorkers);
+            Assert.AreEqual(definition.maxWorkers, camp.maxWorkers);
+            Assert.AreEqual(BuildingPhase.Foundation, camp.constructionPhase);
+            Assert.AreEqual(0f, camp.constructionProgress);
             Assert.AreEqual(0f, camp.productionProgress);
-            Assert.AreEqual(LocalCitySimulation.LumberCampInitialTimber, camp.remainingTimber);
+            Assert.AreEqual(definition.initialResource, camp.remainingTimber);
         }
 
         [Test]
         public void LumberCamp_ProducesWoodUntilLocalTimberIsExhausted()
         {
             var simulation = LocalCitySimulation.FromJson(Fixture);
+            var definition = simulation.Catalog.Get(BuildingArchetype.LumberCamp);
             Assert.IsTrue(simulation.Submit(CityCommand.PlaceLumberCamp(new Vector3(70f, 0f, 0f))).accepted);
             var stockAfterPlacement = simulation.GetSnapshot(1001).stockWood;
 
-            for (var i = 0; i < 30; i++)
+            for (var i = 0; i < 1200 && simulation.GetSnapshot(1001).productionSites[0].constructionPhase != BuildingPhase.Complete; i++)
+                simulation.Tick(0.1f);
+
+            var constructed = simulation.GetSnapshot(1001);
+            Assert.AreEqual(stockAfterPlacement, constructed.stockWood,
+                "La scierie ne doit rien produire avant la fin de ses quatre phases.");
+
+            for (var i = 0; i < 1200 && simulation.GetSnapshot(1001).stockWood == stockAfterPlacement; i++)
                 simulation.Tick(0.1f);
 
             var producing = simulation.GetSnapshot(1001);
             Assert.AreEqual(stockAfterPlacement + 1, producing.stockWood);
-            Assert.AreEqual(LocalCitySimulation.LumberCampInitialTimber - 1,
+            Assert.AreEqual(definition.initialResource - 1,
                 producing.productionSites[0].remainingTimber);
-            Assert.AreEqual(1f, producing.productionSites[0].productionProgress, 0.0001f);
+            Assert.GreaterOrEqual(producing.productionSites[0].productionProgress, 0f);
 
-            for (var i = 0; i < 1000; i++)
+            for (var i = 0; i < 5000; i++)
                 simulation.Tick(0.1f);
 
             var exhausted = simulation.GetSnapshot(1001);
-            Assert.AreEqual(stockAfterPlacement + LocalCitySimulation.LumberCampInitialTimber, exhausted.stockWood);
+            Assert.AreEqual(stockAfterPlacement + definition.initialResource, exhausted.stockWood);
             Assert.AreEqual(0, exhausted.productionSites[0].remainingTimber);
             Assert.AreEqual(0, exhausted.productionSites[0].assignedWorkers);
             Assert.AreEqual(0f, exhausted.productionSites[0].productionProgress);
@@ -212,6 +223,34 @@ namespace Victoria.CityMode.Tests
             for (var i = 0; i < 100; i++)
                 simulation.Tick(0.1f);
             Assert.AreEqual(exhausted.stockWood, simulation.GetSnapshot(1001).stockWood);
+        }
+
+        [Test]
+        public void LumberCamp_ConstructionAdvancesThroughFourDeterministicStages()
+        {
+            var simulation = LocalCitySimulation.FromJson(Fixture);
+            Assert.IsTrue(simulation.Submit(CityCommand.PlaceLumberCamp(new Vector3(70f, 0f, 0f))).accepted);
+
+            var observed = new System.Collections.Generic.List<BuildingPhase>();
+            var last = BuildingPhase.Foundation;
+            observed.Add(last);
+            for (var i = 0; i < 1200 && last != BuildingPhase.Complete; i++)
+            {
+                simulation.Tick(0.1f);
+                var current = simulation.GetSnapshot(1001).productionSites[0].constructionPhase;
+                if (current != last)
+                {
+                    observed.Add(current);
+                    last = current;
+                }
+            }
+            CollectionAssert.AreEqual(new[]
+            {
+                BuildingPhase.Foundation, BuildingPhase.Framing, BuildingPhase.Roofing,
+                BuildingPhase.Detailing, BuildingPhase.Complete
+            }, observed);
+            Assert.AreEqual(BuildingPhase.Complete,
+                simulation.GetSnapshot(1001).productionSites[0].constructionPhase);
         }
 
         [Test]

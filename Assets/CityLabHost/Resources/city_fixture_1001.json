@@ -5,6 +5,14 @@
   "elapsedSeconds": 0.0,
   "stockWood": 72,
   "reservedWood": 0,
+  "resources": [
+    { "kind": 1, "quantity": 72, "capacity": 1000 },
+    { "kind": 2, "quantity": 36, "capacity": 500 },
+    { "kind": 3, "quantity": 36, "capacity": 800 },
+    { "kind": 4, "quantity": 60, "capacity": 120 },
+    { "kind": 5, "quantity": 12, "capacity": 100 },
+    { "kind": 6, "quantity": 8, "capacity": 100 }
+  ],
   "households": [
     { "id": 1, "memberCount": 3, "homeBuildingId": 0, "claimedParcelId": 0 },
     { "id": 2, "memberCount": 4, "homeBuildingId": 0, "claimedParcelId": 0 },
@@ -27,4 +35,3 @@
     { "id": 8, "householdId": 6, "position": {"x":9,"y":0,"z":-6}, "destination": {"x":9,"y":0,"z":-6}, "activity": 0, "targetBuildingId": 0, "carryingWood": 0, "reservedWood": 0 }
   ]
 }
-

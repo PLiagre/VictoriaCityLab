@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "id": "building_blacksmith_frontier_01_a",
+  "family": "building_blacksmith_frontier_01",
+  "function": "blacksmith",
+  "wall_system": "brick_stone",
+  "roof_system": "slate",
+  "identity_markers": [
+    "brick_chimney",
+    "forge",
+    "anvil",
+    "coal",
+    "horseshoe_sign",
+    "tool_rack"
+  ],
+  "variant": "a",
+  "seed": 2026081500,
+  "blender": "5.2.0 LTS",
+  "vendor_input": {
+    "path": "Assets/EmaceArt/Slavic World Free/Meshes/EA03_Prop_House_Stove_01b.fbx",
+    "sha256": "6c42f9909d6dac5247c23457bcf98a719c9ec955b7f839c759780a9e7450eed2"
+  },
+  "triangles": {
+    "lod0": 41276,
+    "lod1": 20638,
+    "lod2": 8253
+  },
+  "construction_phase_triangles": {
+    "foundation": {
+      "lod0": 3780,
+      "lod1": 1890,
+      "lod2": 756
+    },
+    "frame": {
+      "lod0": 10672,
+      "lod1": 5336,
+      "lod2": 2134
+    },
+    "roof": {
+      "lod0": 18044,
+      "lod1": 9022,
+      "lod2": 3608
+    },
+    "details": {
+      "lod0": 8780,
+      "lod1": 4390,
+      "lod2": 1755
+    }
+  },
+  "canonical_mesh_sha256": "86d819ed6b84cbcb2206019b4aaf5339f7b713f6a4c7c1855a114dd4a56e87f3",
+  "outputs": {
+    "glb": "AssetFactory/Raw/building_blacksmith_frontier_01_a.glb",
+    "fbx": "AssetFactory/Workbench/Models/building_blacksmith_frontier_01_a.fbx",
+    "hero": "AssetFactory/Workbench/Previews/building_blacksmith_frontier_01_a_hero.png",
+    "rts": "AssetFactory/Workbench/Previews/building_blacksmith_frontier_01_a_rts.png"
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "id": "building_chapel_frontier_01_b",
+  "family": "building_chapel_frontier_01",
+  "function": "chapel",
+  "wall_system": "dressed_stone",
+  "roof_system": "slate",
+  "identity_markers": [
+    "buttresses",
+    "lancet_windows",
+    "apse",
+    "bell_tower",
+    "cross",
+    "grave_markers"
+  ],
+  "variant": "b",
+  "seed": 2026081801,
+  "blender": "5.2.0 LTS",
+  "vendor_input": {
+    "path": "Assets/EmaceArt/Slavic World Free/Meshes/EA03_Prop_Sign_Chapel_01.fbx",
+    "sha256": "f2898c41475b18daff55a7f515f329e74fa6bc658f99aed2d31aa9435608ed04"
+  },
+  "triangles": {
+    "lod0": 42859,
+    "lod1": 21429,
+    "lod2": 8570
+  },
+  "construction_phase_triangles": {
+    "foundation": {
+      "lod0": 4212,
+      "lod1": 2106,
+      "lod2": 842
+    },
+    "frame": {
+      "lod0": 9820,
+      "lod1": 4910,
+      "lod2": 1964
+    },
+    "roof": {
+      "lod0": 23012,
+      "lod1": 11506,
+      "lod2": 4602
+    },
+    "details": {
+      "lod0": 5815,
+      "lod1": 2907,
+      "lod2": 1162
+    }
+  },
+  "canonical_mesh_sha256": "1c7cc927b0249d33b20770c1ba43bc2efdfc7d673fc2e53cb908b8411611f7f3",
+  "outputs": {
+    "glb": "AssetFactory/Raw/building_chapel_frontier_01_b.glb",
+    "fbx": "AssetFactory/Workbench/Models/building_chapel_frontier_01_b.fbx",
+    "hero": "AssetFactory/Workbench/Previews/building_chapel_frontier_01_b_hero.png",
+    "rts": "AssetFactory/Workbench/Previews/building_chapel_frontier_01_b_rts.png"
+  }
+}

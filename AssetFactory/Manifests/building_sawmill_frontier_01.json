@@ -1,0 +1,72 @@
+{
+  "schema": 2,
+  "id": "building_sawmill_frontier_01",
+  "status": "family_published_pending_unity_import_validation",
+  "recipe": "AssetFactory/Recipes/building_sawmill_frontier_01.json",
+  "construction_schema": "AssetFactory/Schemas/building_construction.schema.json",
+  "generator": "Tools/AssetFactory/Blender/generate_sawmill.py",
+  "blender": "5.2.0 LTS",
+  "construction": {
+    "mode": "cumulative_layers",
+    "stages": ["foundation", "frame", "roof", "details"],
+    "lod_per_stage": 3,
+    "fbx_renderer_contract": "<asset>__P<01-04>_<STAGE>_LOD<0-2>"
+  },
+  "origin": {
+    "kind": "procedural_adaptation",
+    "vendor_pack": "emaceart_slavic_world_free",
+    "inputs": [
+      {
+        "path": "Assets/EmaceArt/Slavic World Free/Meshes/EA03_Village_OutBuilding_WoodRoof_01b.fbx",
+        "sha256": "92ea3725db55942ed5cca60a298451b8893270e648288d63e2bf4ae27e54144e"
+      },
+      {
+        "path": "Assets/EmaceArt/Slavic World Free/Meshes/EA03_Prop_Forester_wooden_01d.fbx",
+        "sha256": "746fa8eb164aae58a6f59b29a0ac5efe5dc2e4d8a620282d4b97418719665e0d"
+      }
+    ]
+  },
+  "variants": [
+    {
+      "id": "a",
+      "description": "chêne noirci, bardeaux roux, sans cheminée, annexe gauche",
+      "seed": 2026080102,
+      "lod_triangles": [39980, 19990, 7992],
+      "canonical_mesh_sha256": "ab84c55bcd18824c054c96bacc5d2d39d4b7339571c6ef30c0c185bbfe688312",
+      "glb_sha256": "bf0613421d745a0ef58c108a908c6028e81095ee2a3609e5dce991c6b0cfdc5f",
+      "fbx_sha256": "5c7506799a6462259047269ee8e4ced5cbbc1ed26174e086e270fcf2999391c1",
+      "published_fbx": "Assets/CityLabHost/Adapted/Factory/Models/building_sawmill_frontier_01_a.fbx"
+    },
+    {
+      "id": "b",
+      "description": "noyer sombre, toiture ardoise, cheminée gauche, annexe droite",
+      "seed": 2026080203,
+      "lod_triangles": [41940, 20970, 8384],
+      "canonical_mesh_sha256": "5c462f92cca36d880aca50265919859665994f96d762772b658be5968f9f0c28",
+      "glb_sha256": "a21d9e482fa8459c6e54595ee7a97733dd150ad86e7abebfeb492975b7e32e40",
+      "fbx_sha256": "0912a3b1a17e9b777e291285767c68a99b5ef74d16f86caafea8a9ef7ba5d231",
+      "published_fbx": "Assets/CityLabHost/Adapted/Factory/Models/building_sawmill_frontier_01_b.fbx"
+    },
+    {
+      "id": "c",
+      "description": "chêne chaud, bardeaux moussus, cheminée droite, ossature dense",
+      "seed": 2026080305,
+      "lod_triangles": [41952, 20976, 8386],
+      "canonical_mesh_sha256": "ea445f0a149314c23d1089c61adfd3ea9a3af42d29c3174fe08fc35537b1d2f0",
+      "glb_sha256": "757de67320eee82c95d5461c67b41903cf55a0a4abaf71e56cec33c883a4a901",
+      "fbx_sha256": "184f7e4dafdad49f3a4eea9ba67e2635b40b59189f30134374db5e01ba68ec66",
+      "published_fbx": "Assets/CityLabHost/Adapted/Factory/Models/building_sawmill_frontier_01_c.fbx"
+    }
+  ],
+  "gates": {
+    "recipe_and_source_hashes": "passed",
+    "construction_contract": "passed_4_cumulative_stages",
+    "variant_count": "passed_3",
+    "same_seed_canonical_mesh": "passed_all_variants",
+    "same_seed_glb_byte_identical": "passed_all_variants",
+    "lod_budgets": "passed_all_variants",
+    "visual_review": "passed_a_b_c_and_stage_sequence",
+    "published_copy_hash": "passed_all_variants",
+    "unity_import_and_runtime_tests": "pending_user_requested_no_citylab_unity_launch"
+  }
+}

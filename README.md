@@ -81,6 +81,11 @@ build Windows x64 et un smoke test a 60,0 FPS sur la machine de validation.
 Le detail des portes, commandes et derniers resultats est conserve dans
 `Docs/VALIDATION.md`.
 
+La sauvegarde versionnee est preparee dans le runtime et documentee dans
+`Docs/SAVE_SCHEMA.md`. Son execution F5/F9 et son autosave restent volontairement
+hors de la liste des fonctions validees jusqu'a la prochaine session Unity
+CityLab autorisee.
+
 ## Frontiere d'integration
 
 Le package embarque `Packages/com.victoria.citymode` expose
@@ -95,7 +100,45 @@ de `Assets/CityLabHost/Adapted`; les sources et leur licence sont répertoriées
 dans `Assets/Vendor/THIRD_PARTY_ASSETS.md` et auditées dans
 `Docs/VENDOR_AUDIT.md`.
 
-L'AssetFactory reste la porte d'entrée pour les assets générés, les remplacements
-et les opérations de normalisation autorisées. Elle ne revendique jamais la
-paternité des packs Unity Store et son worktree séparé n'est pas modifié par
-CityLab.
+L'Asset Factory est maintenant intégrée à CityLab : son code hors Unity vit dans
+`Tools/AssetFactory`, et ses recettes, manifests, rapports et workbench dans
+`AssetFactory`. Le worktree historique `VictoriaProject-assets` sert seulement
+de référence pendant la migration.
+
+```powershell
+py Tools/AssetFactory/citylab_factory.py doctor
+py Tools/AssetFactory/citylab_factory.py scan
+py Tools/AssetFactory/citylab_factory.py scan --check
+py Tools/AssetFactory/citylab_factory.py recipe-check
+py Tools/AssetFactory/citylab_factory.py admission-discover
+py Tools/AssetFactory/citylab_factory.py admission-check --write-report
+py Tools/AssetFactory/citylab_factory.py publication-check AssetFactory/Manifests/character_factory.json
+py Tools/AssetFactory/publish_building_pilot.py --publish
+py Tools/AssetFactory/publish_character_factory.py --publish
+py Tools/AssetFactory/qa_factory_release.py
+```
+
+Ces commandes ne lancent pas Unity. La roadmap de production 3D et textures est
+documentée dans `Docs/ASSET_FACTORY_ROADMAP.md`.
+
+Les recettes de bâtiment doivent respecter le schéma Factory commun : quatre
+phases cumulatives (`foundation`, `frame`, `roof`, `details`), trois LOD par
+phase et au moins trois variantes procédurales. Le pilote
+`building_sawmill_frontier_01` publie les variantes A/B/C sous
+`Assets/CityLabHost/Adapted/Factory/Models`.
+
+Les sept autres familles du pilote sont pilotées par
+`AssetFactory/Catalogs/building_pilot.json`. Les propositions de population et
+leur revue se trouvent dans `AssetFactory/Catalogs/character_proposals.json` et
+`AssetFactory/Reports/character_proposal_review.json`. La passe de production
+publie 24 corps morphologiques et huit capsules de rôle via
+`AssetFactory/Catalogs/character_factory.json` et
+`AssetFactory/Manifests/character_factory.json`. Les FBX et le rig sont validés
+hors Unity ; import Humanoid, animations et clipping restent à contrôler dans
+une session Unity autorisée.
+
+Le laboratoire PBR publie un trim sheet 2048² bois/pierre/toiture et ses six
+cartes cohérentes sous `Assets/CityLabHost/Adapted/Factory/Textures/CityLabTrimV1`.
+Le rapport transversal `AssetFactory/Reports/factory_qa.json` contrôle les 56
+FBX, leurs UV/LOD/noms/budgets et les six textures. La copie générique reste en
+dry-run tant que `publication-check` n'est pas appelé avec `--publish`.

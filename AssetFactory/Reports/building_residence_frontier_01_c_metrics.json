@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "id": "building_residence_frontier_01_c",
+  "family": "building_residence_frontier_01",
+  "function": "residence",
+  "wall_system": "stone_timber",
+  "roof_system": "clay_tile",
+  "identity_markers": [
+    "shutters",
+    "hearth",
+    "bench",
+    "woodpile",
+    "flower_boxes"
+  ],
+  "variant": "c",
+  "seed": 2026081303,
+  "blender": "5.2.0 LTS",
+  "vendor_input": {
+    "path": "Assets/EmaceArt/Slavic World Free/Meshes/EA03_Village_HouseModule_Porch_01d.fbx",
+    "sha256": "c919808521496ba6ac5db3840a9e1b246e3877856ff4e6d4be3c0a24518ca47e"
+  },
+  "triangles": {
+    "lod0": 31139,
+    "lod1": 15568,
+    "lod2": 6224
+  },
+  "construction_phase_triangles": {
+    "foundation": {
+      "lod0": 3564,
+      "lod1": 1782,
+      "lod2": 712
+    },
+    "frame": {
+      "lod0": 5908,
+      "lod1": 2954,
+      "lod2": 1180
+    },
+    "roof": {
+      "lod0": 14372,
+      "lod1": 7186,
+      "lod2": 2874
+    },
+    "details": {
+      "lod0": 7295,
+      "lod1": 3646,
+      "lod2": 1458
+    }
+  },
+  "canonical_mesh_sha256": "cf20929d21252915f0e082bcd2c69f863719c948b263b53debf03b8e38fb4b8b",
+  "outputs": {
+    "glb": "AssetFactory/Raw/building_residence_frontier_01_c.glb",
+    "fbx": "AssetFactory/Workbench/Models/building_residence_frontier_01_c.fbx",
+    "hero": "AssetFactory/Workbench/Previews/building_residence_frontier_01_c_hero.png",
+    "rts": "AssetFactory/Workbench/Previews/building_residence_frontier_01_c_rts.png"
+  }
+}

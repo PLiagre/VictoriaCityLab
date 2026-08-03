@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "id": "citylab_factory_qa_v1",
+  "status": "technical_pass_artistic_and_unity_gates_pending",
+  "report": "AssetFactory/Reports/factory_qa.json",
+  "report_sha256": "25881c4492e04e3bfb51637edf2f448eb8466ccdc61dab9438703f1da9f645d1",
+  "review_board": "AssetFactory/Reports/QA/factory_review_board.png",
+  "review_board_sha256": "c4fef8af24f6e96e336303f469f8a209bfca664df5370b38cd86068f5b103acb",
+  "inputs": {
+    "building_pilot": "8974261052a13d150c4d6aaf230d89082fbb77e99e887f8c74553112645d6c4b",
+    "sawmill": "1df36931233e9e03b26fdfb781541e02a8524297dca8f59367d53afa4791aa3b",
+    "characters": "fb5473113899224aed6b8b35d76f88bd1aae998711a4d7c760fe18ce23fbc547",
+    "textures": "8665db434dd0eaf5b66b6e22ad71e302976f4746a6c3ffc1ffef758540bdf2d2",
+    "inventory": "f881336dce458ada8bbe4e24e86c9df178752cd401726987de65d3686fa991d3"
+  },
+  "unity_launched": false
+}

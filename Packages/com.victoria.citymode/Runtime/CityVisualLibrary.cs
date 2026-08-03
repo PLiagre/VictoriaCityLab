@@ -7,8 +7,17 @@ namespace Victoria.CityMode
     {
         public GameObject townCentrePrefab;
         public GameObject stockpilePrefab;
+        public GameObject lumberCampPrefab;
+        public GameObject[] lumberCampPrefabs;
         public GameObject[] housePrefabs;
+        public GameObject[] granaryPrefabs;
+        public GameObject[] warehousePrefabs;
+        public GameObject[] marketPrefabs;
+        public GameObject[] blacksmithPrefabs;
+        public GameObject[] barnPrefabs;
+        public GameObject[] chapelPrefabs;
         public GameObject villagerPrefab;
+        public GameObject[] villagerPrefabs;
         public RuntimeAnimatorController villagerAnimatorController;
         public GameObject[] treePrefabs;
         public GameObject[] bushPrefabs;
@@ -17,7 +26,41 @@ namespace Victoria.CityMode
         public GameObject[] propPrefabs;
 
         public bool HasDurableSlice => townCentrePrefab != null && stockpilePrefab != null &&
-            housePrefabs != null && housePrefabs.Length > 0 && villagerPrefab != null;
+            housePrefabs != null && housePrefabs.Length > 0 &&
+            (villagerPrefab != null || (villagerPrefabs != null && villagerPrefabs.Length > 0));
+
+        public GameObject SelectBuildingPrefab(string visualFamily, int stableId)
+        {
+            var prefabs = visualFamily switch
+            {
+                "lumber_camp" => lumberCampPrefabs,
+                "residence" => housePrefabs,
+                "granary" => granaryPrefabs,
+                "warehouse" => warehousePrefabs,
+                "market" => marketPrefabs,
+                "blacksmith" => blacksmithPrefabs,
+                "barn" => barnPrefabs,
+                "chapel" => chapelPrefabs,
+                _ => null
+            };
+            if (prefabs == null || prefabs.Length == 0)
+                return null;
+            var available = 0;
+            foreach (var prefab in prefabs)
+                if (prefab != null)
+                    available++;
+            if (available == 0)
+                return null;
+            var selected = (stableId & int.MaxValue) % available;
+            foreach (var prefab in prefabs)
+            {
+                if (prefab == null)
+                    continue;
+                if (selected-- == 0)
+                    return prefab;
+            }
+            return null;
+        }
     }
 
     public sealed class VillagerVisual : MonoBehaviour
@@ -90,7 +133,8 @@ namespace Victoria.CityMode
             if (animator != null)
             {
                 animator.SetFloat("Speed", moving ? 1f : 0f);
-                animator.SetBool("Working", activity == VillagerActivity.Building);
+                animator.SetBool("Working", activity == VillagerActivity.Building ||
+                    activity == VillagerActivity.WorkingJob);
             }
             if (carriedWood != null)
                 carriedWood.SetActive(carryingWood > 0);

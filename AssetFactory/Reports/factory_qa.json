@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "id": "citylab_factory_qa_v1",
+  "status": "technical_pass_artistic_and_unity_gates_pending",
+  "summary": {
+    "registered_sources": 5,
+    "building_fbx": 24,
+    "character_fbx": 32,
+    "texture_maps": 6,
+    "fbx_meshes": 1038,
+    "uv_meshes": 1038,
+    "embedded_colliders": 0,
+    "published_bytes": 101474304
+  },
+  "gates": {
+    "names": "passed",
+    "uv": "passed_all_fbx_meshes",
+    "lod": "passed",
+    "colliders": "passed_none_embedded",
+    "hashes": "passed_workbench_equals_published",
+    "budgets": "passed",
+    "licenses": "passed_all_registered_sources",
+    "previews": "passed",
+    "dry_run_default": "passed_by_automated_test",
+    "atomic_copy": "passed_by_automated_test",
+    "artistic_approval": "pending_user_review",
+    "unity_import": "pending_user_requested_no_unity_launch"
+  },
+  "review_board": "AssetFactory/Reports/QA/factory_review_board.png",
+  "unity_launched": false
+}

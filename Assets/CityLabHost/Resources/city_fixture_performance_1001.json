@@ -1,5 +1,13 @@
 {
   "schemaVersion": 1, "cityId": 1001, "seed": 140001, "stockWood": 180,
+  "resources": [
+    {"kind":1,"quantity":180,"capacity":1000},
+    {"kind":2,"quantity":120,"capacity":500},
+    {"kind":3,"quantity":120,"capacity":800},
+    {"kind":4,"quantity":80,"capacity":120},
+    {"kind":5,"quantity":40,"capacity":100},
+    {"kind":6,"quantity":20,"capacity":100}
+  ],
   "households": [
     {"id":1,"memberCount":3},{"id":2,"memberCount":3},{"id":3,"memberCount":3},{"id":4,"memberCount":3},{"id":5,"memberCount":3},
     {"id":6,"memberCount":3},{"id":7,"memberCount":3},{"id":8,"memberCount":3},{"id":9,"memberCount":3},{"id":10,"memberCount":3},

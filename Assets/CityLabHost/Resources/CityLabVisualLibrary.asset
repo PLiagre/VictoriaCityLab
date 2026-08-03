@@ -14,10 +14,49 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   townCentrePrefab: {fileID: 3823107127983617859, guid: c53eb80666e1cad4bbaf4e192263890c, type: 3}
   stockpilePrefab: {fileID: 5488905633760101370, guid: c87e65669a1575c4eaffb40b44688c81, type: 3}
+  lumberCampPrefab: {fileID: 7369575573465235842, guid: dd03a329d274d8b4ea30eedcd13f12a7, type: 3}
+  lumberCampPrefabs:
+  - {fileID: 7369575573465235842, guid: dd03a329d274d8b4ea30eedcd13f12a7, type: 3}
+  - {fileID: 2094687576225901021, guid: 804054cc75bfdf544a9ce1ef82107ae3, type: 3}
+  - {fileID: 6469721686449238794, guid: 1e1e7ca91fa6bce4d87c204a263b924f, type: 3}
   housePrefabs:
-  - {fileID: 8604524913996652690, guid: f1daf0d5c65286941ac6d2749ea7c083, type: 3}
-  - {fileID: 1093753060654180759, guid: 138b362f4bf0395449359f84ad977bb2, type: 3}
-  villagerPrefab: {fileID: 1655085116993674078, guid: ab3dcf334cee1d541bff4c544c86a819, type: 3}
+  - {fileID: 5548619320488024318, guid: fdddd3f7f84efa141a6a0e7544092b4a, type: 3}
+  - {fileID: 5209468020872364239, guid: 36da4c45e55a27d43b3a26925df7394a, type: 3}
+  - {fileID: 399720065483156740, guid: 6161d4aceca2d0641acec179c811d8c5, type: 3}
+  granaryPrefabs:
+  - {fileID: 1088812111974721111, guid: 3d8024eb66e4e18458c5260bc46b3e86, type: 3}
+  - {fileID: 7496298424732794305, guid: e1ffbdcab95fef84ca1fa5235a55f975, type: 3}
+  - {fileID: 4778209219628840474, guid: 126021d7e5e27a74d85107343d14328d, type: 3}
+  warehousePrefabs:
+  - {fileID: 3496505333352667806, guid: 8033cb36bb2a9b748b1f5c1aabf62820, type: 3}
+  - {fileID: 4610406837168211282, guid: 871cdee78a1fd4141b4aa713cc6ad36d, type: 3}
+  - {fileID: 4141163076914026270, guid: 974ab3437e9fdca41b7faacb8ded2f69, type: 3}
+  marketPrefabs:
+  - {fileID: 3193303243864578226, guid: 59bc7cce62f615349980f2802cdf6cb2, type: 3}
+  - {fileID: 2341080846965861511, guid: 33c1ecf3bd1210f4d9cddafffdebf886, type: 3}
+  - {fileID: 9038603486956253277, guid: 0a8d4483da718674a8a8c243a35b8612, type: 3}
+  blacksmithPrefabs:
+  - {fileID: 2983497032911372109, guid: 79c25f55adb51a24fa3c41e7bf7adc18, type: 3}
+  - {fileID: 8678373085113663931, guid: 7e6909453d24f4c499a27e0c8ae6245a, type: 3}
+  - {fileID: 7917831651229249458, guid: 1baf113876dda9446bd3e28562e0c754, type: 3}
+  barnPrefabs:
+  - {fileID: 3476871822287734873, guid: 2867283b12e94d04cad41b78d4a72613, type: 3}
+  - {fileID: 8985495567119342186, guid: 496aaf74d435b3e4cad0044166b4294c, type: 3}
+  - {fileID: 5443497751866560698, guid: aa7b5978b7e2f354ab30034b9e3d9d0f, type: 3}
+  chapelPrefabs:
+  - {fileID: 9134774772017217832, guid: ff14b64ef1a67bb449efef610c2308b3, type: 3}
+  - {fileID: 6439537568999774209, guid: 32b7f0f4b5f19fd4e843aa925f6e9b05, type: 3}
+  - {fileID: 5733354667107888273, guid: 25230edf54ac6124282c8881d787f2e9, type: 3}
+  villagerPrefab: {fileID: 8408237604708853368, guid: 85375500fe5550848a2db351519a27f2, type: 3}
+  villagerPrefabs:
+  - {fileID: 8408237604708853368, guid: 85375500fe5550848a2db351519a27f2, type: 3}
+  - {fileID: 5415391311632576897, guid: 59b94de6cf6503545ba8c6ab6fbf506f, type: 3}
+  - {fileID: 5183619921833541728, guid: b988308eaa5847041851d080f9c06afa, type: 3}
+  - {fileID: 1606333276263818415, guid: 7a6a29490918a5c48805e7c72983274e, type: 3}
+  - {fileID: 690423407648395972, guid: 7bcc588898afda14794365b010ae7919, type: 3}
+  - {fileID: 2626147460130894123, guid: 62df34c2074b9264582d5a1994df0126, type: 3}
+  - {fileID: 7205194576976776807, guid: 3fac6d2ce2d0d764d90295ba45552799, type: 3}
+  - {fileID: 8175861293078365783, guid: 2446d0eaaa653114498ad383a5976dd2, type: 3}
   villagerAnimatorController: {fileID: 9100000, guid: a68dfa8514a990d40aaaccaa698ba566, type: 2}
   treePrefabs:
   - {fileID: 5335393850322346717, guid: 10822c804b2fa434ba7d0b1f82ce97b9, type: 3}

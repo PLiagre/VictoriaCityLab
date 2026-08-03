@@ -1,0 +1,158 @@
+{
+  "schema": 1,
+  "id": "building_sawmill_frontier_01",
+  "category": "building",
+  "function": "lumber_camp",
+  "style": "frontier_dark_fantasy",
+  "seed": 2026080102,
+  "status": "approved",
+  "construction_schema": "AssetFactory/Schemas/building_construction.schema.json",
+  "construction": {
+    "mode": "cumulative_layers",
+    "stages": [
+      {
+        "id": "foundation",
+        "order": 1,
+        "label": "Base en pierre",
+        "progress": [0.0, 0.25],
+        "required_categories": ["stone", "mortar"]
+      },
+      {
+        "id": "frame",
+        "order": 2,
+        "label": "Ossature et poutres",
+        "progress": [0.25, 0.55],
+        "required_categories": ["structural_timber"]
+      },
+      {
+        "id": "roof",
+        "order": 3,
+        "label": "Toiture et étanchéité",
+        "progress": [0.55, 0.8],
+        "required_categories": ["roofing", "structural_timber"]
+      },
+      {
+        "id": "details",
+        "order": 4,
+        "label": "Mécanisme et finitions",
+        "progress": [0.8, 1.0],
+        "required_categories": ["fixture", "metalwork", "decoration"]
+      }
+    ]
+  },
+  "variants": [
+    {
+      "id": "a",
+      "label": "Chêne noirci et bardeaux roux",
+      "seed_offset": 0,
+      "palette": {
+        "wood": "#0e0602",
+        "wood_highlight": "#2e1105",
+        "roof": "#120502",
+        "roof_accent": "#2f0d05"
+      },
+      "brace_style": "classic",
+      "annex_side": -1,
+      "log_stack_side": 1,
+      "chimney": false,
+      "chimney_side": 1,
+      "sign_style": "crossed_axes"
+    },
+    {
+      "id": "b",
+      "label": "Noyer sombre et toiture ardoise",
+      "seed_offset": 101,
+      "palette": {
+        "wood": "#160b05",
+        "wood_highlight": "#4a2612",
+        "roof": "#171b20",
+        "roof_accent": "#343d45"
+      },
+      "brace_style": "crossed",
+      "annex_side": 1,
+      "log_stack_side": -1,
+      "chimney": true,
+      "chimney_side": -1,
+      "sign_style": "saw"
+    },
+    {
+      "id": "c",
+      "label": "Chêne chaud et bardeaux moussus",
+      "seed_offset": 203,
+      "palette": {
+        "wood": "#291306",
+        "wood_highlight": "#74401b",
+        "roof": "#252b16",
+        "roof_accent": "#55603a"
+      },
+      "brace_style": "dense",
+      "annex_side": -1,
+      "log_stack_side": 1,
+      "chimney": true,
+      "chimney_side": 1,
+      "sign_style": "round"
+    }
+  ],
+  "source_pack": "emaceart_slavic_world_free",
+  "inputs": [
+    {
+      "role": "vendor_annex_structure",
+      "path": "Assets/EmaceArt/Slavic World Free/Meshes/EA03_Village_OutBuilding_WoodRoof_01b.fbx",
+      "sha256": "92ea3725db55942ed5cca60a298451b8893270e648288d63e2bf4ae27e54144e"
+    },
+    {
+      "role": "vendor_cut_wood",
+      "path": "Assets/EmaceArt/Slavic World Free/Meshes/EA03_Prop_Forester_wooden_01d.fbx",
+      "sha256": "746fa8eb164aae58a6f59b29a0ac5efe5dc2e4d8a620282d4b97418719665e0d"
+    }
+  ],
+  "design": {
+    "silhouette": "atelier ouvert sous toiture gothique asymetrique et annexe basse",
+    "functional_markers": [
+      "chariot a grume",
+      "scie verticale encadree",
+      "volant mecanique",
+      "piles de grumes et bois coupe"
+    ],
+    "palette": [
+      "bois noirci",
+      "pierre froide",
+      "toiture terre sombre",
+      "fer forge",
+      "bronze et braises"
+    ]
+  },
+  "adaptation": {
+    "source_policy": "immutable",
+    "generator": "Tools/AssetFactory/Blender/generate_sawmill.py",
+    "operations": [
+      "import_vendor_lod0",
+      "assemble_procedural_grammar",
+      "normalize_metric_scale",
+      "ground_pivot",
+      "generate_lods",
+      "render_review_previews"
+    ]
+  },
+  "budgets": {
+    "lod_triangles_max": [60000, 30000, 12000],
+    "shared_texture_max_px": 2048
+  },
+  "art_review": {
+    "status": "passed",
+    "basis": "demande utilisateur avec publication conditionnelle apres validation",
+    "checks": [
+      "silhouette lisible au zoom RTS",
+      "fonction scierie lisible par scie, chariot, volant et grumes",
+      "palette dark-fantasy CityLab respectee",
+      "toiture medievale en bardeaux irreguliers",
+      "aucune propriete tierce connue copiee"
+    ]
+  },
+  "planned_output": "Assets/CityLabHost/Adapted/Factory/Models/building_sawmill_frontier_01_a.fbx",
+  "planned_outputs": [
+    "Assets/CityLabHost/Adapted/Factory/Models/building_sawmill_frontier_01_a.fbx",
+    "Assets/CityLabHost/Adapted/Factory/Models/building_sawmill_frontier_01_b.fbx",
+    "Assets/CityLabHost/Adapted/Factory/Models/building_sawmill_frontier_01_c.fbx"
+  ]
+}

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -14,6 +15,11 @@ namespace Victoria.CityMode
         static readonly Color ParchmentMuted = new Color(0.67f, 0.61f, 0.51f, 1f);
         static readonly Color Success = new Color(0.55f, 0.72f, 0.43f, 1f);
         static readonly Color Warning = new Color(0.94f, 0.40f, 0.27f, 1f);
+        static readonly BuildingArchetype[] CivicArchetypes =
+        {
+            BuildingArchetype.Granary, BuildingArchetype.Warehouse, BuildingArchetype.Market,
+            BuildingArchetype.Blacksmith, BuildingArchetype.Barn, BuildingArchetype.Chapel
+        };
 
         CityLabGame game;
         CityBuildController tools;
@@ -25,6 +31,7 @@ namespace Victoria.CityMode
         Label resources;
         Label population;
         Label construction;
+        Label services;
         Label clock;
         Label prompt;
         Label message;
@@ -45,6 +52,8 @@ namespace Victoria.CityMode
         Button routeButton;
         Button zoneButton;
         Button lumberCampButton;
+        DropdownField civicBuildingSelector;
+        Button civicBuildingButton;
         Button pauseButton;
         Button speedOneButton;
         Button speedTwoButton;
@@ -161,6 +170,7 @@ namespace Victoria.CityMode
             resources = AddStatusCell(statusStrip, "RÉSERVES", "Bois  —");
             population = AddStatusCell(statusStrip, "POPULATION", "Habitants  —");
             construction = AddStatusCell(statusStrip, "OUVRAGES", "Chantiers  —");
+            services = AddStatusCell(statusStrip, "SERVICES", "Capacités  —");
             clock = AddStatusCell(statusStrip, "CHRONIQUE", "Jour 01", false);
             topBar.Add(statusStrip);
             root.Add(topBar);
@@ -207,12 +217,26 @@ namespace Victoria.CityMode
             {
                 text = "[B]   FONDER UN CAMP FORESTIER"
             };
+            var civicChoices = new List<string>();
+            foreach (var archetype in CivicArchetypes)
+                civicChoices.Add(game.Catalog.Get(archetype).label.ToUpperInvariant());
+            civicBuildingSelector = new DropdownField("BÂTIMENT", civicChoices, 0);
+            civicBuildingSelector.style.marginTop = 8;
+            civicBuildingSelector.style.marginBottom = 2;
+            civicBuildingSelector.style.color = Parchment;
+            civicBuildingButton = new Button(SelectCivicBuilding)
+            {
+                text = "[C]   PLACER LE BÂTIMENT"
+            };
             StyleButton(routeButton, false);
             StyleButton(zoneButton, false);
             StyleButton(lumberCampButton, false);
+            StyleButton(civicBuildingButton, false);
             toolButtons.Add(routeButton);
             toolButtons.Add(zoneButton);
             toolButtons.Add(lumberCampButton);
+            toolButtons.Add(civicBuildingSelector);
+            toolButtons.Add(civicBuildingButton);
             toolPalette.Add(toolButtons);
 
             var toolHint = MakeLabel("Sélectionnez ensuite un chantier pour régler son urgence.", 11, ParchmentMuted);
@@ -382,6 +406,7 @@ namespace Victoria.CityMode
                 routeButton.style.flexGrow = 1;
                 zoneButton.style.flexGrow = 1;
                 lumberCampButton.style.flexGrow = 1;
+                civicBuildingButton.style.flexGrow = 1;
                 routeButton.style.marginRight = 4;
                 zoneButton.style.marginLeft = 4;
 
@@ -413,6 +438,7 @@ namespace Victoria.CityMode
                 routeButton.style.flexGrow = 0;
                 zoneButton.style.flexGrow = 0;
                 lumberCampButton.style.flexGrow = 0;
+                civicBuildingButton.style.flexGrow = 0;
                 routeButton.style.marginRight = 0;
                 zoneButton.style.marginLeft = 0;
 
@@ -445,10 +471,15 @@ namespace Victoria.CityMode
             }
 
             var housed = 0;
+            var totalSatisfaction = 0;
+            var prosperous = 0;
             foreach (var household in snapshot.households)
             {
                 if (household.homeBuildingId != 0)
                     housed++;
+                totalSatisfaction += household.satisfactionPermille;
+                if (household.level == HouseholdLevel.Prosperous)
+                    prosperous++;
             }
 
             var timberRemaining = 0;
@@ -459,14 +490,92 @@ namespace Victoria.CityMode
                 forestryWorkers += site.assignedWorkers;
             }
 
-            resources.text = $"Bois  {snapshot.stockWood}     Réservé  {snapshot.reservedWood}     Forêt  {timberRemaining}";
-            population.text = $"Habitants  {snapshot.villagers.Count}     Foyers  {housed}/{snapshot.households.Count}     Bûcherons  {forestryWorkers}";
-            construction.text = $"Actifs  {active}     Achevés  {complete}     Camps  {snapshot.productionSites.Count}";
-            var day = Mathf.FloorToInt(snapshot.elapsedSeconds / 45f) + 1;
-            var seasons = new[] { "PRINTEMPS", "ÉTÉ", "AUTOMNE", "HIVER" };
-            var season = seasons[((day - 1) / 30) % seasons.Length];
+            var employed = 0;
+            var atWork = 0;
+            var absent = 0;
+            var hungry = 0;
+            foreach (var household in snapshot.households)
+                if (household.hungry) hungry++;
+            foreach (var villager in snapshot.villagers)
+            {
+                if (villager.job != VillagerJob.None) employed++;
+                if (villager.isAtWork) atWork++;
+                if (villager.absentToday) absent++;
+            }
+
+            var food = snapshot.resources?.Find(item => item.kind == CityResourceKind.Food)?.quantity ?? 0;
+            var facilityCount = 0;
+            var productionBatches = 0;
+            var locallyStored = 0;
+            var marketCovered = 0;
+            var marketScarcity = 0;
+            var marketCount = 0;
+            foreach (var building in snapshot.buildings)
+            {
+                foreach (var local in building.localStocks)
+                    locallyStored += local.quantity;
+                if (building.archetype == BuildingArchetype.Market &&
+                    building.phase == BuildingPhase.Complete)
+                {
+                    marketCount++;
+                    marketCovered += building.marketCoveredHouseholds;
+                    marketScarcity += building.marketScarcityPermille;
+                }
+            }
+            foreach (var site in snapshot.productionSites)
+                if (site.kind != ProductionSiteKind.LumberCamp)
+                {
+                    facilityCount++;
+                    productionBatches += site.totalBatches;
+                }
+            var travelingMerchants = 0;
+            foreach (var order in snapshot.tradeOrders)
+                if (order.status == TradeOrderStatus.Traveling)
+                    travelingMerchants++;
+            var activeFields = 0;
+            var harvestableFields = 0;
+            foreach (var field in snapshot.fields)
+            {
+                if (field.phase != FieldPhase.Fallow && field.phase != FieldPhase.Harvested)
+                    activeFields++;
+                if (field.phase == FieldPhase.ReadyToHarvest)
+                    harvestableFields++;
+            }
+            var activeGardens = 0;
+            var extensions = 0;
+            foreach (var parcel in snapshot.parcels)
+            {
+                if (parcel.gardenActive)
+                    activeGardens++;
+                extensions += parcel.extensionLevel;
+            }
+            resources.text = $"Bois {snapshot.stockWood}  Réservé {snapshot.reservedWood}  " +
+                $"Nourriture {food}  Pièces {snapshot.treasuryCoins}  Marchands {travelingMerchants}";
+            population.text = $"Hab. {snapshot.villagers.Count}  Foy. {housed}/{snapshot.households.Count}  " +
+                $"Sat. {(snapshot.households.Count > 0 ? totalSatisfaction / snapshot.households.Count : 0)}‰  Prosp. {prosperous}";
+            construction.text = $"Actifs {active}  Achevés {complete}  Jardins {activeGardens}  " +
+                $"Extensions {extensions}  Champs {activeFields}/{snapshot.fields.Count}  Récolte {harvestableFields}";
+            services.text = $"V {snapshot.foodStorageCapacity}  B {snapshot.goodsStorageCapacity}  " +
+                $"M {snapshot.marketServiceCapacity}  O {snapshot.toolProductionCapacity}  " +
+                $"Marché {marketCovered} foy.  Rareté {(marketCount > 0 ? marketScarcity / marketCount : 0)}‰  Dépôts {locallyStored}";
+            var calendar = snapshot.calendar ?? new CityCalendarState();
+            var season = calendar.season switch
+            {
+                CitySeason.Spring => "PRINTEMPS",
+                CitySeason.Summer => "ÉTÉ",
+                CitySeason.Autumn => "AUTOMNE",
+                _ => "HIVER"
+            };
             var speedText = game.IsPaused ? "PAUSE" : $"x{game.SimulationSpeed:0}";
-            clock.text = $"Jour {day:00}  {season}  {speedText}";
+            var weather = snapshot.dailyWeather switch
+            {
+                CityWeather.Rain => "PLUIE",
+                CityWeather.Drought => "SÉCHERESSE",
+                CityWeather.Frost => "GEL",
+                _ => "CLAIR"
+            };
+            clock.text = $"{calendar.day:00}/{calendar.month:00}/A{calendar.year}  " +
+                $"{calendar.hour:00}h{calendar.minute:00}  {season}  {weather}  {speedText}";
 
             var missingWood = 0;
             foreach (var building in snapshot.buildings)
@@ -501,8 +610,21 @@ namespace Victoria.CityMode
                 selectionState.text = "CHANTIER EN COURS";
                 selectionState.style.color = BronzeBright;
                 selection.text = $"Chantier {selected.id:00}";
-                selectionDetails.text =
-                    $"Priorité {PriorityName(selected.priority)}   •   Bois livré {selected.deliveredWood}/{selected.requiredWood}";
+                if (!selected.terrainPrepared)
+                {
+                    selectionDetails.text =
+                        $"Priorité {PriorityName(selected.priority)}   •   Terrassement {selected.terrainCutFillMillimeters} mm";
+                }
+                else if (CurrentConstructionMaterial(selected) is ConstructionMaterialState material)
+                {
+                    selectionDetails.text =
+                        $"{PhaseName(selected.phase)}   •   {ResourceName(material.resource)} {material.delivered}/{material.required}";
+                }
+                else
+                {
+                    selectionDetails.text =
+                        $"Priorité {PriorityName(selected.priority)}   •   {PhaseName(selected.phase)} en travaux";
+                }
                 priorityControls.SetEnabled(true);
                 priorityControls.style.opacity = 1f;
                 SetPriorityButtonState(selected.priority);
@@ -511,6 +633,7 @@ namespace Victoria.CityMode
             SetButtonActive(routeButton, tools.Mode == CityToolMode.DrawRoad);
             SetButtonActive(zoneButton, tools.Mode == CityToolMode.ZoneResidential);
             SetButtonActive(lumberCampButton, tools.Mode == CityToolMode.PlaceLumberCamp);
+            SetButtonActive(civicBuildingButton, tools.Mode == CityToolMode.PlaceBuilding);
             SetButtonActive(pauseButton, game.IsPaused);
             SetButtonActive(speedOneButton, !game.IsPaused && Mathf.Approximately(game.SimulationSpeed, 1f));
             SetButtonActive(speedTwoButton, !game.IsPaused && Mathf.Approximately(game.SimulationSpeed, 2f));
@@ -564,6 +687,19 @@ namespace Victoria.CityMode
             SetButtonActive(routeButton, mode == CityToolMode.DrawRoad);
             SetButtonActive(zoneButton, mode == CityToolMode.ZoneResidential);
             SetButtonActive(lumberCampButton, mode == CityToolMode.PlaceLumberCamp);
+            SetButtonActive(civicBuildingButton, mode == CityToolMode.PlaceBuilding);
+            if (prompt != null)
+                prompt.text = tools.Prompt;
+        }
+
+        void SelectCivicBuilding()
+        {
+            var index = Mathf.Clamp(civicBuildingSelector.index, 0, CivicArchetypes.Length - 1);
+            tools.SetBuildingMode(CivicArchetypes[index]);
+            SetButtonActive(routeButton, false);
+            SetButtonActive(zoneButton, false);
+            SetButtonActive(lumberCampButton, false);
+            SetButtonActive(civicBuildingButton, true);
             if (prompt != null)
                 prompt.text = tools.Prompt;
         }
@@ -581,6 +717,36 @@ namespace Victoria.CityMode
                 return "haute";
             return priority <= 0 ? "basse" : "normale";
         }
+
+        static ConstructionMaterialState CurrentConstructionMaterial(BuildingState building)
+        {
+            if (building.constructionMaterials == null)
+                return null;
+            foreach (var material in building.constructionMaterials)
+                if (material != null && material.phase == building.phase)
+                    return material;
+            return null;
+        }
+
+        static string PhaseName(BuildingPhase phase) => phase switch
+        {
+            BuildingPhase.Foundation => "Fondations",
+            BuildingPhase.Framing => "Charpente",
+            BuildingPhase.Roofing => "Couverture",
+            BuildingPhase.Detailing => "Finitions",
+            _ => "Ouvrage"
+        };
+
+        static string ResourceName(CityResourceKind resource) => resource switch
+        {
+            CityResourceKind.Wood => "Bois",
+            CityResourceKind.Planks => "Planches",
+            CityResourceKind.Stone => "Pierre",
+            CityResourceKind.Tools => "Outils",
+            CityResourceKind.Food => "Vivres",
+            CityResourceKind.Textile => "Textile",
+            _ => "Matériau"
+        };
 
         static bool ContainsPanelPoint(VisualElement element, Vector2 point) =>
             element != null && element.resolvedStyle.display != DisplayStyle.None && element.worldBound.Contains(point);

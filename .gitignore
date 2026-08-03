@@ -16,4 +16,13 @@
 *.pdb
 *.mdb
 sysinfo.txt
+__pycache__/
+*.py[cod]
 
+# CityLab Asset Factory: les recettes/manifests restent versionnes, les binaires
+# de travail sont regenerables et ne doivent pas gonfler le depot.
+/AssetFactory/Raw/**
+/AssetFactory/Workbench/**
+/AssetFactory/Reports/*.tmp
+!/AssetFactory/Raw/.gitkeep
+!/AssetFactory/Workbench/.gitkeep

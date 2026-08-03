@@ -8,7 +8,8 @@ namespace Victoria.CityMode
         Inspect = 0,
         DrawRoad = 1,
         ZoneResidential = 2,
-        PlaceLumberCamp = 3
+        PlaceLumberCamp = 3,
+        PlaceBuilding = 4
     }
 
     public sealed class CityBuildController : MonoBehaviour
@@ -20,10 +21,13 @@ namespace Victoria.CityMode
         Material roadPreviewMaterial;
         GameObject lumberCampPreview;
         Material lumberCampPreviewMaterial;
+        GameObject buildingPreview;
+        Material buildingPreviewMaterial;
         Terrain terrain;
 
         public CityToolMode Mode { get; private set; }
         public int SelectedBuildingId { get; private set; }
+        public BuildingArchetype SelectedArchetype { get; private set; } = BuildingArchetype.Granary;
         public string Prompt { get; private set; } = "Selectionnez un outil";
 
         public void Initialize(CityLabGame owner)
@@ -39,13 +43,24 @@ namespace Victoria.CityMode
             hasRoadStart = false;
             if (roadPreview != null) roadPreview.SetActive(false);
             if (lumberCampPreview != null) lumberCampPreview.SetActive(false);
+            if (buildingPreview != null) buildingPreview.SetActive(false);
             Prompt = mode switch
             {
                 CityToolMode.DrawRoad => "Route: cliquez le point de depart",
                 CityToolMode.ZoneResidential => "Parcelles: cliquez une route",
                 CityToolMode.PlaceLumberCamp => "Camp forestier: choisissez une clairiere hors du bourg",
+                CityToolMode.PlaceBuilding => game.Catalog.Get(SelectedArchetype).label +
+                    ": choisissez un emplacement libre",
                 _ => "R: route  |  Z: parcelles  |  B: camp forestier  |  Echap: annuler"
             };
+        }
+
+        public void SetBuildingMode(BuildingArchetype archetype)
+        {
+            if (archetype < BuildingArchetype.Granary || archetype > BuildingArchetype.Chapel)
+                return;
+            SelectedArchetype = archetype;
+            SetMode(CityToolMode.PlaceBuilding);
         }
 
         void Update()
@@ -58,9 +73,16 @@ namespace Victoria.CityMode
             if (keyboard.rKey.wasPressedThisFrame) SetMode(CityToolMode.DrawRoad);
             if (keyboard.zKey.wasPressedThisFrame) SetMode(CityToolMode.ZoneResidential);
             if (keyboard.bKey.wasPressedThisFrame) SetMode(CityToolMode.PlaceLumberCamp);
+            if (keyboard.gKey.wasPressedThisFrame) SetBuildingMode(BuildingArchetype.Granary);
+            if (keyboard.tKey.wasPressedThisFrame) SetBuildingMode(BuildingArchetype.Warehouse);
+            if (keyboard.mKey.wasPressedThisFrame) SetBuildingMode(BuildingArchetype.Market);
+            if (keyboard.fKey.wasPressedThisFrame) SetBuildingMode(BuildingArchetype.Blacksmith);
+            if (keyboard.nKey.wasPressedThisFrame) SetBuildingMode(BuildingArchetype.Barn);
+            if (keyboard.cKey.wasPressedThisFrame) SetBuildingMode(BuildingArchetype.Chapel);
             if (keyboard.escapeKey.wasPressedThisFrame) SetMode(CityToolMode.Inspect);
             UpdateRoadPreview(mouse.position.ReadValue());
             UpdateLumberCampPreview(mouse.position.ReadValue());
+            UpdateBuildingPreview(mouse.position.ReadValue());
             if (!mouse.leftButton.wasPressedThisFrame)
                 return;
             if (game.IsPointerOverHud(mouse.position.ReadValue()))
@@ -73,6 +95,8 @@ namespace Victoria.CityMode
                 HandleZoneClick(ray);
             else if (Mode == CityToolMode.PlaceLumberCamp)
                 HandleLumberCampClick(ray);
+            else if (Mode == CityToolMode.PlaceBuilding)
+                HandleBuildingClick(ray);
             else
                 HandleInspectClick(ray);
         }
@@ -243,6 +267,92 @@ namespace Victoria.CityMode
             }
         }
 
+        void HandleBuildingClick(Ray ray)
+        {
+            if (!Physics.Raycast(ray, out var hit, 1000f))
+            {
+                Prompt = "Bâtiment refusé : aucun terrain sous le curseur";
+                return;
+            }
+            var point = hit.point;
+            point.y = 0f;
+            var result = game.Submit(CityCommand.PlaceBuilding(SelectedArchetype, point));
+            if (result.accepted)
+            {
+                var label = game.Catalog.Get(SelectedArchetype).label;
+                SetMode(CityToolMode.Inspect);
+                Prompt = label + " fondé : le chantier attend ses matériaux";
+            }
+            else
+            {
+                Prompt = "Bâtiment refusé : " + CityLabGame.DescribeReason(result.reason);
+            }
+        }
+
+        void UpdateBuildingPreview(Vector2 pointer)
+        {
+            if (Mode != CityToolMode.PlaceBuilding)
+            {
+                if (buildingPreview != null) buildingPreview.SetActive(false);
+                return;
+            }
+            EnsureBuildingPreview();
+            var ray = game.WorldCamera.ScreenPointToRay(pointer);
+            if (!Physics.Raycast(ray, out var hit, 1000f))
+            {
+                buildingPreview.SetActive(false);
+                return;
+            }
+            var definition = game.Catalog.Get(SelectedArchetype);
+            var position = hit.point;
+            var valid = Mathf.Abs(position.x) <= LocalCitySimulation.MapHalfExtent - definition.footprintWidth * 0.5f &&
+                        Mathf.Abs(position.z) <= LocalCitySimulation.MapHalfExtent - definition.footprintDepth * 0.5f;
+            var snapshot = game.StateSource.GetSnapshot(1001);
+            valid &= snapshot.stockWood - snapshot.reservedWood >= definition.woodCost;
+            foreach (var existing in snapshot.buildings)
+            {
+                var existingDefinition = game.Catalog.Get(existing.archetype);
+                var spacing = Mathf.Max(definition.placementSpacing, existingDefinition.placementSpacing);
+                if (Vector2.Distance(new Vector2(position.x, position.z),
+                        new Vector2(existing.position.x, existing.position.z)) < spacing)
+                    valid = false;
+            }
+            foreach (var site in snapshot.productionSites)
+                if (Vector2.Distance(new Vector2(position.x, position.z),
+                        new Vector2(site.position.x, site.position.z)) < definition.placementSpacing)
+                    valid = false;
+
+            buildingPreview.SetActive(true);
+            position.y = terrain != null
+                ? terrain.SampleHeight(position) + terrain.transform.position.y + 0.06f
+                : 0.06f;
+            buildingPreview.transform.position = position;
+            buildingPreview.transform.localScale = new Vector3(
+                definition.footprintWidth, 0.08f, definition.footprintDepth);
+            buildingPreviewMaterial.color = valid
+                ? new Color(0.26f, 0.66f, 0.24f, 0.38f)
+                : new Color(0.84f, 0.16f, 0.10f, 0.45f);
+        }
+
+        void EnsureBuildingPreview()
+        {
+            if (buildingPreview != null)
+                return;
+            buildingPreview = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            buildingPreview.name = "Building placement preview";
+            var collider = buildingPreview.GetComponent<Collider>();
+            if (collider != null) collider.enabled = false;
+            var baseMaterial = Resources.Load<Material>("CityLabBaseMaterial");
+            buildingPreviewMaterial = new Material(baseMaterial) { name = "Runtime Building Preview" };
+            buildingPreviewMaterial.SetFloat("_Surface", 1f);
+            buildingPreviewMaterial.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            buildingPreviewMaterial.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            buildingPreviewMaterial.SetFloat("_ZWrite", 0f);
+            buildingPreviewMaterial.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            buildingPreviewMaterial.renderQueue = 3000;
+            buildingPreview.GetComponent<Renderer>().sharedMaterial = buildingPreviewMaterial;
+        }
+
         void UpdateLumberCampPreview(Vector2 pointer)
         {
             if (Mode != CityToolMode.PlaceLumberCamp)
@@ -260,16 +370,17 @@ namespace Victoria.CityMode
 
             var position = hit.point;
             var planar = new Vector2(position.x, position.z);
-            var valid = planar.magnitude >= LocalCitySimulation.LumberCampMinDistanceFromCentre &&
-                        planar.magnitude <= LocalCitySimulation.LumberCampMaxDistanceFromCentre &&
+            var definition = game.Catalog.Get(BuildingArchetype.LumberCamp);
+            var valid = planar.magnitude >= definition.placementMinDistance &&
+                        planar.magnitude <= definition.placementMaxDistance &&
                         Mathf.Abs(position.x) <= LocalCitySimulation.MapHalfExtent - 4f &&
                         Mathf.Abs(position.z) <= LocalCitySimulation.MapHalfExtent - 4f;
             var snapshot = game.StateSource.GetSnapshot(1001);
-            valid &= snapshot.stockWood >= LocalCitySimulation.LumberCampCost;
+            valid &= snapshot.stockWood - snapshot.reservedWood >= definition.woodCost;
             foreach (var site in snapshot.productionSites)
             {
                 var existing = site.position.ToVector3();
-                if (Vector2.Distance(planar, new Vector2(existing.x, existing.z)) < LocalCitySimulation.LumberCampMinSpacing)
+                if (Vector2.Distance(planar, new Vector2(existing.x, existing.z)) < definition.placementSpacing)
                     valid = false;
             }
 

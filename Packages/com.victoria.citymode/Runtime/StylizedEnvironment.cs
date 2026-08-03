@@ -577,8 +577,14 @@ namespace Victoria.CityMode
     public sealed class LumberCampVisual : MonoBehaviour
     {
         Transform timber;
+        int initialTimber;
 
-        void Awake() => timber = transform.Find("Timber reserve visual");
+        void Awake()
+        {
+            timber = transform.Find("Timber reserve visual");
+            initialTimber = BuildingCatalog.LoadDefault()
+                .Get(BuildingArchetype.LumberCamp).initialResource;
+        }
 
         public void Refresh(int remainingTimber, int workers)
         {
@@ -586,7 +592,7 @@ namespace Victoria.CityMode
                 timber = transform.Find("Timber reserve visual");
             if (timber != null)
             {
-                var amount = Mathf.Clamp01(remainingTimber / (float)LocalCitySimulation.LumberCampInitialTimber);
+                var amount = Mathf.Clamp01(remainingTimber / (float)initialTimber);
                 timber.localScale = new Vector3(1f, Mathf.Lerp(0.12f, 1f, amount), 1f);
                 timber.gameObject.SetActive(true);
             }

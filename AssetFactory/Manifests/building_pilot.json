@@ -1,0 +1,386 @@
+{
+  "schema": 1,
+  "id": "citylab_building_pilot",
+  "status": "published_pending_unity_import_validation",
+  "catalog": "AssetFactory/Catalogs/building_pilot.json",
+  "construction": {
+    "stages": [
+      "foundation",
+      "frame",
+      "roof",
+      "details"
+    ],
+    "lod_per_stage": 3
+  },
+  "families": [
+    {
+      "id": "building_residence_frontier_01",
+      "function": "residence",
+      "wall_system": "stone_timber",
+      "roof_system": "clay_tile",
+      "identity_markers": [
+        "shutters",
+        "hearth",
+        "bench",
+        "woodpile",
+        "flower_boxes"
+      ],
+      "variants": [
+        {
+          "id": "a",
+          "seed": 2026081100,
+          "lod_triangles": [
+            30491,
+            15244,
+            6094
+          ],
+          "canonical_mesh_sha256": "8564e96fdab278f7ed21c69134fe9b0ba58ddb309161a4dfdaa1f82677d1a975",
+          "fbx_sha256": "1fd4a20c6d2500de24970dc2f63717d28f6177e562342222815919516f6ff208",
+          "published_fbx": "Assets/CityLabHost/Adapted/Factory/Models/building_residence_frontier_01_a.fbx"
+        },
+        {
+          "id": "b",
+          "seed": 2026081201,
+          "lod_triangles": [
+            30923,
+            15460,
+            6182
+          ],
+          "canonical_mesh_sha256": "910bdb4f59f912273aa8ac57e83c14ff50595f5a3e86a05c2b53305729de999a",
+          "fbx_sha256": "4d00fa9689d417c8041760bc28edb52c26e1188987b474837dd81991c8df734f",
+          "published_fbx": "Assets/CityLabHost/Adapted/Factory/Models/building_residence_frontier_01_b.fbx"
+        },
+        {
+          "id": "c",
+          "seed": 2026081303,
+          "lod_triangles": [
+            31139,
+            15568,
+            6224
+          ],
+          "canonical_mesh_sha256": "cf20929d21252915f0e082bcd2c69f863719c948b263b53debf03b8e38fb4b8b",
+          "fbx_sha256": "c908485b71c377c3deb62b2b966046346e61178cf1ef793879af4fe74b36501b",
+          "published_fbx": "Assets/CityLabHost/Adapted/Factory/Models/building_residence_frontier_01_c.fbx"
+        }
+      ]
+    },
+    {
+      "id": "building_granary_frontier_01",
+      "function": "granary",
+      "wall_system": "timber_plank",
+      "roof_system": "wood_shingle",
+      "identity_markers": [
+        "raised_floor",
+        "grain_sacks",
+        "ventilation_slits",
+        "hoist",
+        "grain_emblem"
+      ],
+      "variants": [
+        {
+          "id": "a",
+          "seed": 2026081200,
+          "lod_triangles": [
+            37072,
+            18536,
+            7412
+          ],
+          "canonical_mesh_sha256": "4bbc8e46cd9775c3283db00272c8f1fcf9fbec818d17431a031fa44981c4e1b6",
+          "fbx_sha256": "ed9b81f454f8393b8a63f6165fab48ef8db121f157d9cc30156a206626244392",
+          "published_fbx": "Assets/CityLabHost/Adapted/Factory/Models/building_granary_frontier_01_a.fbx"
+        },
+        {
+          "id": "b",
+          "seed": 2026081301,
+          "lod_triangles": [
+            37288,
+            18644,
+            7454
+          ],
+          "canonical_mesh_sha256": "9bea8e1f58273e2e08389f40724efa35db98844e0bd1888199f7ab34ad7e347f",
+          "fbx_sha256": "d23603871c49f0a4b1af626013f50afc3c47aac091fc0e068028b25659bfb8e4",
+          "published_fbx": "Assets/CityLabHost/Adapted/Factory/Models/building_granary_frontier_01_b.fbx"
+        },
+        {
+          "id": "c",
+          "seed": 2026081403,
+          "lod_triangles": [
+            37504,
+            18752,
+            7498
+          ],
+          "canonical_mesh_sha256": "814a765c74f34416ba2f6c54e4a24cfbaf70ed0608d90a134b5a3395c87374bf",
+          "fbx_sha256": "0f4678cf71898b0de7d80657ad04269a35cfc7f2cedbefdf9deaa5b588f4d7f0",
+          "published_fbx": "Assets/CityLabHost/Adapted/Factory/Models/building_granary_frontier_01_c.fbx"
+        }
+      ]
+    },
+    {
+      "id": "building_warehouse_frontier_01",
+      "function": "warehouse",
+      "wall_system": "stone_timber",
+      "roof_system": "wood_shingle",
+      "identity_markers": [
+        "loading_dock",
+        "double_door",
+        "crates",
+        "barrels",
+        "pulley"
+      ],
+      "variants": [
+        {
+          "id": "a",
+          "seed": 2026081300,
+          "lod_triangles": [
+            40822,
+            20404,
+            8159
+          ],
+          "canonical_mesh_sha256": "46f0bf7807dff74c55b6f5196d1c726053f049b95085a759e079795e666651e8",
+          "fbx_sha256": "514be327e3abc3c1db86c4bd8258f0b427b428e872f9e582790441210dd78505",
+          "published_fbx": "Assets/CityLabHost/Adapted/Factory/Models/building_warehouse_frontier_01_a.fbx"
+        },
+        {
+          "id": "b",
+          "seed": 2026081401,
+          "lod_triangles": [
+            41038,
+            20512,
+            8203
+          ],
+          "canonical_mesh_sha256": "283a8c7884495169d3dcdbcdc73536c14751c850a1622617cc94eef42cb2e9ba",
+          "fbx_sha256": "f9915c7394798bf1d384be3267d01b8712673748fb937da8d0c57112bd32f8c8",
+          "published_fbx": "Assets/CityLabHost/Adapted/Factory/Models/building_warehouse_frontier_01_b.fbx"
+        },
+        {
+          "id": "c",
+          "seed": 2026081503,
+          "lod_triangles": [
+            41254,
+            20620,
+            8245
+          ],
+          "canonical_mesh_sha256": "41e9619296c31d3d1c8dce03784017c1ed4461204c1e965e7a713c3bf65c5463",
+          "fbx_sha256": "479c438349d2c680d03406078776f25c9f55e5906370c036fe949b66276fbf82",
+          "published_fbx": "Assets/CityLabHost/Adapted/Factory/Models/building_warehouse_frontier_01_c.fbx"
+        }
+      ]
+    },
+    {
+      "id": "building_market_frontier_01",
+      "function": "market",
+      "wall_system": "stone_timber",
+      "roof_system": "clay_tile",
+      "identity_markers": [
+        "arcade",
+        "stalls",
+        "awnings",
+        "goods",
+        "hanging_sign"
+      ],
+      "variants": [
+        {
+          "id": "a",
+          "seed": 2026081400,
+          "lod_triangles": [
+            40688,
+            20344,
+            8132
+          ],
+          "canonical_mesh_sha256": "bd1842efea4a1ccdf5f22f621cd3bb6e639fd955486a569deeb2f6d67cedef28",
+          "fbx_sha256": "9e5fababec6e7db416f2936c9765858182255cabbb82dba2681110fbf287a327",
+          "published_fbx": "Assets/CityLabHost/Adapted/Factory/Models/building_market_frontier_01_a.fbx"
+        },
+        {
+          "id": "b",
+          "seed": 2026081501,
+          "lod_triangles": [
+            40904,
+            20452,
+            8176
+          ],
+          "canonical_mesh_sha256": "0318a120bcc068a6730722384b84de5f73fbddcc7d2f980e0cff4f415d976f7d",
+          "fbx_sha256": "d5bd53db28c244b858e298cac5d0417e109100a343c94add83f3b73d3d0c7e5f",
+          "published_fbx": "Assets/CityLabHost/Adapted/Factory/Models/building_market_frontier_01_b.fbx"
+        },
+        {
+          "id": "c",
+          "seed": 2026081603,
+          "lod_triangles": [
+            41120,
+            20560,
+            8218
+          ],
+          "canonical_mesh_sha256": "152470b1643c420ac436dafdedcefb11cc3def9c275582db83e6e863758dbe57",
+          "fbx_sha256": "2829776738edc8271913907e86c83a353033e3adf9d95c47a770a974296ee37d",
+          "published_fbx": "Assets/CityLabHost/Adapted/Factory/Models/building_market_frontier_01_c.fbx"
+        }
+      ]
+    },
+    {
+      "id": "building_blacksmith_frontier_01",
+      "function": "blacksmith",
+      "wall_system": "brick_stone",
+      "roof_system": "slate",
+      "identity_markers": [
+        "brick_chimney",
+        "forge",
+        "anvil",
+        "coal",
+        "horseshoe_sign",
+        "tool_rack"
+      ],
+      "variants": [
+        {
+          "id": "a",
+          "seed": 2026081500,
+          "lod_triangles": [
+            41276,
+            20638,
+            8253
+          ],
+          "canonical_mesh_sha256": "86d819ed6b84cbcb2206019b4aaf5339f7b713f6a4c7c1855a114dd4a56e87f3",
+          "fbx_sha256": "98f7c6ef68ddaab02b9cdfdaba4a4b42656712558e5b87a5abf85f9a1aa8a62c",
+          "published_fbx": "Assets/CityLabHost/Adapted/Factory/Models/building_blacksmith_frontier_01_a.fbx"
+        },
+        {
+          "id": "b",
+          "seed": 2026081601,
+          "lod_triangles": [
+            41384,
+            20692,
+            8275
+          ],
+          "canonical_mesh_sha256": "37c9e88fb5259bd1e2402f90ed34beadbc22dceeb18673117b01feced37a9e40",
+          "fbx_sha256": "227803ceabd1d4e6aa4a218b91c96ce8dfa3accb6deac9cd49f1d395c0d6363d",
+          "published_fbx": "Assets/CityLabHost/Adapted/Factory/Models/building_blacksmith_frontier_01_b.fbx"
+        },
+        {
+          "id": "c",
+          "seed": 2026081703,
+          "lod_triangles": [
+            41600,
+            20800,
+            8317
+          ],
+          "canonical_mesh_sha256": "7b1af0880c7626b4c836f04655a1b77b5c252694697c08fd9b25b7eeea531328",
+          "fbx_sha256": "e64659da098d2cef1fb46ad86aaa5f09c5f7ba976349dba4a2ce452aeb2c4ac6",
+          "published_fbx": "Assets/CityLabHost/Adapted/Factory/Models/building_blacksmith_frontier_01_c.fbx"
+        }
+      ]
+    },
+    {
+      "id": "building_barn_frontier_01",
+      "function": "barn",
+      "wall_system": "timber_plank",
+      "roof_system": "wood_shingle",
+      "identity_markers": [
+        "cross_braced_doors",
+        "hay",
+        "loft",
+        "animal_trough",
+        "pitchfork",
+        "pen"
+      ],
+      "variants": [
+        {
+          "id": "a",
+          "seed": 2026081600,
+          "lod_triangles": [
+            50239,
+            25119,
+            10042
+          ],
+          "canonical_mesh_sha256": "c4620e5030f700aa0080be8d81eac32c826ea8f6c006f10758a52daa40721c9c",
+          "fbx_sha256": "e1622ece79fca7c7d88f1f4914e53de328d935799292d8b8d84612bcd4300668",
+          "published_fbx": "Assets/CityLabHost/Adapted/Factory/Models/building_barn_frontier_01_a.fbx"
+        },
+        {
+          "id": "b",
+          "seed": 2026081701,
+          "lod_triangles": [
+            50455,
+            25227,
+            10086
+          ],
+          "canonical_mesh_sha256": "766cbac33f9bfb6470a8740d2edc9d7b02650dcd78f149a35bd7efcd9b4ef295",
+          "fbx_sha256": "efcc45795d460fe44da28b6761fb8ce1f7c5bff302d7a2e7c637bf6df34b06dc",
+          "published_fbx": "Assets/CityLabHost/Adapted/Factory/Models/building_barn_frontier_01_b.fbx"
+        },
+        {
+          "id": "c",
+          "seed": 2026081803,
+          "lod_triangles": [
+            50671,
+            25335,
+            10128
+          ],
+          "canonical_mesh_sha256": "6240273fb7545cceeda6916f379409ed8f038c44477d3c93a85d9d9aa194652f",
+          "fbx_sha256": "7c00f1ae10462d52ca6ede5a5eb215d5eb7b0fca1fb331a2b4ac5937144f157a",
+          "published_fbx": "Assets/CityLabHost/Adapted/Factory/Models/building_barn_frontier_01_c.fbx"
+        }
+      ]
+    },
+    {
+      "id": "building_chapel_frontier_01",
+      "function": "chapel",
+      "wall_system": "dressed_stone",
+      "roof_system": "slate",
+      "identity_markers": [
+        "buttresses",
+        "lancet_windows",
+        "apse",
+        "bell_tower",
+        "cross",
+        "grave_markers"
+      ],
+      "variants": [
+        {
+          "id": "a",
+          "seed": 2026081700,
+          "lod_triangles": [
+            42751,
+            21375,
+            8548
+          ],
+          "canonical_mesh_sha256": "bab6d686c4be6763e67c3c038101762ad0ac1e77c4350454c45d3f17a4078908",
+          "fbx_sha256": "20d06378bb7cb94f09e61adbf57ec0dd45423d1c10bb312913946091073fdb4d",
+          "published_fbx": "Assets/CityLabHost/Adapted/Factory/Models/building_chapel_frontier_01_a.fbx"
+        },
+        {
+          "id": "b",
+          "seed": 2026081801,
+          "lod_triangles": [
+            42859,
+            21429,
+            8570
+          ],
+          "canonical_mesh_sha256": "1c7cc927b0249d33b20770c1ba43bc2efdfc7d673fc2e53cb908b8411611f7f3",
+          "fbx_sha256": "c0162b6bb84af3fa709ad06418d1d8307e9cfab6da2f2d1edd6ca49778bc1866",
+          "published_fbx": "Assets/CityLabHost/Adapted/Factory/Models/building_chapel_frontier_01_b.fbx"
+        },
+        {
+          "id": "c",
+          "seed": 2026081903,
+          "lod_triangles": [
+            43075,
+            21537,
+            8612
+          ],
+          "canonical_mesh_sha256": "f391fb78a71004c80846a88773fd842a0023e587a596c7d2cc65d4af5dcfc357",
+          "fbx_sha256": "94ce46db7bc9031c11ba025fdc8f619fd1e4fa94c5ee3e9385f0a34fd9a74c2a",
+          "published_fbx": "Assets/CityLabHost/Adapted/Factory/Models/building_chapel_frontier_01_c.fbx"
+        }
+      ]
+    }
+  ],
+  "gates": {
+    "unity_launched": false,
+    "family_count": 7,
+    "variant_count": 21,
+    "budgets_and_phases": "passed",
+    "published_copy_hashes": "passed",
+    "unity_import": "pending_no_unity_launch"
+  },
+  "failures": []
+}

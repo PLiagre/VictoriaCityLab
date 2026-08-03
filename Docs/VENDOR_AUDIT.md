@@ -2,6 +2,11 @@
 
 Généré par l'outil d'admission CityLab. Les sources restent intactes dans leurs dossiers Unity Store ; seuls des prefabs adaptés sont utilisés par le prototype.
 
+L'inventaire machine lisible de l'Asset Factory intégrée est
+`AssetFactory/Reports/source_inventory.json`. Il épingle les candidats 3D et
+textures par SHA-256 sans ouvrir Unity ; `scan --check` refuse un inventaire
+périmé.
+
 | Pack | Fichiers | Prefabs | Modèles | Scripts | Shaders | Décision |
 |---|---:|---:|---:|---:|---:|---|
 | `Assets/DoubleL` | 378 | 1 | 147 | 1 | 0 | Réserve animation (non activé dans le slice) |
@@ -19,6 +24,45 @@ Généré par l'outil d'admission CityLab. Les sources restent intactes dans leu
 - Kevin Iglesias : idle et marche Humanoid sans root motion pilotés par CityLab.
 - Polytope : deux arbres normalisés, distribués de façon déterministe en périphérie.
 - DoubleL : pack conservé pour une future action de chantier ; aucun asset DoubleL n'est requis par le slice actuel.
+
+## Dérivé Asset Factory publié
+
+| Identifiant | Sources Vendor immuables | Variante CityLab | État |
+|---|---|---|---|
+| `building_sawmill_frontier_01` | `EA03_Village_OutBuilding_WoodRoof_01b.fbx` et `EA03_Prop_Forester_wooden_01d.fbx`, pack EmaceArt, hashes consignés dans le manifest | `building_sawmill_frontier_01_a.fbx`, `_b.fbx` et `_c.fbx` sous `Assets/CityLabHost/Adapted/Factory/Models` | Trois variantes, quatre phases et trois LOD validés hors Unity ; import et validation en jeu en attente |
+| Pilote architectural (7 familles) | Porche, échelle, caisse, banc, poêle, hovel et enseigne EmaceArt, chemins et SHA-256 dans `building_pilot.json` | résidence, grenier, entrepôt, marché, forge, grange et chapelle, variantes A/B/C sous `Assets/CityLabHost/Adapted/Factory/Models` | 21 FBX, quatre phases et trois LOD validés hors Unity ; import et validation en jeu en attente |
+| Population modulaire (32 sorties) | `GanzSe Free Modular Character 1_1.fbx`, SHA-256 `0ecbc9e4...a02b`, source Vendor immuable | 24 corps et 8 rôles sous `Assets/CityLabHost/Adapted/Factory/Characters` | 52 os, trois LOD, 32/32 FBX et déterminisme validés hors Unity ; import Humanoid et animations en attente |
+| Trim PBR CityLab v1 | Production procédurale originale, sans source Vendor | six cartes 2048² sous `Assets/CityLabHost/Adapted/Factory/Textures/CityLabTrimV1` | Bois, pierre et toiture ; déterminisme et lisibilité 512/256/128 validés hors Unity |
+
+La famille est une composition procédurale originale issue d'une recette
+versionnée. Les deux fichiers Vendor restent inchangés ; le manifest
+`AssetFactory/Manifests/building_sawmill_frontier_01.json` conserve leur
+provenance, leurs SHA-256, la graine, les métriques et le hash publié.
+Le manifest `AssetFactory/Manifests/building_pilot.json` assure la même
+traçabilité pour les sept autres familles et leurs 21 variantes.
+`AssetFactory/Manifests/character_factory.json` conserve la provenance, les
+hashes FBX et canoniques, les budgets et les portes Unity encore ouvertes des
+32 personnages dérivés.
+
+## Audit modulaire GanzSe
+
+L'audit hors Unity recense 217 FBX : 2 corps complets issus de la même lignée,
+25 cheveux, 25 barbes, 25 yeux, 25 sourcils, 5 nez, 2 oreilles et 18 pièces pour
+chacune des six catégories principales de tenue/armure. Cette banque permet des
+variations d'apparence et de rôle, mais ne prouve pas l'existence de corps
+féminin, enfant ou âgé distincts. Ces silhouettes ont donc été produites comme
+variantes adaptées sous `Assets/CityLabHost/Adapted/Factory`, jamais comme
+modifications Vendor. Leur rig et leurs LOD sont validés hors Unity ; la porte
+Humanoid et les animations restent ouvertes. Le rapport source complet est
+`AssetFactory/Reports/character_modularity.json`.
+
+Huit propositions statiques sélectionnent 11 à 13 pièces du FBX complet sans
+modifier la source. Elles restent dans le workbench et ne sont pas publiées
+comme prefabs. La revue confirme que les tenues d'armure couvrent une base
+ouvrier/soldat/notable, mais qu'elles ne remplacent pas de vrais corps
+féminin/enfant/vieux ni les vêtements religieux et de mendiant. Le registre est
+`AssetFactory/Catalogs/character_proposals.json` et la décision détaillée
+`AssetFactory/Reports/character_proposal_review.json`.
 
 ## Variantes de décor admises
 

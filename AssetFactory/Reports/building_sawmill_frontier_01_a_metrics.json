@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "id": "building_sawmill_frontier_01_a",
+  "recipe": "AssetFactory/Recipes/building_sawmill_frontier_01.json",
+  "variant": "a",
+  "seed": 2026080102,
+  "blender": "5.2.0 LTS",
+  "vendor_inputs": [
+    "Assets/EmaceArt/Slavic World Free/Meshes/EA03_Village_OutBuilding_WoodRoof_01b.fbx",
+    "Assets/EmaceArt/Slavic World Free/Meshes/EA03_Prop_Forester_wooden_01d.fbx"
+  ],
+  "triangles": {
+    "lod0": 39980,
+    "lod1": 19990,
+    "lod2": 7992
+  },
+  "construction_phase_triangles": {
+    "foundation": {
+      "lod0": 3348,
+      "lod1": 1674,
+      "lod2": 668
+    },
+    "frame": {
+      "lod0": 3832,
+      "lod1": 1916,
+      "lod2": 766
+    },
+    "roof": {
+      "lod0": 18812,
+      "lod1": 9406,
+      "lod2": 3762
+    },
+    "details": {
+      "lod0": 13988,
+      "lod1": 6994,
+      "lod2": 2796
+    }
+  },
+  "canonical_mesh_sha256": "ab84c55bcd18824c054c96bacc5d2d39d4b7339571c6ef30c0c185bbfe688312",
+  "outputs": {
+    "glb": "AssetFactory/Raw/building_sawmill_frontier_01_a.glb",
+    "fbx": "AssetFactory/Workbench/Models/building_sawmill_frontier_01_a.fbx",
+    "hero": "AssetFactory/Workbench/Previews/building_sawmill_frontier_01_a_hero.png",
+    "rts": "AssetFactory/Workbench/Previews/building_sawmill_frontier_01_a_rts.png",
+    "detail": "AssetFactory/Workbench/Previews/building_sawmill_frontier_01_a_detail.png",
+    "construction_stages": [
+      "AssetFactory/Workbench/Previews/building_sawmill_frontier_01_a_stage_01_foundation.png",
+      "AssetFactory/Workbench/Previews/building_sawmill_frontier_01_a_stage_02_frame.png",
+      "AssetFactory/Workbench/Previews/building_sawmill_frontier_01_a_stage_03_roof.png",
+      "AssetFactory/Workbench/Previews/building_sawmill_frontier_01_a_stage_04_details.png"
+    ]
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "id": "building_barn_frontier_01_b",
+  "family": "building_barn_frontier_01",
+  "function": "barn",
+  "wall_system": "timber_plank",
+  "roof_system": "wood_shingle",
+  "identity_markers": [
+    "cross_braced_doors",
+    "hay",
+    "loft",
+    "animal_trough",
+    "pitchfork",
+    "pen"
+  ],
+  "variant": "b",
+  "seed": 2026081701,
+  "blender": "5.2.0 LTS",
+  "vendor_input": {
+    "path": "Assets/EmaceArt/Slavic World Free/Meshes/EA03_Village_AnimalBreeding_Hovel_01a.fbx",
+    "sha256": "5b87adda32aa6dc7c2abfcbe9599b4982f6d3eeedd19e64b20f0e7361d6339f3"
+  },
+  "triangles": {
+    "lod0": 50455,
+    "lod1": 25227,
+    "lod2": 10086
+  },
+  "construction_phase_triangles": {
+    "foundation": {
+      "lod0": 4428,
+      "lod1": 2214,
+      "lod2": 884
+    },
+    "frame": {
+      "lod0": 13012,
+      "lod1": 6506,
+      "lod2": 2602
+    },
+    "roof": {
+      "lod0": 24308,
+      "lod1": 12154,
+      "lod2": 4860
+    },
+    "details": {
+      "lod0": 8707,
+      "lod1": 4353,
+      "lod2": 1740
+    }
+  },
+  "canonical_mesh_sha256": "766cbac33f9bfb6470a8740d2edc9d7b02650dcd78f149a35bd7efcd9b4ef295",
+  "outputs": {
+    "glb": "AssetFactory/Raw/building_barn_frontier_01_b.glb",
+    "fbx": "AssetFactory/Workbench/Models/building_barn_frontier_01_b.fbx",
+    "hero": "AssetFactory/Workbench/Previews/building_barn_frontier_01_b_hero.png",
+    "rts": "AssetFactory/Workbench/Previews/building_barn_frontier_01_b_rts.png"
+  }
+}

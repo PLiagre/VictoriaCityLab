@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -41,9 +42,22 @@ namespace Victoria.CityMode.Tests
             var camp = game.Submit(CityCommand.PlaceLumberCamp(new Vector3(70f, 0f, 0f)));
             Assert.IsTrue(camp.accepted);
             yield return null;
-            Assert.AreEqual(1, game.StateSource.GetSnapshot(1001).productionSites.Count);
+            var productionSites = game.StateSource.GetSnapshot(1001).productionSites;
+            Assert.AreEqual(1, productionSites.Count(item => item.kind == ProductionSiteKind.LumberCamp));
+            Assert.AreEqual(7, productionSites.Count(item => item.kind != ProductionSiteKind.LumberCamp));
             Assert.IsNotNull(Object.FindFirstObjectByType<LumberCampVisual>(),
                 "Le camp forestier doit avoir une presentation dans le monde.");
+
+            var granary = game.Submit(CityCommand.PlaceBuilding(
+                BuildingArchetype.Granary, new Vector3(-70f, 0f, 70f)));
+            Assert.IsTrue(granary.accepted, granary.reason);
+            yield return null;
+            var granaryState = game.StateSource.GetSnapshot(1001).buildings
+                .Find(item => item.id == granary.createdId);
+            Assert.IsNotNull(granaryState);
+            Assert.AreEqual(BuildingArchetype.Granary, granaryState.archetype);
+            Assert.IsNotNull(Object.FindObjectsByType<BuildingView>(FindObjectsSortMode.None)
+                .FirstOrDefault(item => item.BuildingId == granary.createdId));
 
             var controller = Object.FindFirstObjectByType<CityBuildController>();
             Assert.IsNotNull(controller);

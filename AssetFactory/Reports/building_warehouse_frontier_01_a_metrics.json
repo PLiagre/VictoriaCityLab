@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "id": "building_warehouse_frontier_01_a",
+  "family": "building_warehouse_frontier_01",
+  "function": "warehouse",
+  "wall_system": "stone_timber",
+  "roof_system": "wood_shingle",
+  "identity_markers": [
+    "loading_dock",
+    "double_door",
+    "crates",
+    "barrels",
+    "pulley"
+  ],
+  "variant": "a",
+  "seed": 2026081300,
+  "blender": "5.2.0 LTS",
+  "vendor_input": {
+    "path": "Assets/EmaceArt/Slavic World Free/Meshes/EA03_Prop_Container_Crate_01a.fbx",
+    "sha256": "f2ad1f5c3d1030cc0fd80e0660758062ab0eb9ece2e13e43b29c9ce1e58a637d"
+  },
+  "triangles": {
+    "lod0": 40822,
+    "lod1": 20404,
+    "lod2": 8159
+  },
+  "construction_phase_triangles": {
+    "foundation": {
+      "lod0": 4212,
+      "lod1": 2106,
+      "lod2": 842
+    },
+    "frame": {
+      "lod0": 5644,
+      "lod1": 2822,
+      "lod2": 1128
+    },
+    "roof": {
+      "lod0": 19988,
+      "lod1": 9994,
+      "lod2": 3996
+    },
+    "details": {
+      "lod0": 10978,
+      "lod1": 5482,
+      "lod2": 2193
+    }
+  },
+  "canonical_mesh_sha256": "46f0bf7807dff74c55b6f5196d1c726053f049b95085a759e079795e666651e8",
+  "outputs": {
+    "glb": "AssetFactory/Raw/building_warehouse_frontier_01_a.glb",
+    "fbx": "AssetFactory/Workbench/Models/building_warehouse_frontier_01_a.fbx",
+    "hero": "AssetFactory/Workbench/Previews/building_warehouse_frontier_01_a_hero.png",
+    "rts": "AssetFactory/Workbench/Previews/building_warehouse_frontier_01_a_rts.png"
+  }
+}
