@@ -1,0 +1,14 @@
+{
+  "verdict": "PASS",
+  "summary": "La preuve identifie les cinq acteurs requis (Hermes, Codex, Claude, Cursor, GitHub Actions) et les quatre contrôles requis (roadmap, tests, audit indépendant, merge automatique) ; le cycle_id et le claim correspondent entre la demande et le raw_output, et la session Codex tourne en sandbox read-only sans modification de fichier.",
+  "findings": [
+    "cycle_id CITYLAB-20260812T140458Z identique entre la demande adressée à Codex, le claim et le raw_output.",
+    "Les cinq acteurs (Hermes, Codex, Claude, Cursor, GitHub Actions) figurent dans actors et sont repris à l'identique dans le JSON produit par Codex.",
+    "Les quatre contrôles (roadmap, tests, audit indépendant, merge automatique) figurent dans checks et sont repris à l'identique dans le JSON produit par Codex.",
+    "Le claim 'Codex a produit le lot témoin.' correspond au contenu du raw_output, sans divergence de formulation.",
+    "La session Codex s'exécute avec sandbox: read-only et approval: never, cohérent avec la consigne 'Ne modifie aucun fichier'.",
+    "Le JSON produit par Codex est syntaxiquement valide, ne contient pas de champs superflus et est reproduit deux fois de façon identique dans la sortie brute."
+  ],
+  "evaluator_transport": "cursor-agent",
+  "evaluator_model": "claude-sonnet-5-thinking-high"
+}
