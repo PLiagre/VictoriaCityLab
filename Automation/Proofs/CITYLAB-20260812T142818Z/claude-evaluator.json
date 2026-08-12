@@ -1,0 +1,13 @@
+{
+  "verdict": "PASS",
+  "summary": "Le raw_output produit par Codex contient un objet JSON qui identifie correctement les cinq acteurs requis et les quatre controles requis, et le claim correspond exactement au libelle attendu.",
+  "findings": [
+    "Les cinq acteurs requis (Hermes, Codex, Claude, Cursor, GitHub Actions) sont tous presents dans le tableau actors du JSON produit.",
+    "Les quatre controles requis (roadmap, tests, audit independant, merge automatique) sont tous presents dans le tableau checks du JSON produit.",
+    "Le champ claim correspond mot pour mot a l'affirmation attendue: 'Codex a produit le lot temoin.'",
+    "Le contexte de session (sandbox: read-only, approval: never) confirme qu'aucun fichier n'a ete modifie durant la production de la preuve, conformement a la consigne donnee a Codex.",
+    "Le cycle_id du JSON produit (CITYLAB-20260812T142818Z) correspond exactement au cycle_id attendu."
+  ],
+  "evaluator_transport": "cursor-agent",
+  "evaluator_model": "claude-sonnet-5-thinking-high"
+}
