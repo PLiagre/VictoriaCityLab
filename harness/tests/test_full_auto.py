@@ -5,6 +5,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import Mock, patch
 
 from harness.pipeline.full_auto import (
     Increment,
@@ -16,6 +17,7 @@ from harness.pipeline.full_auto import (
     select_increment,
     validate_change_scope,
     write_console,
+    run_streaming,
 )
 
 
@@ -118,6 +120,43 @@ class FullAutoTests(unittest.TestCase):
         stream.flush()
 
         self.assertEqual("données \\u2192 simulation", raw.getvalue().decode("cp1252"))
+
+    def test_post_exit_console_interrupt_becomes_retryable_actor_failure(self) -> None:
+        process = Mock()
+        process.communicate.side_effect = KeyboardInterrupt
+        process.poll.return_value = 0
+        process.returncode = 0
+        process.stdout = Mock()
+
+        with tempfile.TemporaryDirectory() as temp, patch(
+            "harness.pipeline.full_auto.ROOT", Path(temp)
+        ), patch("harness.pipeline.full_auto.subprocess.Popen", return_value=process):
+            result = run_streaming(
+                "generator",
+                ["actor"],
+                stdin_text="prompt",
+                timeout_seconds=10,
+                output_file=Path(temp) / "actor.log",
+            )
+
+        self.assertEqual(130, result.returncode)
+        process.stdout.close.assert_called_once_with()
+
+    def test_live_actor_console_interrupt_is_not_swallowed(self) -> None:
+        process = Mock()
+        process.communicate.side_effect = KeyboardInterrupt
+        process.poll.return_value = None
+
+        with tempfile.TemporaryDirectory() as temp, patch(
+            "harness.pipeline.full_auto.subprocess.Popen", return_value=process
+        ), self.assertRaises(KeyboardInterrupt):
+            run_streaming(
+                "generator",
+                ["actor"],
+                stdin_text="prompt",
+                timeout_seconds=10,
+                output_file=Path(temp) / "actor.log",
+            )
 
 
 if __name__ == "__main__":

@@ -236,6 +236,7 @@ def run_streaming(
 ) -> CommandResult:
     output_file.parent.mkdir(parents=True, exist_ok=True)
     started = time.monotonic()
+    interrupted_after_actor_exit = False
     with output_file.open("w", encoding="utf-8") as log:
         process = subprocess.Popen(
             resolve_command(command), cwd=ROOT, stdin=subprocess.PIPE if stdin_text is not None else None,
@@ -248,12 +249,30 @@ def run_streaming(
             process.kill()
             stdout, _ = process.communicate()
             stdout += f"\nTIMEOUT after {timeout_seconds}s\n"
+        except KeyboardInterrupt:
+            # On Windows, an actor may exit while a detached tool still owns its
+            # stdout pipe. Closing that tool can emit CTRL_C to the waiting
+            # reader. Preserve a real cancellation while turning this post-exit
+            # signal into a bounded failed iteration that the loop can repair.
+            if process.poll() is None:
+                raise
+            interrupted_after_actor_exit = True
+            stdout = (
+                "ACTOR_OUTPUT_INTERRUPTED_AFTER_EXIT: detached tool closed the "
+                "Windows console stream; retry this iteration.\n"
+            )
+            with contextlib.suppress(OSError):
+                if process.stdout is not None:
+                    process.stdout.close()
         log.write(stdout)
         write_console(stdout)
     return CommandResult(
         name=name,
         command=list(command),
-        returncode=process.returncode if process.returncode is not None else 124,
+        returncode=(
+            130 if interrupted_after_actor_exit
+            else process.returncode if process.returncode is not None else 124
+        ),
         duration_seconds=round(time.monotonic() - started, 3),
         output_file=str(output_file.relative_to(ROOT)),
     )
