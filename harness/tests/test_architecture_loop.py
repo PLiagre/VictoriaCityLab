@@ -12,7 +12,7 @@ from harness.audit_ledger import LedgerError, append_event, read_events, validat
 from harness.audit_schema import SchemaError, validate_audit
 from harness.merge_bot_policy import validate_paths
 from harness.pipeline.supervisor import Supervisor
-from harness.pipeline.actors import resolve_command
+from harness.pipeline.actors import claude_structured, resolve_command, run as run_actor
 from harness.verdict_audit import validate_brief
 
 
@@ -32,6 +32,35 @@ class ArchitectureLoopTests(unittest.TestCase):
             cursor = resolve_command(["agent", "--print", "prompt"])
             self.assertEqual(r"C:\Windows\powershell.exe", cursor[0])
             self.assertIn("cursor-agent.ps1", cursor[5])
+
+    def test_actor_prompt_can_be_sent_over_stdin(self) -> None:
+        completed = mock.Mock(returncode=0, stdout="PASS\n")
+        with mock.patch(
+            "harness.pipeline.actors.resolve_command", return_value=["claude", "-p"]
+        ), mock.patch(
+            "harness.pipeline.actors.subprocess.run", return_value=completed
+        ) as subprocess_run:
+            output = run_actor(
+                ["claude", "-p"], cwd=Path("."), stdin_text="x" * 100_000
+            )
+
+        self.assertEqual("PASS", output)
+        self.assertEqual("x" * 100_000, subprocess_run.call_args.kwargs["input"])
+        self.assertNotIn("x" * 100_000, subprocess_run.call_args.args[0])
+
+    def test_claude_evaluator_uses_stdin_not_argv(self) -> None:
+        schema = {"type": "object", "properties": {"verdict": {"type": "string"}}}
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "schema.json"
+            path.write_text(json.dumps(schema), encoding="utf-8")
+            with mock.patch(
+                "harness.pipeline.actors.run", return_value='{"verdict":"PASS"}'
+            ) as actor_run:
+                result = claude_structured(Path(temp), "y" * 100_000, path)
+
+        self.assertEqual("PASS", result["verdict"])
+        self.assertEqual("y" * 100_000, actor_run.call_args.kwargs["stdin_text"])
+        self.assertNotIn("y" * 100_000, actor_run.call_args.args[0])
 
     def test_full_audit_state_machine(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -157,6 +186,17 @@ class ArchitectureLoopTests(unittest.TestCase):
         challenge = source.split("challenge = claude_structured", 1)[1]
         self.assertIn("faits mécaniques relus via l'API GitHub au SHA", challenge)
         self.assertNotIn('"\\nDiff:\\n" + diff', challenge)
+
+    def test_cursor_audit_reads_large_pr_diff_out_of_band(self) -> None:
+        source = (Path(__file__).resolve().parents[1] / "pipeline" / "pr_audit.py").read_text(
+            encoding="utf-8"
+        )
+        cursor_prompt = source.split("cursor = cursor_audit", 1)[1].split(
+            "challenge = claude_structured", 1
+        )[0]
+        self.assertIn("gh pr diff", cursor_prompt)
+        self.assertIn("args.head_sha", cursor_prompt)
+        self.assertNotIn("diff[:120000]", source)
 
     def test_dashboard_script_bootstraps_repository_imports(self) -> None:
         source = (Path(__file__).resolve().parents[2] / "hermes" / "dashboard.py").read_text(
