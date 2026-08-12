@@ -132,6 +132,13 @@ class ArchitectureLoopTests(unittest.TestCase):
             (brief / "verdict.md").write_text("Verdict: PASS\n", encoding="utf-8")
             self.assertEqual([str(evidence)], validate_brief(brief))
 
+    def test_proof_lane_is_automergeable_but_not_production(self) -> None:
+        ok, refused = validate_paths([
+            "Automation/Proofs/CITYLAB-20260812T120000Z/mechanical-evidence.json"
+        ])
+        self.assertTrue(ok)
+        self.assertEqual([], refused)
+
 
 if __name__ == "__main__":
     unittest.main()

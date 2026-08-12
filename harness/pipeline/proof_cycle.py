@@ -41,8 +41,10 @@ def main() -> int:
     proof_dir = ROOT / "Automation" / "Proofs" / cycle_id
     plan = hermes_plan(
         ROOT,
-        "Tu es Hermes chef de projet de Victoria CityLab. Donne un plan bref pour "
-        "prouver un cycle automatique multi-acteurs avec PR, audit et merge, sans modifier le jeu.",
+        "Tu es Hermes chef de projet de Victoria CityLab. La tâche autorisée est "
+        "META-AUTO-01. Donne un plan bref et uniquement consacré à la preuve d'un "
+        "cycle automatique Hermes, Codex, Cursor, Claude et GitHub Actions, avec PR, "
+        "audit, merge et archive, sans modifier le jeu.",
     )
     generated = codex_generate(
         ROOT,
@@ -63,7 +65,28 @@ def main() -> int:
         raise RuntimeError(f"Claude refuse la preuve temoin: {evaluation}")
     write_json(proof_dir / "codex-generator.json", generated)
     write_json(proof_dir / "claude-evaluator.json", evaluation)
-    (proof_dir / "hermes-plan.md").write_text(plan + "\n", encoding="utf-8")
+    (proof_dir / "hermes-plan.md").write_text(
+        "# Plan Hermes — META-AUTO-01\n\n"
+        "But contrôlé : prouver PR, audit indépendant, fusion automatique et archive, "
+        "sans changement de production.\n\n## Sortie brute Hermes\n\n" + plan + "\n",
+        encoding="utf-8",
+    )
+    parsed_json = {}
+    for name in ("codex-generator.json", "claude-evaluator.json"):
+        parsed_json[name] = isinstance(
+            json.loads((proof_dir / name).read_text(encoding="utf-8")), dict
+        )
+    roadmap_check = run([
+        "powershell", "-ExecutionPolicy", "Bypass", "-File",
+        str(ROOT / "Tools" / "check_roadmap.ps1"),
+    ])
+    write_json(proof_dir / "mechanical-evidence.json", {
+        "roadmap_id": "META-AUTO-01",
+        "roadmap_check": roadmap_check,
+        "strict_json_parsed": parsed_json,
+        "proof_lane": "Automation/Proofs",
+        "production_changed": False,
+    })
     manifest = {
         "schema": 1,
         "cycle_id": cycle_id,
@@ -72,7 +95,10 @@ def main() -> int:
         "producer_session": hashlib.sha256((cycle_id + ":codex").encode()).hexdigest()[:16],
         "evaluator_session": hashlib.sha256((cycle_id + ":claude").encode()).hexdigest()[:16],
         "status": "GENERATED_EVALUATED",
-        "evidence": ["hermes-plan.md", "codex-generator.json", "claude-evaluator.json"],
+        "evidence": [
+            "hermes-plan.md", "codex-generator.json", "claude-evaluator.json",
+            "mechanical-evidence.json",
+        ],
     }
     write_json(proof_dir / "manifest.json", manifest)
     print(f"CITYLAB_PROOF_CREATED cycle_id={cycle_id} path={proof_dir.relative_to(ROOT)}")
