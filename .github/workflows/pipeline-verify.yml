@@ -12,7 +12,8 @@ jobs:
   verify-and-archive:
     if: >-
       github.event.pull_request.merged == true &&
-      startsWith(github.event.pull_request.head.ref, 'codex/')
+      startsWith(github.event.pull_request.head.ref, 'codex/') &&
+      contains(github.event.pull_request.labels.*.name, 'pipeline/auto-merge')
     runs-on: [self-hosted, Windows, X64, citylab-full-auto]
     timeout-minutes: 30
     steps:
@@ -43,4 +44,3 @@ jobs:
           $url = gh pr create --base main --head $branch --title "audit: archive PR #${{ github.event.pull_request.number }}" --body "Vérification post-merge et archivage terminal du cycle."
           gh pr edit $url --add-label pipeline/record
           gh pr merge $url --squash --delete-branch
-

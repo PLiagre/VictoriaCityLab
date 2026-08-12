@@ -2,7 +2,7 @@ name: pipeline-audit
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review]
+    types: [opened, reopened, synchronize, ready_for_review, labeled]
 
 concurrency:
   group: pipeline-audit-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
@@ -12,7 +12,8 @@ jobs:
   cursor-claude-audit:
     if: >-
       github.event.pull_request.draft == false &&
-      startsWith(github.head_ref, 'codex/')
+      startsWith(github.head_ref, 'codex/') &&
+      contains(github.event.pull_request.labels.*.name, 'pipeline/auto-merge')
     runs-on: [self-hosted, Windows, X64, citylab-full-auto]
     timeout-minutes: 90
     steps:
@@ -53,4 +54,3 @@ jobs:
       - name: Merge audit record PR automatically
         shell: powershell
         run: gh pr merge '${{ steps.record.outputs.url }}' --squash --delete-branch
-
