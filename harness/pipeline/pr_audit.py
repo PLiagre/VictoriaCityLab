@@ -82,13 +82,16 @@ def main() -> int:
     )
     challenge = claude_structured(
         ROOT,
-        "Tu es Claude challenger independant. Controle l'audit Cursor ci-dessous "
-        "contre les faits mécaniques autoritaires et le diff. Ne contredis jamais un "
-        "parsing json.loads réussi au SHA GitHub. PASS signifie que tu confirmes "
-        "l'absence de blocage; REJECT "
-        "signifie qu'un blocage demeure. Audit: " + json.dumps(cursor, ensure_ascii=False)
+        "Tu es Claude challenger independant du verdict Cursor. Cursor a inspecté le "
+        "diff; toi, contrôle uniquement si son verdict et ses constats sont cohérents "
+        "avec les faits mécaniques relus via l'API GitHub au SHA. Tu ne reçois pas le "
+        "rendu du diff afin d'éviter de dupliquer le même canal d'observation. Les "
+        "résultats json.loads et la politique de chemins sont autoritaires. PASS "
+        "signifie que le verdict Cursor est cohérent et qu'aucun fait mécanique ne le "
+        "contredit; REJECT signifie qu'un blocage réel est démontré par ces faits. "
+        "Audit Cursor: " + json.dumps(cursor, ensure_ascii=False)
         + "\nFaits mécaniques:\n" + json.dumps(mechanical, ensure_ascii=False)
-        + "\nDiff:\n" + diff[:120000],
+        + "\nNe réévalue pas la syntaxe des fichiers déjà marqués parsés.",
         SCHEMA,
     )
     decision = "PASS" if cursor.get("verdict") == "PASS" and challenge.get("verdict") == "PASS" else "REJECT"
