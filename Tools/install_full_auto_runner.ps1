@@ -8,6 +8,7 @@ $ErrorActionPreference = 'Stop'
 $CurrentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 $ExpectedName = "citylab-full-auto-$($env:COMPUTERNAME.ToLowerInvariant())"
 $TaskName = 'HermesCityLab-GitHubRunner'
+git config --global core.longpaths true
 New-Item -ItemType Directory -Force -Path $RunnerRoot | Out-Null
 
 $Existing = gh api "repos/$Repository/actions/runners" | ConvertFrom-Json
