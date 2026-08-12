@@ -65,10 +65,13 @@ def main() -> int:
         raise RuntimeError(f"Claude refuse la preuve temoin: {evaluation}")
     write_json(proof_dir / "codex-generator.json", generated)
     write_json(proof_dir / "claude-evaluator.json", evaluation)
+    plan_digest = hashlib.sha256(plan.encode("utf-8")).hexdigest()
     (proof_dir / "hermes-plan.md").write_text(
         "# Plan Hermes — META-AUTO-01\n\n"
         "But contrôlé : prouver PR, audit indépendant, fusion automatique et archive, "
-        "sans changement de production.\n\n## Sortie brute Hermes\n\n" + plan + "\n",
+        "sans changement de production.\n\n"
+        f"Réponse Hermes exécutée et scellée : SHA-256 `{plan_digest}`, "
+        f"{len(plan)} caractères. Le texte brut local n'est pas une instruction exécutable.\n",
         encoding="utf-8",
     )
     parsed_json = {}
@@ -83,6 +86,7 @@ def main() -> int:
     write_json(proof_dir / "mechanical-evidence.json", {
         "roadmap_id": "META-AUTO-01",
         "roadmap_check": roadmap_check,
+        "hermes_response_sha256": plan_digest,
         "strict_json_parsed": parsed_json,
         "proof_lane": "Automation/Proofs",
         "production_changed": False,
