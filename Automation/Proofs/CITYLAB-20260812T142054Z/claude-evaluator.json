@@ -1,0 +1,15 @@
+{
+  "verdict": "PASS",
+  "summary": "La preuve temoin du cycle CITYLAB-20260812T142054Z est conforme: le raw_output produit par Codex contient exactement les cinq acteurs requis et les quatre controles requis, et sa charge JSON correspond au cycle_id et au claim de l'enveloppe.",
+  "findings": [
+    "cycle_id coherent: CITYLAB-20260812T142054Z present dans l'enveloppe et dans la sortie JSON produite par Codex.",
+    "claim coherent: \"Codex a produit le lot temoin.\" identique dans l'enveloppe et dans la sortie Codex.",
+    "Les cinq acteurs requis (Hermes, Codex, Claude, Cursor, GitHub Actions) sont tous presents dans le tableau actors de la sortie Codex, sans acteur manquant ni ajoute.",
+    "Les quatre controles requis (roadmap, tests, audit independant, merge automatique) sont tous presents dans le tableau checks de la sortie Codex.",
+    "Le run Codex est en sandbox read-only et approval never, coherent avec la consigne \"Ne modifie aucun fichier\" et avec Docs/Automation/FULL_AUTO.md qui interdit tout repli de jugement vers Codex.",
+    "Aucune trace de modification de fichier ni d'ecriture hors stdout dans le raw_output fourni.",
+    "Point d'attention (non bloquant pour ce verdict): le raw_output ne contient pas de sha ou de reference de branche codex/*, information utile pour tracer la preuve dans le ledger mais non exigee par les criteres PASS/REJECT de cette evaluation."
+  ],
+  "evaluator_transport": "cursor-agent",
+  "evaluator_model": "claude-sonnet-5-thinking-high"
+}

@@ -1,0 +1,11 @@
+{
+  "roadmap_id": "META-AUTO-01",
+  "roadmap_check": "CITYLAB_ROADMAP_OK milestone=M3 status=ACTIVE active_tasks=2 next_tasks=1 done_entries=35 last_updated=2026-08-12 freshness=CURRENT",
+  "hermes_response_sha256": "a4740cb3eabfc79fc74de16b39093ae3b2b6cd939b5b73ceecfeb13c7a923d02",
+  "strict_json_parsed": {
+    "codex-generator.json": true,
+    "claude-evaluator.json": true
+  },
+  "proof_lane": "Automation/Proofs",
+  "production_changed": false
+}
