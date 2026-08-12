@@ -152,6 +152,12 @@ class ArchitectureLoopTests(unittest.TestCase):
         self.assertIn("faits mécaniques relus via l'API GitHub au SHA", challenge)
         self.assertNotIn('"\\nDiff:\\n" + diff', challenge)
 
+    def test_dashboard_script_bootstraps_repository_imports(self) -> None:
+        source = (Path(__file__).resolve().parents[2] / "hermes" / "dashboard.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertLess(source.index("sys.path.insert"), source.index("from harness.audit_ledger"))
+
 
 if __name__ == "__main__":
     unittest.main()
