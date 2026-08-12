@@ -1,0 +1,8 @@
+{
+  "audit_id": "CURSOR-20260812T141407Z-pr-8",
+  "pull_request": 8,
+  "target_commit": "d58ed950c0095c87ae99c1690643bedc8bb82adf",
+  "cursor_verdict": "REJECT",
+  "claude_verdict": "REJECT",
+  "decision": "REJECT"
+}
