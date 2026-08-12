@@ -13,6 +13,14 @@ physique, société, carte régionale et batailles tactiques. Il vise la profond
 et la finition d'un grand city-builder commercial tout en conservant une
 identité, des règles, des visuels et des contenus originaux à Victoria CityLab.
 
+La cible de production est un city-builder médiéval premium haut de gamme : une
+ville lisible sans HUD, une économie entièrement incarnée, une société dont les
+familles ont une histoire et des batailles rares mais persistantes. Les œuvres
+commerciales du genre servent uniquement de niveau d'exigence ; aucune règle,
+interface, dénomination, composition visuelle ou propriété tierce ne doit être
+copiée. La file « Sessions Codex ordonnées » transforme cette vision en lots
+exécutables et constitue l'ordre de production par défaut.
+
 Le projet est actuellement un vertical slice jouable. Il ne doit être qualifié
 de jeu complet ou de qualité AAA que lorsque tous les critères de la section
 « Définition de la version 1.0 » sont objectivement validés.
@@ -24,7 +32,9 @@ de jeu complet ou de qualité AAA que lorsque tous les critères de la section
 | Dernière mise à jour | 12 août 2026 |
 | Jalon actif | `M3` — ville organique et société |
 | Dernier jalon validé | `M2` — économie de village jouable |
-| Priorité immédiate | `M3-BUILD-01` — construction physique complète via la boucle full-auto |
+| Priorité immédiate | `M3-BUILD-01` — construction physique complète |
+| Prochaine tâche prête | `M3-ART-01` — bible artistique et kit héroïque de production |
+| Cible produit | City-builder médiéval premium original, campagne 20 h et bac à sable rejouable |
 | Build de référence | `Builds/Windows/VictoriaCityLab.exe` |
 | Dépôt distant | `https://github.com/PLiagre/VictoriaCityLab` — branche `main` |
 | Preuves de référence | `Docs/VALIDATION.md` et `Logs/` |
@@ -48,15 +58,16 @@ remplies :
 - une campagne ou partie libre jouable pendant au moins 20 heures sans blocage ;
 - une boucle complète collecte, production, logistique, marché, construction,
   besoins des foyers, fiscalité et croissance ;
-- au moins 6 familles de ressources, 20 chaînes de production et 45 bâtiments
+- au moins 10 familles de ressources, 30 chaînes de production et 70 bâtiments
   réellement différenciés par leur fonction ou leur évolution ;
 - 500 habitants simulés à 60 FPS sur la machine cible recommandée, avec un p95
   CPU inférieur à 16,7 ms dans le scénario de référence ;
 - sauvegarde/chargement versionné, autosave, récupération d'erreur et migrations ;
-- carte régionale, revendication territoriale, adversaires IA, diplomatie et
-  conflits résolus dans le monde de jeu ;
+- au moins 6 régions jouables, revendication territoriale, 3 seigneurs IA,
+  diplomatie et conflits résolus dans le monde de jeu ;
 - armées, équipement, formations, moral, fatigue, pertes et conséquences
-  économiques persistantes ;
+  économiques persistantes, avec une bataille de référence d'au moins
+  200 combattants dans le budget de performance ;
 - saisons, météo, agriculture, maladies, incendies et pénuries ayant un effet
   lisible et équilibré ;
 - tutoriel, objectifs, options graphiques/audio/commandes, accessibilité et
@@ -67,6 +78,49 @@ remplies :
   régression verts et campagne complète validée par QA ;
 - build Windows signé et reproductible, crash reporting, crédits et licences.
 
+## Cibles d'ambition premium
+
+Ces cibles guident la conception et les budgets. Elles ne permettent jamais de
+qualifier le jeu de « AAA », « alpha », « bêta » ou « 1.0 » avant le passage des
+portes correspondantes :
+
+- 70 bâtiments fonctionnels ou évolutifs, 30 chaînes de production et au moins
+  10 familles de ressources, sans variantes purement cosmétiques comptées comme
+  fonctions distinctes ;
+- 8 à 12 régions présentant des sols, ressources, risques, routes et enjeux
+  politiques propres ;
+- 3 à 5 seigneurs IA aux stratégies économiques et diplomatiques différenciées ;
+- 500 habitants simulés à 60 FPS comme porte ferme de livraison, avec 800 à
+  1 000 habitants comme cible d'optimisation non bloquante si le budget matériel
+  le permet ;
+- batailles lisibles de 200 à 400 combattants, issues des foyers et des stocks du
+  monde, dont les morts, blessés, captifs et équipements perdus persistent ;
+- campagne d'au moins 20 heures, mode libre rejouable et objectifs proposant
+  plusieurs trajectoires économiques, sociales ou militaires ;
+- direction artistique originale et cohérente aux trois zooms, avec bâtiments
+  héroïques, matériaux PBR, population variée, animations contextuelles, VFX et
+  paysage sonore sans placeholder de production.
+
+## Piliers non négociables
+
+1. **Ville organique lisible** — les routes, parcelles, chantiers, extensions,
+   métiers, niveaux de richesse, dégâts et saisons racontent l'état de la ville
+   directement dans le monde.
+2. **Simulation physique et déterministe** — toute ressource importante est
+   produite, réservée, transportée, consommée et persistée ; toute exception au
+   déterminisme est documentée et testée.
+3. **Société persistante** — chaque habitant appartient à un foyer, travaille,
+   consomme, vieillit, migre, peut être blessé ou mourir, et transmet ces effets
+   à l'économie et à la stabilité.
+4. **Région stratégique systémique** — territoire, influence, commerce,
+   diplomatie et guerre reposent sur le même état de simulation, pas sur des
+   mini-jeux isolés.
+5. **Guerre à coût humain** — lever une armée retire de vrais travailleurs ; les
+   équipements proviennent des ateliers et les pertes changent durablement les
+   familles, la production et le pouvoir.
+6. **Qualité prouvée** — aucune fonctionnalité ne passe à `DONE` sans preuve
+   automatique et, lorsqu'elle est visuelle ou ergonomique, sans revue player.
+
 ## Jalons
 
 | ID | Jalon | État | Porte de sortie |
@@ -75,8 +129,8 @@ remplies :
 | `M1` | Fondations de production | DONE | Sauvegarde fiable, données versionnées, navigation robuste, emplois physiques et tests déterministes. |
 | `M2` | Économie de village jouable | DONE | Six ressources, alimentation, agriculture, sept chaînes, stockage local, marché, besoins, commerce et simulation 60 jours/2 heures sans invariant cassé. |
 | `M3` | Ville organique et société | ACTIVE | Parcelles évolutives, familles, santé, foi, ordre, fiscalité et croissance jusqu'à 250 habitants. |
-| `M4` | Région stratégique | BACKLOG | Plusieurs territoires, revendication, commerce régional, diplomatie et au moins un seigneur IA. |
-| `M5` | Guerre tactique | BACKLOG | Levées, suite, équipement, formations, moral, bataille et conséquences persistantes. |
+| `M4` | Région stratégique | BACKLOG | Six régions, revendication, commerce régional, diplomatie et au moins trois seigneurs IA fonctionnels. |
+| `M5` | Guerre tactique | BACKLOG | Levées, suite, équipement, formations, moral, bataille de référence à 200 combattants et conséquences persistantes. |
 | `M6` | Alpha jouable de bout en bout | BACKLOG | Partie complète de 8 heures, objectifs, défaite/victoire, sauvegarde et contenu représentatif. |
 | `M7` | Contenu et qualité de production | BACKLOG | Art final, audio, VFX, animations, variations et UX sans placeholders. |
 | `M8` | Bêta et équilibrage | BACKLOG | Feature complete, performances cibles, télémétrie QA et aucune régression critique. |
@@ -95,7 +149,8 @@ remplies :
 | `M0-REL-01` | Build Windows et smoke test | DONE | `Docs/VALIDATION.md`. |
 | `META-ROADMAP-01` | Pilotage persistant du projet | DONE | `AGENTS.md`, `Tools/check_roadmap.ps1` et contrôle `CITYLAB_ROADMAP_OK`. |
 | `META-REPO-01` | Publication GitHub et Git LFS | DONE | Dépôt privé `PLiagre/VictoriaCityLab`, branche `main` et 790 objets LFS publiés. |
-| `META-AUTO-01` | Architecture full-auto multi-acteurs | DONE | Runner `citylab-full-auto-pe` en ligne ; run #31606929060 ; PR #14 auditée PASS puis fusionnée automatiquement ; audit #15 et archive terminale #16 ; dashboard Hermes #18. |
+| `META-CODEX-01` | Plan de production exécutable par sessions Codex | DONE | Cible premium, contrat de session, file ordonnée M3→M9 et prompt de lancement consignés ; `AGENTS.md` sélectionne l'unique incrément `EN_COURS` ; le vérificateur exige les nouvelles sections, compte 41 incréments et contrôle ordre, définition et concordance avec la tâche active ; `CITYLAB_ROADMAP_OK` et `git diff --check`. |
+| `META-AUTO-01` | Architecture full-auto adaptée de ForgeHistory | DONE | Runner `citylab-full-auto-pe` en ligne ; run #31606929060 ; PR #14 auditée `PASS` puis fusionnée automatiquement ; audit #15, archive terminale #16 et dashboard Hermes #18 ; 20/20 tests Python et trois cycles refusés conservés comme preuves fail-closed. |
 
 ## M1 — fondations de production
 
@@ -135,71 +190,179 @@ la première tâche `ACTIVE`, puis la première tâche `NEXT` non bloquée.
 
 ## M3 — ville, population et société
 
-| ID | Travail | État | Critère principal |
-|---|---|---|---|
-| `M3-PLOT-01` | Parcelles organiques | DONE | Parcelles orientées sur la route à frontage/profondeur variables ; pente maximale 180 ‰ et chevauchements refusés ; jardins persistants et jusqu'à deux extensions selon le niveau du foyer ; 3/3 tests dédiés, 67/67 Editor, 1/1 PlayMode, build et smoke player verts. |
-| `M3-BUILD-01` | Construction physique complète | ACTIVE | Socle jouable validé : terrassement échantillonné puis pierre/bois/planches/outils livrés par phase par l'équipe affectée, avec HUD, visuel et reload exact. Restent les échafaudages, la réparation et la démolition pour fermer la tâche ; l'incrément est désormais consommé par la boucle full-auto. |
-| `M3-FAMILY-01` | Foyers et cycle de vie | BACKLOG | Âge, couples, naissances, décès, migration et compétences. |
-| `M3-HEALTH-01` | Santé, maladies et blessures | BACKLOG | Risques, propagation, soins, mortalité et impacts sur le travail. |
-| `M3-FAITH-01` | Foi et sépulture | BACKLOG | Église, offices, cimetière, besoins et effets sociaux. |
-| `M3-ORDER-01` | Ordre et criminalité | BACKLOG | Mécontentement, vol, milice locale et conséquences graduées. |
-| `M3-TAX-01` | Fiscalité et trésor | BACKLOG | Impôts, dîme, dépenses, solde, politiques et réactions des foyers. |
-| `M3-FIRE-01` | Incendies et catastrophes | BACKLOG | Propagation, intervention, dégâts persistants et reconstruction. |
+| ID | Travail | État | Critères d'acceptation | Sortie / preuve minimale |
+|---|---|---|---|---|
+| `M3-PLOT-01` | Parcelles organiques | DONE | Parcelles orientées sur la route à frontage/profondeur variables ; pente maximale 180 ‰ et chevauchements refusés ; jardins persistants et jusqu'à deux extensions selon le niveau du foyer. | 3/3 tests dédiés, 67/67 Editor, 1/1 PlayMode, build et smoke player verts. |
+| `M3-BUILD-01` | Construction physique complète | ACTIVE | Échafaudages synchronisés avec les quatre phases ; usure et réparation consommant matériaux/temps ; démolition progressive, sûre pour les réservations, stocks et habitants ; les trois axes survivent au save/reload. | Échafaudages prouvés par 4/4 ciblés, 71/71 Editor, 1/1 PlayMode, build/smoke et capture des quatre phases ; réparation et démolition restent ouvertes avant `DONE`. |
+| `M3-ART-01` | Bible artistique et kit héroïque de production | NEXT | Bible originale aux trois zooms ; palette, silhouettes, matériaux, densité de détail et budgets validés ; huit fonctions héroïques adaptées sans prefab Vendor direct ; provenance/licence/hash complets ; quatre phases et trois LOD. | Planche avant/après, captures player jour/nuit et trois zooms, QA Factory verte et approbation artistique humaine explicite ; peut fermer `M1-ASSET-05`. |
+| `M3-FAMILY-01` | Foyers et cycle de vie | BACKLOG | Âge, couples, parenté, naissances, décès, migration, compétences et taille de foyer ; règles bornées, déterministes et persistantes ; croissance stable jusqu'à 250 habitants. | Tests d'événements de vie et reload, simulation longue un an, PlayMode, profil 250 habitants et inspection de foyers dans le HUD. |
+| `M3-HEALTH-01` | Santé, maladies et blessures | BACKLOG | Risques liés au travail/logement/saison, contagion locale, soins, incapacité, récupération et mortalité ; aucun décès arbitraire non explicable. | Tests propagation/soins/reload, scénario de 90 jours, HUD lisible et capture d'un service de soin en activité. |
+| `M3-FAITH-01` | Foi et sépulture | BACKLOG | Offices planifiés, capacité et couverture d'église, cimetière physique, sépultures persistantes, besoin de foi et effets sociaux bornés. | Tests calendrier/capacité/reload, trajet réel vers office ou sépulture, PlayMode et capture player. |
+| `M3-ORDER-01` | Ordre et criminalité | BACKLOG | Mécontentement produit des délits explicables ; vol conserve les ressources ; milice, arrestation et sanctions graduées influencent les foyers sans boucle punitive incontrôlée. | Tests déterministes vol/intervention/reload, scénario de crise, télémétrie et revue HUD/monde. |
+| `M3-TAX-01` | Fiscalité et trésor | BACKLOG | Impôts, dîme, salaires et dépenses sont comptabilisés ; politiques persistantes ; insolvabilité et pression fiscale provoquent des réactions lisibles. | Livre de comptes conservatif, tests politiques/reload, simulation 180 jours et panneau financier inspecté. |
+| `M3-FIRE-01` | Incendies et catastrophes | BACKLOG | Départ et propagation liés aux matériaux, météo et densité ; alerte, eau, intervention, dégâts, victimes, réparation et reconstruction persistants. | Tests propagation/intervention/reload, invariants de ressources, PlayMode et capture d'un cycle incendie→reconstruction. |
+| `M3-ART-02` | Environnement, population et animation de ville | BACKLOG | Variantes de façades/toits, accessoires sociaux, végétation, métiers, animaux, saisons et animations contextuelles cohérents avec `M3-ART-01`, budgets LOD/occlusion respectés. | Audit de diversité, captures des trois zooms et quatre saisons, profil 250 habitants et revue artistique humaine. |
 
 ## M4 — région stratégique et IA
 
-| ID | Travail | État | Critère principal |
-|---|---|---|---|
-| `M4-MAP-01` | Carte en plusieurs régions | BACKLOG | Chargement, frontières, ressources propres et transitions sans perte d'état. |
-| `M4-CLAIM-01` | Influence et revendication | BACKLOG | Coût, progression, contestation et changement de contrôle. |
-| `M4-AI-01` | Seigneur IA économique | BACKLOG | Développe un village viable, réagit aux pénuries et poursuit des objectifs. |
-| `M4-DIPLO-01` | Diplomatie | BACKLOG | Relations, demandes, accords, menaces, paix et mémoire des actions. |
-| `M4-TRADE-01` | Routes commerciales régionales | BACKLOG | Offre/demande, convois, risque, distance et contrôle territorial. |
-| `M4-EVENT-01` | Événements et objectifs | BACKLOG | Événements data-driven, choix, conséquences, victoire et défaite. |
+| ID | Travail | État | Critères d'acceptation | Sortie / preuve minimale |
+|---|---|---|---|---|
+| `M4-MAP-01` | Carte en plusieurs régions | BACKLOG | Au moins six régions au jalon, frontières et ressources propres, chargement/transition sans perte d'état, architecture extensible vers 8–12 régions. | Tests de transition/reload, parcours player de trois régions et profil mémoire/chargement. |
+| `M4-CLAIM-01` | Influence et revendication | BACKLOG | Influence produite/consommée, coût, progression, contestation et changement de contrôle avec historique persistant. | Tests de concurrence/reload et scénario player de revendication contestée. |
+| `M4-TRADE-01` | Routes commerciales régionales | BACKLOG | Offre/demande, prix locaux, convois physiques, distance, risque, saison et contrôle territorial ; conservation exacte des biens et monnaies. | Tests économiques 365 jours, disparition de convoi sûre, PlayMode et télémétrie des marchés. |
+| `M4-AI-01` | Seigneurs IA économiques | BACKLOG | Au moins trois seigneurs aux priorités distinctes bâtissent un village viable, réagissent aux pénuries, commercent, revendiquent et poursuivent des objectifs sans information cachée illégitime. | Trois seigneurs × trois graines × 365 jours sans invariant cassé, comparaison déterministe, télémétrie de décision et partie observée. |
+| `M4-DIPLO-01` | Diplomatie | BACKLOG | Relations, demandes, accords, menaces, paix et mémoire des actions ; décisions IA explicables par état et personnalité. | Tests de mémoire/accord/reload, journal diplomatique et scénario player multi-issue. |
+| `M4-EVENT-01` | Événements et objectifs | BACKLOG | Événements data-driven à conditions/choix/conséquences, objectifs économiques, sociaux et territoriaux, victoire/défaite persistantes. | Validation de catalogue, tests de branches/reload et partie guidée de deux heures. |
 
 ## M5 — guerre tactique
 
-| ID | Travail | État | Critère principal |
-|---|---|---|---|
-| `M5-LEVY-01` | Levées issues des foyers | BACKLOG | Mobilisation retire réellement des travailleurs et affecte l'économie. |
-| `M5-RETINUE-01` | Suite professionnelle | BACKLOG | Recrutement, entretien, progression et équipement persistant. |
-| `M5-EQUIP-01` | Fabrication et distribution d'équipement | BACKLOG | Armes/armures produites, stockées, attribuées et perdues. |
-| `M5-FORM-01` | Formations et commandes | BACKLOG | Déplacement groupé, lignes, cohésion, orientation et collisions stables. |
-| `M5-COMBAT-01` | Combat, moral et fatigue | BACKLOG | Portée, impact, défense, moral, fuite, poursuite et fatigue lisibles. |
-| `M5-AI-01` | IA tactique | BACKLOG | Choix de terrain, protection des flancs, retraite et objectifs. |
-| `M5-CONSEQ-01` | Conséquences persistantes | BACKLOG | Blessés, morts, captifs, butin, familles affectées et pertes économiques. |
+| ID | Travail | État | Critères d'acceptation | Sortie / preuve minimale |
+|---|---|---|---|---|
+| `M5-LEVY-01` | Levées issues des foyers | BACKLOG | Mobilisation retire de vrais adultes aptes des emplois, conserve identité/foyer/compétences et produit un coût économique mesurable. | Tests mobilisation/retour/reload et comparaison économique ville mobilisée/témoin. |
+| `M5-EQUIP-01` | Fabrication et distribution d'équipement | BACKLOG | Armes, boucliers, armures et munitions sont fabriqués, stockés, attribués, usés, récupérés ou perdus sans duplication. | Tests de conservation/reload et inspection d'une unité équipée depuis la forge. |
+| `M5-RETINUE-01` | Suite professionnelle | BACKLOG | Recrutement, solde, entretien, expérience, blessures et équipement persistent ; l'insolvabilité a des conséquences graduées. | Tests de paie/progression/reload et simulation 180 jours. |
+| `M5-FORM-01` | Formations et commandes | BACKLOG | Déplacement groupé, ligne/colonne, orientation, cohésion, obstacles et collisions stables pour 200 à 400 combattants. | Tests déterministes de formation, stress pathfinding et profil player bataille cible. |
+| `M5-COMBAT-01` | Combat, moral et fatigue | BACKLOG | Portée, impact, défense, terrain, moral, fuite, poursuite, fatigue, blessures et mort sont lisibles et bornés. | Replays à hash stable, tests d'équilibrage statistique, PlayMode et capture d'une bataille complète. |
+| `M5-AI-01` | IA tactique | BACKLOG | L'IA choisit terrain, formation, flanc, réserve, objectifs et retraite à partir d'informations autorisées. | Batterie de scénarios, télémétrie de décision et absence de blocage sur 20 batailles. |
+| `M5-CONSEQ-01` | Conséquences persistantes | BACKLOG | Blessés, morts, captifs, butin et équipement retournent au monde ; familles, production, ordre et diplomatie reflètent les pertes. | Round-trip bataille→ville→reload, invariants économiques et revue d'après-bataille. |
 
 ## M6 à M9 — finition et sortie
 
-| ID | Domaine | État | Porte 1.0 |
-|---|---|---|---|
-| `REL-CONTENT` | 45 bâtiments, 20 chaînes, cartes et événements | BACKLOG | Contenu final équilibré et sans placeholder. |
-| `REL-ART` | Environnements, architecture, personnages, UI et VFX | BACKLOG | Cohérence visuelle finale, LOD, occlusion et variantes suffisantes. |
-| `REL-ANIM` | Locomotion, métiers, construction et combat | BACKLOG | Transitions propres, IK et réactions contextuelles. |
-| `REL-AUDIO` | Musique, ambiances et sound design | BACKLOG | Mix dynamique, spatialisation, variations et options complètes. |
-| `REL-UX` | Tutoriel, encyclopédie et lisibilité | BACKLOG | Un nouveau joueur termine le tutoriel sans aide externe. |
-| `REL-ACCESS` | Accessibilité | BACKLOG | Remapping, sous-titres, taille UI, contrastes, daltonisme et réduction d'effets. |
-| `REL-LOC` | Français et anglais | BACKLOG | Aucun texte codé en dur, débordement contrôlé et relecture terminée. |
-| `REL-PERF` | 500 habitants et grandes villes | BACKLOG | 60 FPS cible, mémoire stable, chargements et sauvegardes dans le budget. |
-| `REL-QA` | Tests et campagne de régression | BACKLOG | Zéro critique/majeur ouvert et campagne 20 heures validée. |
-| `REL-SHIP` | Packaging Windows | BACKLOG | Build signé, crédits/licences, crash reporting et procédure de mise à jour. |
+| ID | Jalon | Domaine | État | Porte de sortie vérifiable |
+|---|---|---|---|---|
+| `M6-GAME-01` | M6 | Boucle de partie de bout en bout | BACKLOG | Départ nu, croissance, crise, revendication, conflit et victoire/défaite jouables pendant huit heures, avec sauvegarde à tout moment et aucun blocage. |
+| `M6-ONBOARD-01` | M6 | Tutoriel, objectifs et encyclopédie | BACKLOG | Un nouveau joueur termine le tutoriel sans aide externe et comprend les causes d'au moins 80 % des alertes de test utilisateur. |
+| `M6-SAVE-01` | M6 | Robustesse campagne | BACKLOG | Autosave rotatif, récupération après interruption, migrations de toutes les versions publiées et zéro corruption connue sur la matrice QA. |
+| `REL-CONTENT` | M7 | 70 bâtiments, 30 chaînes, régions et événements | BACKLOG | Contenu fonctionnel équilibré et sans placeholder ; chaque entrée a une utilité, un coût, un visuel et une preuve player. |
+| `REL-ART` | M7 | Environnements, architecture, personnages, UI et VFX | BACKLOG | Cohérence finale aux trois zooms et quatre saisons ; provenance/licence, LOD, occlusion, budgets et diversité validés ; aucun prefab Vendor direct. |
+| `REL-ANIM` | M7 | Locomotion, métiers, construction et combat | BACKLOG | Transitions propres, IK, variations, réactions contextuelles et budgets CPU validés sur foule cible. |
+| `REL-AUDIO` | M7 | Musique, ambiances et sound design | BACKLOG | Mix dynamique, spatialisation, variations, lisibilité des alertes et options complètes validés en partie longue. |
+| `REL-UX` | M7 | Interface et lisibilité de production | BACKLOG | Toutes les actions critiques sont découvrables, annulables ou confirmées ; UI testée à 1080p/1440p/4K et à trois tailles. |
+| `REL-PERF` | M8 | 500 habitants et grandes villes | BACKLOG | 60 FPS et p95 CPU < 16,7 ms sur machine cible, mémoire stable, zéro allocation majeure récurrente et budgets de chargement/sauvegarde respectés. |
+| `M8-BALANCE-01` | M8 | Équilibrage et télémétrie | BACKLOG | Au moins 30 parties automatisées multi-graines et 10 parties humaines terminables ; aucune stratégie unique dominante ni spirale inévitable non signalée. |
+| `REL-QA` | M8 | Tests et campagne de régression | BACKLOG | Zéro critique/majeur ouvert, soak test, matrice graphique, campagne 20 heures et migrations validés par QA. |
+| `REL-ACCESS` | M9 | Accessibilité | BACKLOG | Remapping complet, navigation clavier, sous-titres, tailles UI, contrastes, daltonisme, réduction des effets et options de confort validés. |
+| `REL-LOC` | M9 | Français et anglais | BACKLOG | Aucun texte codé en dur, pluriels/variables corrects, débordements contrôlés et relecture humaine terminée. |
+| `REL-SHIP` | M9 | Packaging Windows | BACKLOG | Build signé/reproductible, installateur, crédits/licences, crash reporting, confidentialité, sauvegarde cloud si retenue et procédure de mise à jour/rollback testée. |
+
+## Contrat d'une session Codex
+
+Une session Codex de production doit livrer une tranche verticale, pas seulement
+un squelette de code. Ce contrat complète `AGENTS.md` :
+
+1. prendre la tâche `ACTIVE`, puis l'unique incrément `EN_COURS` dans la table
+   « Sessions Codex ordonnées » ; si elle est `DONE` ou réellement bloquée,
+   promouvoir la première tâche `NEXT` et le premier incrément `À_FAIRE` associé ;
+2. annoncer l'identifiant de roadmap et l'incrément visé avant toute modification ;
+3. inspecter les contrats, tests, scènes, assets et changements Git concernés
+   avant de concevoir l'implémentation ; préserver tout travail utilisateur ;
+4. pour une mécanique, livrer ensemble données versionnées, simulation,
+   persistance, représentation monde, HUD/feedback et tests déterministes ;
+5. pour un asset, conserver la source Vendor immuable, enregistrer provenance,
+   licence et SHA-256, publier seulement une variante sous
+   `Assets/CityLabHost/Adapted`, puis valider UV, matériaux, LOD, colliders,
+   pivots, budgets, import Unity et rendu player ;
+6. exécuter d'abord les tests ciblés, puis la régression proportionnée au risque ;
+   toute modification visuelle exige au moins une capture player inspectable ;
+7. ne jamais réduire silencieusement un critère pour terminer dans une session :
+   garder la tâche et l'incrément `EN_COURS`, documenter la preuve acquise et
+   reprendre le même ID à la session suivante ; quand la preuve est complète,
+   passer l'incrément à `PROUVÉ` et le suivant à `EN_COURS` ;
+8. ne marquer `DONE` que lorsque chaque critère de la ligne est prouvé. Mettre
+   alors la prochaine tâche de la file en `NEXT` ou `ACTIVE`, synchroniser les
+   trois documents de pilotage concernés et ajouter une entrée au journal ;
+9. terminer par `Tools/check_roadmap.ps1`, `git diff --check` et un résumé des
+   fichiers, preuves, limites et prochaine action. Aucun commit, push, achat ou
+   publication externe n'est implicite.
+
+### Prompt de lancement recommandé
+
+```text
+Continue Victoria CityLab depuis la roadmap. Respecte AGENTS.md, prends la
+tâche ACTIVE puis l'unique incrément EN_COURS de « Sessions Codex ordonnées ».
+Livre une tranche verticale complète et déterministe : données, simulation,
+sauvegarde, monde, HUD, tests et preuve player selon le contrat de session.
+Ne réduis aucun critère, ne modifie aucune source Vendor et ne marque DONE
+qu'avec toutes les preuves. Mets à jour ROADMAP, PROTOTYPE_STATUS et VALIDATION
+uniquement selon ce qui est réellement validé, puis exécute les contrôles finaux.
+```
 
 ## Sessions Codex ordonnées
 
+Cette table est la file de production autoritaire. Un incrément peut demander
+plusieurs sessions : tant que sa preuve manque, il reste `EN_COURS`. Une fois
+prouvé, il passe à `PROUVÉ` et le premier `À_FAIRE` devient `EN_COURS`.
+`BLOQUÉ` exige une dépendance explicite dans le journal. Lorsqu'une tâche se
+ferme, la session qui la ferme promeut la prochaine tâche de cette table à
+`NEXT` ou `ACTIVE`. `M1-ASSET-05` reste une approbation
+humaine isolée ; s'il bloque `M3-ART-01`, consigner le blocage et poursuivre
+`M3-FAMILY-01` sans déclarer la porte artistique acquise.
+
 | Ordre | Suivi | Tâche | Incrément de session | Preuve de fermeture de l'incrément |
 |---:|---|---|---|---|
-| 01 | EN_COURS | `M3-BUILD-01` | Échafaudages, usure, réparation et démolition déterministes. | Tests EditMode/PlayMode, reload exact, HUD et validation mise à jour. |
+| 01 | PROUVÉ | `M3-BUILD-01` | Échafaudages synchronisés aux quatre phases, sélection et reload. | 4/4 ciblés, 71/71 Editor, 1/1 PlayMode, build/smoke et capture player des quatre phases. |
+| 02 | EN_COURS | `M3-BUILD-01` | Usure, panne et réparation physique consommant matériaux et travail. | Tests conservation/reload, HUD et capture avant/après. |
+| 03 | À_FAIRE | `M3-BUILD-01` | Démolition progressive avec récupération bornée et nettoyage des contrats. | Tests destruction en concurrence, régression complète, build/smoke ; fermeture de `M3-BUILD-01`. |
+| 04 | À_FAIRE | `M3-ART-01` | Bible visuelle originale : références, palette, matériaux, silhouettes, densité aux trois zooms et budgets. | Document versionné, planche de direction et approbation humaine. |
+| 05 | À_FAIRE | `M3-ART-01` | Kit héroïque des huit fonctions, adaptation/licences, phases, LOD et rendu Unity. | QA Factory, captures jour/nuit et trois zooms ; fermeture ou blocage humain explicite. |
+| 06 | À_FAIRE | `M3-FAMILY-01` | Contrats familiaux : âge, sexe, parenté, foyer, compétences, migration et migration de sauvegarde. | Tests de création/reload/migration et invariants. |
+| 07 | À_FAIRE | `M3-FAMILY-01` | Couples, naissances, vieillissement, décès, héritage du logement et croissance. | Simulation un an multi-graines sans incohérence. |
+| 08 | À_FAIRE | `M3-FAMILY-01` | Représentation player, inspection HUD et performance de 250 habitants. | PlayMode, build/smoke, profil 250 habitants ; fermeture de la tâche. |
+| 09 | À_FAIRE | `M3-HEALTH-01` | Risques, maladies, contagion, blessures, soins, incapacité et mortalité. | Scénario 90 jours, tests/reload et revue player. |
+| 10 | À_FAIRE | `M3-FAITH-01` | Offices, couverture, cimetière, sépultures et effets sociaux. | Tests calendrier/capacité/reload et revue player. |
+| 11 | À_FAIRE | `M3-ORDER-01` | Mécontentement, délits, vol conservatif, milice et sanctions. | Scénario de crise, télémétrie, tests/reload et revue player. |
+| 12 | À_FAIRE | `M3-TAX-01` | Trésor, impôts, dîme, dépenses et politiques avec réactions des foyers. | Livre conservatif, simulation 180 jours et panneau inspecté. |
+| 13 | À_FAIRE | `M3-FIRE-01` | Incendie déterministe, intervention, victimes, dégâts et reconstruction. | Cycle complet capturé, tests/reload et invariants. |
+| 14 | À_FAIRE | `M3-ART-02` | Variations environnement/population, animations de métiers, saisons et optimisation 250 habitants. | Audit de diversité, quatre saisons, profil et fermeture de M3. |
+| 15 | À_FAIRE | `M4-MAP-01` | Modèle régional, six régions initiales, streaming/transition et sauvegarde. | Tests transition/reload, profil mémoire et parcours player. |
+| 16 | À_FAIRE | `M4-CLAIM-01` | Influence, revendication, contestation et contrôle persistant. | Scénario contesté déterministe et HUD régional. |
+| 17 | À_FAIRE | `M4-TRADE-01` | Prix régionaux, routes, convois, risques et conservation économique. | Simulation 365 jours, disparition sûre et télémétrie. |
+| 18 | À_FAIRE | `M4-AI-01` | Trois seigneurs économiques différenciés utilisant les mêmes règles que le joueur. | Trois seigneurs × trois graines × 365 jours et journal de décisions. |
+| 19 | À_FAIRE | `M4-DIPLO-01` | Relations, mémoire, accords, menaces, guerre et paix. | Tests de branches/reload et scénario multi-issue. |
+| 20 | À_FAIRE | `M4-EVENT-01` | Catalogue d'événements, objectifs et victoire/défaite. | Partie guidée deux heures ; fermeture de M4. |
+| 21 | À_FAIRE | `M5-LEVY-01` | Mobilisation de vrais habitants et coût économique. | Comparaison ville mobilisée/témoin et reload. |
+| 22 | À_FAIRE | `M5-EQUIP-01` | Production, attribution, usure, récupération et perte d'équipement. | Tests de conservation et inspection d'unité. |
+| 23 | À_FAIRE | `M5-RETINUE-01` | Suite professionnelle, solde, expérience, blessures et entretien. | Simulation 180 jours et reload exact. |
+| 24 | À_FAIRE | `M5-FORM-01` | Commandes et formations stables pour 200 à 400 combattants. | Stress pathfinding, déterminisme et profil player. |
+| 25 | À_FAIRE | `M5-COMBAT-01` | Combat, terrain, fatigue, moral, fuite, blessures et mort. | Replays stables, tests statistiques et bataille capturée. |
+| 26 | À_FAIRE | `M5-AI-01` | IA tactique : terrain, flancs, réserve, objectifs et retraite. | Batterie de 20 batailles et télémétrie explicable. |
+| 27 | À_FAIRE | `M5-CONSEQ-01` | Retour des pertes, captifs, butin et effets familiaux/économiques. | Round-trip bataille→ville→reload ; fermeture de M5. |
+| 28 | À_FAIRE | `M6-GAME-01` | Partie complète de huit heures, crises et fins de partie. | Campagne QA sans blocage et sauvegardes valides. |
+| 29 | À_FAIRE | `M6-ONBOARD-01` | Tutoriel, objectifs, encyclopédie et explication des alertes. | Tests utilisateurs et taux de compréhension documenté. |
+| 30 | À_FAIRE | `M6-SAVE-01` | Autosaves rotatifs, récupération et matrice de migrations. | Matrice QA zéro corruption ; fermeture de M6. |
+| 31 | À_FAIRE | `REL-CONTENT` | Monter progressivement à 70 bâtiments, 30 chaînes et contenu régional. | Catalogue validé, équilibrage et revue player sans placeholder. |
+| 32 | À_FAIRE | `REL-ART` | Passe finale environnement, architecture, personnages, UI et VFX. | Revue aux trois zooms/quatre saisons et budgets verts. |
+| 33 | À_FAIRE | `REL-ANIM` | Locomotion, métiers, construction et combat de production. | Revue de transitions/IK/variations et profil foule. |
+| 34 | À_FAIRE | `REL-AUDIO` | Musique, ambiances, spatialisation et alertes. | Mix de partie longue, variations et options validés. |
+| 35 | À_FAIRE | `REL-UX` | Interface finale, lisibilité et résolutions cibles. | Tests 1080p/1440p/4K et trois tailles d'UI ; fermeture de M7. |
+| 36 | À_FAIRE | `REL-PERF` | Optimisation 500 habitants et grande ville de référence. | 60 FPS, p95 < 16,7 ms, mémoire/GC/chargements dans le budget. |
+| 37 | À_FAIRE | `M8-BALANCE-01` | Équilibrage automatisé et humain multi-stratégies. | 30 parties automatiques et 10 humaines terminables. |
+| 38 | À_FAIRE | `REL-QA` | Soak, régression, configurations et campagne 20 heures. | Zéro critique/majeur et fermeture de M8. |
+| 39 | À_FAIRE | `REL-ACCESS` | Accessibilité et options de confort complètes. | Checklist et tests utilisateurs ciblés. |
+| 40 | À_FAIRE | `REL-LOC` | Localisation et relecture française/anglaise. | Audit zéro texte dur, pseudo-localisation et relecture humaine. |
+| 41 | À_FAIRE | `REL-SHIP` | Signature, installateur, licences, crash reporting et rollback. | RC reproductible et campagne finale ; fermeture de M9/1.0. |
 
-Cette file est consommée par le workflow full-auto toutes les six heures. Un
-incrément ne devient `PROUVÉ` qu'après production Codex, évaluation Claude,
-audit Cursor, CI verte, fusion GitHub et archivage du ledger.
+## Stratégie d'assets 3D de qualité
 
-## Prochain lot ordonné
+La production visuelle suit un modèle hybride : bases commerciales ou libres
+strictement licenciées pour les éléments génériques, adaptation systématique par
+l'Asset Factory, et création/commande sur mesure pour les silhouettes héroïques.
 
-1. `M3-BUILD-01` — enrichir la construction physique ;
-2. `M3-FAMILY-01` — ajouter les foyers et leur cycle de vie ;
-3. reprendre ensuite l'ordre M3 existant ;
-4. `M1-ASSET-05` reste une approbation humaine isolée qui ne bloque pas M3.
+- **Générique adaptable** : végétation, rochers, petits accessoires, outils et
+  matériaux sources peuvent venir de packs admis, sans intégration directe.
+- **Identité CityLab** : architecture, personnages sociaux, héraldique, UI,
+  machines, chantiers, dégâts et éléments vus de près utilisent la bible
+  `M3-ART-01` et des variantes originales sous `Adapted`.
+- **Sur mesure prioritaire** : manoir, chapelle, marché, portes, soldats,
+  personnages remarquables, VFX signature et iconographie reçoivent le budget
+  humain en premier. Codex ne déclenche jamais un achat ou une commande sans
+  autorisation explicite de l'utilisateur.
+- **IA générative** : autorisée pour concepts, moodboards, masques et blockouts
+  dont les droits sont vérifiés ; aucun mesh final n'est admis sans les mêmes
+  portes de topologie, UV, rig, LOD, provenance et revue que toute autre source.
+- **Revue** : chaque famille possède une planche avant/après, une vue proche,
+  ville et carte, puis une capture Unity éclairée. Une QA technique verte ne
+  remplace pas l'approbation artistique humaine.
 
 ## Risques actifs
 
@@ -213,6 +376,10 @@ audit Cursor, CI verte, fusion GitHub et archivage du ledger.
 | Pipeline conversationnel non reproductible | Élevé | Blender headless et recettes versionnées sont la source de vérité ; MCP réservé à l'exploration. |
 | Ambition AAA sans budget mesuré | Élevé | Utiliser les portes M1–M9 ; ne jamais remplacer une preuve par un pourcentage subjectif. |
 | Régression performance par ajout de contenu | Élevé | Rejouer le scénario de référence à chaque jalon. |
+| Fonctionnalités larges livrées à moitié | Élevé | Appliquer le contrat vertical données→simulation→save→monde→HUD→tests et reprendre le même ID tant que la preuve manque. |
+| Art final repoussé après les systèmes | Élevé | Exécuter `M3-ART-01` dès la fermeture de la construction, puis imposer la bible à chaque nouveau contenu. |
+| Achats ou commandes non maîtrisés | Élevé | Codex prépare spécifications et audits, mais toute dépense, licence non standard ou engagement externe exige une autorisation utilisateur explicite. |
+| File Codex devenue obsolète | Moyen | La session qui ferme une tâche promeut la suivante, met à jour la file et documente toute dépendance nouvellement découverte. |
 
 ## Protocole de mise à jour
 
@@ -223,8 +390,12 @@ Au début de chaque session de travail :
 2. exécuter `powershell -ExecutionPolicy Bypass -File Tools/check_roadmap.ps1` ;
 3. vérifier `git status --short` et préserver les changements existants ;
 4. sélectionner la première tâche `ACTIVE`, ou la première `NEXT` si elle est
-   terminée ou réellement bloquée ;
-5. annoncer l'identifiant de la tâche choisie avant de modifier le projet.
+   terminée ou réellement bloquée, puis l'unique incrément `EN_COURS` dans
+   « Sessions Codex ordonnées » ;
+5. annoncer l'identifiant de la tâche et l'incrément choisis avant de modifier
+   le projet ;
+6. conserver la portée complète de l'incrément ; si elle dépasse une session,
+   documenter les preuves acquises et reprendre le même ID à la suivante.
 
 Avant de terminer une session qui a modifié le projet :
 
@@ -234,14 +405,18 @@ Avant de terminer une session qui a modifié le projet :
 4. mettre à jour `Docs/PROTOTYPE_STATUS.md` uniquement pour les fonctions
    réellement jouables ;
 5. ajouter une entrée au journal ci-dessous ;
-6. exécuter le contrôle de roadmap et `git diff --check`.
+6. passer l'incrément achevé à `PROUVÉ`, promouvoir le suivant à `EN_COURS` et,
+   si une tâche passe à `DONE`, promouvoir la prochaine tâche de la file à
+   `NEXT` ou `ACTIVE` puis vérifier que l'état de pilotage la désigne ;
+7. exécuter le contrôle de roadmap et `git diff --check`.
 
 ## Journal d'avancement
 
 | Date | Tâches | Résultat | Preuves | Prochaine priorité |
 |---|---|---|---|---|
-| 2026-08-12 | `META-AUTO-01` | Port complet de l'architecture ForgeHistory engagé : rôles Hermes/Codex/Cursor/Claude, harnais fail-closed, audits, décisions, ledger, CI, fusion et archivage automatisés. La tâche reste `ACTIVE` jusqu'au cycle distant de preuve. | 15/15 tests Python ; six workflows YAML chargés ; profil Hermes `citylab-local-orchestrator` exécuté localement. | Installer le runner, publier le bootstrap et obtenir une PR de preuve fusionnée/archivée automatiquement. |
-| 2026-08-12 | `META-AUTO-01` | Boucle full-auto prouvée de bout en bout et passée à `DONE` : Hermes orchestre, Codex produit, Cursor audite, Claude challenge, la CI et le merge bot décident, puis l'audit est archivé. Trois cycles refusés restent enregistrés comme preuves fail-closed. | [run full-auto 31606929060](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31606929060), [PR preuve #14](https://github.com/PLiagre/VictoriaCityLab/pull/14), [audit #15](https://github.com/PLiagre/VictoriaCityLab/pull/15), [archive #16](https://github.com/PLiagre/VictoriaCityLab/pull/16), [dashboard #18](https://github.com/PLiagre/VictoriaCityLab/pull/18), ledger à `AUDIT_ARCHIVED`. | `M3-BUILD-01` redevient `ACTIVE` et son incrément reste `EN_COURS`. |
+| 2026-08-12 | `META-AUTO-01` | Boucle full-auto prouvée de bout en bout et passée à `DONE` : Hermes orchestre, Codex produit, Cursor audite, Claude challenge, la CI et le merge bot décident, puis l'audit est archivé. Trois cycles refusés restent enregistrés comme preuves fail-closed. | [run full-auto 31606929060](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31606929060), [PR preuve #14](https://github.com/PLiagre/VictoriaCityLab/pull/14), [audit #15](https://github.com/PLiagre/VictoriaCityLab/pull/15), [archive #16](https://github.com/PLiagre/VictoriaCityLab/pull/16), [dashboard #18](https://github.com/PLiagre/VictoriaCityLab/pull/18), ledger à `AUDIT_ARCHIVED`. | `M3-BUILD-01` redevient `ACTIVE` et l'incrément 02 reste `EN_COURS`. |
+| 2026-08-12 | `M3-BUILD-01` | L'incrément 01 est fermé : les chantiers civiques gagnent quatre niveaux cumulatifs d'échafaudage après terrassement, retirés à l'achèvement ; le HUD expose le niveau, la sélection active des marqueurs et le reload reconstruit la phase tout en réappliquant le surlignage. La tâche reste `ACTIVE`. | 4/4 ciblés, 71/71 Editor, 1/1 PlayMode ; hashes 30/60 jours inchangés ; build 308 842 899 octets ; smoke 20/30/30, sauvegarde runtime et performance verts ; `CITYLAB_SCAFFOLDING_REVIEW_OK` et capture `m3-scaffolding-four-phases-20260811.png`. | Incrément 02 : usure, panne et réparation physique. |
+| 2026-08-11 | `META-CODEX-01` | La vision premium est traduite en portes mesurables, 41 incréments Codex ordonnés et un contrat vertical de session. La qualité 3D suit désormais un pipeline hybride licencié→Adapted→QA→revue humaine. Les tâches existantes sont conservées ; `M3-BUILD-01` reste active et `M3-ART-01` devient la prochaine tâche prête. | `Docs/ROADMAP.md`, `AGENTS.md`, `Tools/check_roadmap.ps1`, `CITYLAB_ROADMAP_OK codex_increments=41`, `git diff --check`. | Reprendre `M3-BUILD-01`, incrément 01 : échafaudages synchronisés aux phases. |
 | 2026-07-31 | `M0-*` | Vertical slice forêt/construction validé ; `M0` passe à `DONE`, `M1-SAVE-01` devient `ACTIVE`. | `Docs/VALIDATION.md`, build Windows et capture player. | Concevoir et tester la sauvegarde versionnée. |
 | 2026-07-31 | `META-ROADMAP-01` | Roadmap 1.0, règles de session et vérificateur de démarrage ajoutés. | `CITYLAB_ROADMAP_OK`, `git diff --check`. | `M1-SAVE-01`. |
 | 2026-07-31 | `META-REPO-01` | Projet publié sur GitHub ; `main` configurée pour suivre `origin/main`. | Commit `8a4b728`, push Git et 790 objets LFS transférés. | `M1-SAVE-01`. |

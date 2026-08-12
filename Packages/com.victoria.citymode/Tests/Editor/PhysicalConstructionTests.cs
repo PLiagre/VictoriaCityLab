@@ -100,6 +100,60 @@ namespace Victoria.CityMode.Tests
                 JsonUtility.ToJson(right.GetSnapshot(1001)));
         }
 
+        [Test]
+        public void Scaffolding_FollowsFourPersistedPhasesAndSelection()
+        {
+            var simulation = CreateSimulation();
+            Assert.IsTrue(simulation.Submit(CityCommand.PlaceBuilding(
+                BuildingArchetype.Granary, new Vector3(20f, 0f, 0f))).accepted);
+            var persisted = simulation.GetSnapshot(1001);
+            persisted.buildings.Single().terrainPrepared = true;
+            persisted.buildings.Single().phase = BuildingPhase.Roofing;
+            var document = CitySaveService.Serialize(persisted);
+            Assert.IsTrue(CitySaveService.TryDeserialize(document,
+                out var reloaded, out var reason), reason);
+
+            var root = new GameObject("Scaffolding phase test");
+            try
+            {
+                var scaffold = root.AddComponent<ConstructionScaffoldVisual>();
+                scaffold.Initialize(11f, 13f, null, null);
+                scaffold.Refresh(BuildingPhase.Foundation, false);
+                Assert.IsFalse(scaffold.IsVisible,
+                    "L'échafaudage ne doit pas précéder le terrassement.");
+
+                var phases = new[]
+                {
+                    BuildingPhase.Foundation,
+                    BuildingPhase.Framing,
+                    BuildingPhase.Roofing,
+                    BuildingPhase.Detailing
+                };
+                for (var index = 0; index < phases.Length; index++)
+                {
+                    scaffold.Refresh(phases[index], true);
+                    Assert.AreEqual(index + 1, scaffold.VisibleStageCount, phases[index].ToString());
+                }
+
+                scaffold.SetSelected(true);
+                Assert.IsTrue(scaffold.IsSelected);
+                scaffold.Refresh(reloaded.buildings.Single().phase,
+                    reloaded.buildings.Single().terrainPrepared);
+                Assert.AreEqual(BuildingPhase.Roofing, scaffold.CurrentPhase);
+                Assert.AreEqual(3, scaffold.VisibleStageCount,
+                    "La phase persistée doit reconstruire exactement trois niveaux.");
+                Assert.IsTrue(scaffold.IsSelected);
+
+                scaffold.Refresh(BuildingPhase.Complete, true);
+                Assert.AreEqual(0, scaffold.VisibleStageCount);
+                Assert.IsFalse(scaffold.IsVisible);
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+            }
+        }
+
         static LocalCitySimulation CreateSimulation()
         {
             var snapshot = new CitySnapshot

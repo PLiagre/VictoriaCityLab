@@ -27,9 +27,7 @@ DENYLIST = (
     "harness/*.py",
     "harness/pipeline/**",
     "AGENTS.md",
-    "Docs/ROADMAP.md",
     "Assets/Vendor/**",
-    "Packages/**/Tests/**",
     "ProjectSettings/ProjectVersion.txt",
     "Tools/check_roadmap.ps1",
 )

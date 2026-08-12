@@ -1,18 +1,37 @@
 # Validation du vertical slice
 
-Derniere validation complete : 3 août 2026, Unity `6000.0.43f1`, Windows 11,
+Derniere validation complete : 12 août 2026, Unity `6000.0.43f1`, Windows 11,
 player URP en 1920 x 1080. Toutes les commandes Unity passent par le verrou propre
 a CityLab : `py Tools/run_unity_locked.py -- <Unity.exe> ...`.
 
 Cette validation porte sur un vertical slice jouable. Elle ne constitue pas une
 certification qu'un jeu AAA complet est termine.
 
+## Architecture full-auto — 12 août 2026
+
+Cette validation structurelle ne remplace aucune preuve Unity ou player.
+
+| Porte | Résultat | Preuve |
+|---|---|---|
+| Harnais | 20/20 tests Python verts | `py -m unittest discover -s harness/tests -v` |
+| Workflows | Six documents YAML chargés sans erreur | parse `yaml.safe_load` |
+| Roadmap | Contrôle structurel vert avec un incrément `EN_COURS` | `CITYLAB_ROADMAP_OK` |
+| Hermes | Profil isolé invoqué sur le modèle local | sortie `CITYLAB_HERMES_OK` |
+| Runner | `citylab-full-auto-pe` en ligne, labels Windows/X64/citylab-full-auto | API GitHub Actions runners |
+| Orchestration | Hermes, Codex et Claude exécutés ; CI verte ; PR témoin créée | [run 31606929060](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31606929060) |
+| Audit | Cursor `PASS`, Claude `PASS`, décision au SHA `485847d...` | [audit record #15](https://github.com/PLiagre/VictoriaCityLab/pull/15) |
+| Fusion automatique | PR témoin fusionnée par le merge bot au SHA `5f2421a...` | [PR #14](https://github.com/PLiagre/VictoriaCityLab/pull/14) |
+| Archivage | FSM complète jusqu'à `AUDIT_ARCHIVED`, archive fusionnée | [PR #16](https://github.com/PLiagre/VictoriaCityLab/pull/16) |
+| Hermes | Dashboard calculé et fusionné automatiquement | [PR #18](https://github.com/PLiagre/VictoriaCityLab/pull/18) |
+| Échec fermé | Trois preuves refusées n'ont pas été fusionnées | PR #5, #8 et #11 fermées ; événements `AUDIT_REJECTED` conservés |
+
 ## Resultats
 
 | Porte | Resultat | Preuve locale |
 |---|---|---|
-| EditMode | 70/70 réussis | `Logs/editmode-m3-build-final-20260803.xml` |
-| PlayMode | 1/1 réussi | `Logs/playmode-m3-build-final-v2-20260803.xml` |
+| EditMode | 71/71 réussis | `Logs/editmode-m3-scaffolding-final-integration.xml` |
+| PlayMode | 1/1 réussi | `Logs/playmode-m3-scaffolding-integration.xml` |
+| Échafaudages | 4/4 : niveaux 1→4, attente du terrassement, retrait final, sélection et reconstruction après reload | `Logs/editmode-m3-scaffolding-integration.xml` |
 | Construction physique | 3/3 : terrassement avant livraison, quatre matériaux séquencés et reload exact | `Logs/editmode-m3-build-targeted-final-20260803.xml` |
 | Parcelles organiques | 3/3 : variation, orientation, pente, jardins, extensions, démolition et reload | `Logs/editmode-m3-plot-targeted-final-20260803.xml` |
 | Commerce extérieur | 3/3 : import/export, frais, délai, marchand, limites et reload | `Logs/editmode-m2-trade-targeted-v2-20260802.xml` |
@@ -23,12 +42,13 @@ certification qu'un jeu AAA complet est termine.
 | Chaînes de production | 3/3 : sept recettes, consommation/production et transport physique | `Logs/editmode-m2-chain-targeted-v2-20260802.xml` |
 | Agriculture | 3/3 : phases, fertilité, météo et déterminisme | `Logs/editmode-m2-farm-final-20260802.xml` |
 | Simulation 30 jours | 35 989 ticks, hash `f5c411a9...753a82`, minimum 0, navigation 0, bloqués 0 | `Logs/editmode-m3-build-final-20260803.log` |
-| Build Windows x64 | réussi, 308 836 067 octets | `Logs/build-m3-build-final-v2-20260803.log` |
-| Smoke final | sauvegarde runtime, 20 foyers, 30 bâtiments, 30 habitants, porte fonctionnelle réussie | `Logs/player-smoke-m3-build-final-v2-20260803.log` |
+| Build Windows x64 | réussi, 308 842 899 octets | `Logs/build-m3-scaffolding-integration-v2.log` |
+| Smoke final | sauvegarde runtime, 20 foyers, 30 bâtiments, 30 habitants et porte fonctionnelle réussie | `Logs/player-smoke-m3-scaffolding-integration.log` |
 | Performance | 100 habitants, 60,0 FPS moyens, p95 16,683 ms sur 1 800 frames, GC p95 0 | `Logs/player-perf-m2-final-20260802.log` |
 | Navigation | 100 habitants pendant 20 minutes, zéro échec, hash identique | `DeterministicNavigationGridTests.cs` dans la suite 30/30 |
 | Emplois | exclusivité, horaires, trajets, absence/remplacement et reload exact | `EmploymentSimulationTests.cs`, 4/4 |
 | Capture player | huit fonctions achevées, 14 employés et 4 remplacements | `Logs/player-building-review-m1-jobs-final-20260801.log` |
+| Capture échafaudages | quatre phases visibles, niveaux cumulatifs 1/2/3/4 et chantier sélectionné | `Logs/Captures/Buildings/m3-scaffolding-four-phases-20260811.png` |
 
 ## Couverture fonctionnelle
 
@@ -411,20 +431,16 @@ headless artificiellement rapide.
 | Monde/HUD | terrassement visible avant les fondations ; phase et matériau courant affichés dans la fiche de chantier | `CityLabGame.SyncBuilding`, `CityLabHud.Refresh` |
 | Régression | 70/70 EditMode ; 35 989 ticks/hash `f5c411a9...753a82` ; 60 jours/hash `2dc2bdb1...5541e8` ; 1/1 PlayMode | `Logs/editmode-m3-build-final-20260803.xml`, `Logs/playmode-m3-build-final-v2-20260803.xml` |
 | Player | build 308 836 067 octets ; smoke 20 foyers/30 bâtiments/30 habitants, sauvegarde et `CITYLAB_PERF_OK` | `Logs/build-m3-build-final-v2-20260803.log`, `Logs/player-smoke-m3-build-final-v2-20260803.log` |
-| Suite de `M3-BUILD-01` | échafaudages, réparation et démolition restent requis ; la tâche demeure `ACTIVE` | `Docs/ROADMAP.md` |
+| Suite au 3 août pour `M3-BUILD-01` | Échafaudages, réparation et démolition restaient requis ; la tâche demeurait `ACTIVE` | `Docs/ROADMAP.md` |
 
-## Architecture full-auto — 12 août 2026
+## Construction physique, échafaudages — 11 août 2026
 
-| Porte | Résultat | Preuve |
+| Porte | Résultat | Preuve locale |
 |---|---|---|
-| Harnais | 20/20 tests Python verts | `py -m unittest discover -s harness/tests -v` |
-| Workflows | Six documents YAML chargés sans erreur | parse `yaml.safe_load` |
-| Roadmap | Contrôle structurel vert avec un incrément `EN_COURS` | `CITYLAB_ROADMAP_OK` |
-| Hermes | Profil isolé invoqué sur le modèle local | sortie `CITYLAB_HERMES_OK` |
-| Runner | `citylab-full-auto-pe` en ligne, labels Windows/X64/citylab-full-auto | API GitHub Actions runners |
-| Orchestration | Hermes, Codex et Claude exécutés ; CI verte ; PR témoin créée | [run 31606929060](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31606929060) |
-| Audit | Cursor `PASS`, Claude `PASS`, décision au SHA `485847d...` | [audit record #15](https://github.com/PLiagre/VictoriaCityLab/pull/15) |
-| Fusion automatique | PR témoin fusionnée par le merge bot au SHA `5f2421a...` | [PR #14](https://github.com/PLiagre/VictoriaCityLab/pull/14) |
-| Archivage | FSM complète jusqu'à `AUDIT_ARCHIVED`, archive fusionnée | [PR #16](https://github.com/PLiagre/VictoriaCityLab/pull/16) |
-| Hermes | Dashboard calculé et fusionné automatiquement | [PR #18](https://github.com/PLiagre/VictoriaCityLab/pull/18) |
-| Échec fermé | Trois preuves refusées n'ont pas été fusionnées | PR #5, #8 et #11 fermées ; événements `AUDIT_REJECTED` conservés |
+| Synchronisation | Quatre niveaux cumulatifs suivent fondations, charpente, couverture et finitions ; aucun échafaudage avant terrassement et retrait complet à l'achèvement | `Scaffolding_FollowsFourPersistedPhasesAndSelection` |
+| Persistance | La vue est reconstruite depuis `phase` et `terrainPrepared` déjà versionnés ; le round-trip conserve exactement le niveau 3/4 de la phase couverture | `Logs/editmode-m3-scaffolding-integration.xml` |
+| Sélection/HUD | Le clic reste porté par l'emprise du chantier, active contour et fanions dorés ; le reload réapplique le surlignage et le HUD affiche `Échafaudage n/4` | `Logs/playmode-m3-scaffolding-integration.xml`, `CityLabHud.Refresh` |
+| Régression | 71/71 EditMode ; 35 989 ticks/hash `f5c411a9...753a82` ; 60 jours/hash `2dc2bdb1...5541e8` ; zéro allocation centrale | `Logs/editmode-m3-scaffolding-final-integration.xml` |
+| Player | Build 308 842 899 octets ; smoke 20 foyers/30 bâtiments/30 habitants et sauvegarde runtime verts | `Logs/build-m3-scaffolding-integration-v2.log`, `Logs/player-smoke-m3-scaffolding-integration.log` |
+| Revue visuelle | Quatre chantiers cadrés ensemble avec niveaux visibles 1/2/3/4 et marqueurs de sélection sur la phase finitions | `CITYLAB_SCAFFOLDING_REVIEW_OK`, `Logs/Captures/Buildings/m3-scaffolding-four-phases-20260811.png` |
+| Suite de `M3-BUILD-01` | L'incrément 01 passe à `PROUVÉ` ; usure, panne et réparation deviennent `EN_COURS` | `Docs/ROADMAP.md` |

@@ -10,8 +10,9 @@ Avant toute modification :
 2. lire `Docs/PROTOTYPE_STATUS.md` et `Docs/VALIDATION.md` ;
 3. exécuter `powershell -ExecutionPolicy Bypass -File Tools/check_roadmap.ps1` ;
 4. vérifier `git status --short` et préserver les changements déjà présents ;
-5. travailler d'abord sur la tâche `ACTIVE` de la roadmap, puis sur la première
-   tâche `NEXT` non bloquée ;
+5. travailler d'abord sur la tâche `ACTIVE` de la roadmap et l'unique incrément
+   `EN_COURS` dans « Sessions Codex ordonnées », puis sur la première tâche
+   `NEXT` non bloquée ;
 6. citer l'identifiant de roadmap choisi dans la première mise à jour de session.
 
 Une demande explicite de l'utilisateur peut changer la priorité, mais la
