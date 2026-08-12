@@ -79,6 +79,9 @@ gh workflow run full-auto.yml --repo PLiagre/VictoriaCityLab -f mode=proof
 - Le propriétaire peut toujours fermer la PR, désactiver la tâche planifiée ou
   ouvrir une issue `pipeline/pause`.
 
-La tâche `META-AUTO-01` ne peut passer à `DONE` qu'avec les URL d'un run
-réussi, d'une PR fusionnée automatiquement et d'une archive dont le ledger est
-valide.
+La tâche `META-AUTO-01` est `DONE` depuis le cycle du 12 août 2026 :
+[run](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31606929060),
+[PR témoin auto-fusionnée](https://github.com/PLiagre/VictoriaCityLab/pull/14),
+[audit](https://github.com/PLiagre/VictoriaCityLab/pull/15),
+[archive](https://github.com/PLiagre/VictoriaCityLab/pull/16) et
+[dashboard Hermes](https://github.com/PLiagre/VictoriaCityLab/pull/18).
