@@ -8,6 +8,7 @@
 
 ## Pull requests
 
+- [#17 — fix: bootstrap Hermes dashboard imports](https://github.com/PLiagre/VictoriaCityLab/pull/17) — MERGED
 - [#16 — audit: archive PR #14](https://github.com/PLiagre/VictoriaCityLab/pull/16) — MERGED
 - [#15 — audit: PR #14](https://github.com/PLiagre/VictoriaCityLab/pull/15) — MERGED
 - [#14 — proof: full-auto cycle CITYLAB-20260812T142818Z](https://github.com/PLiagre/VictoriaCityLab/pull/14) — MERGED
@@ -17,20 +18,19 @@
 - [#10 — fix: ground audits in GitHub SHA evidence](https://github.com/PLiagre/VictoriaCityLab/pull/10) — MERGED
 - [#9 — audit: PR #8](https://github.com/PLiagre/VictoriaCityLab/pull/9) — MERGED
 - [#8 — proof: full-auto cycle CITYLAB-20260812T141225Z](https://github.com/PLiagre/VictoriaCityLab/pull/8) — CLOSED
-- [#7 — fix: make proof audits mechanically grounded](https://github.com/PLiagre/VictoriaCityLab/pull/7) — MERGED
 
 ## Workflows
 
+- [merge-bot](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31607581842) — pending / -
+- [hermes-dashboard](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31607550530) — in_progress / -
+- [pipeline-verify](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31607544214) — completed / skipped
+- [full-auto-ci](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31607543888) — completed / success
+- [merge-bot](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31607533785) — queued / -
+- [merge-bot](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31607498204) — completed / success
+- [full-auto-ci](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31607492918) — completed / success
+- [pipeline-audit](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31607492912) — completed / skipped
 - [merge-bot](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31607384495) — completed / success
 - [hermes-dashboard](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31607379314) — completed / failure
-- [merge-bot](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31607367660) — completed / success
-- [merge-bot](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31607345819) — completed / success
-- [merge-bot](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31607338486) — completed / cancelled
-- [pipeline-verify](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31607337750) — completed / skipped
-- [merge-bot](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31607337633) — completed / cancelled
-- [full-auto-ci](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31607337523) — completed / success
-- [merge-bot](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31607336969) — completed / cancelled
-- [pipeline-audit](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31607333161) — completed / skipped
 
 ## Derniers evenements d'audit
 
