@@ -4,8 +4,9 @@
   "properties": {
     "verdict": {"type": "string", "enum": ["PASS", "REJECT"]},
     "summary": {"type": "string"},
-    "findings": {"type": "array", "items": {"type": "string"}}
+    "findings": {"type": "array", "items": {"type": "string"}},
+    "evaluator_transport": {"type": "string"},
+    "evaluator_model": {"type": "string"}
   },
   "required": ["verdict", "summary", "findings"]
 }
-
