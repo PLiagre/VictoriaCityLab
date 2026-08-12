@@ -20,7 +20,7 @@ import sys
 import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Iterable, Sequence
+from typing import Any, Iterable, Sequence, TextIO
 
 ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
@@ -217,6 +217,15 @@ def render_prompt(template: Path, values: dict[str, str]) -> str:
     return text
 
 
+def write_console(text: str, stream: TextIO | None = None) -> None:
+    """Write actor output without letting a legacy Windows code page stop the run."""
+    target = stream or sys.stdout
+    encoding = getattr(target, "encoding", None) or "utf-8"
+    safe_text = text.encode(encoding, errors="backslashreplace").decode(encoding)
+    target.write(safe_text)
+    target.flush()
+
+
 def run_streaming(
     name: str,
     command: Sequence[str],
@@ -240,8 +249,7 @@ def run_streaming(
             stdout, _ = process.communicate()
             stdout += f"\nTIMEOUT after {timeout_seconds}s\n"
         log.write(stdout)
-        sys.stdout.write(stdout)
-        sys.stdout.flush()
+        write_console(stdout)
     return CommandResult(
         name=name,
         command=list(command),

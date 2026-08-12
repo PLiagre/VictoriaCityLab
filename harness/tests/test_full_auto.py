@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import io
 import json
 import tempfile
 import unittest
@@ -14,6 +15,7 @@ from harness.pipeline.full_auto import (
     parse_increments,
     select_increment,
     validate_change_scope,
+    write_console,
 )
 
 
@@ -107,6 +109,15 @@ class FullAutoTests(unittest.TestCase):
         self.assertEqual(
             ["codex", "--ask-for-approval", "never", "exec"], command[:4]
         )
+
+    def test_console_output_survives_legacy_windows_encoding(self) -> None:
+        raw = io.BytesIO()
+        stream = io.TextIOWrapper(raw, encoding="cp1252")
+
+        write_console("données → simulation", stream)
+        stream.flush()
+
+        self.assertEqual("données \\u2192 simulation", raw.getvalue().decode("cp1252"))
 
 
 if __name__ == "__main__":

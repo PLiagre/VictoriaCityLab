@@ -24,6 +24,7 @@ Cette validation structurelle ne remplace aucune preuve Unity ou player.
 | Archivage | FSM complète jusqu'à `AUDIT_ARCHIVED`, archive fusionnée | [PR #16](https://github.com/PLiagre/VictoriaCityLab/pull/16) |
 | Hermes | Dashboard calculé et fusionné automatiquement | [PR #18](https://github.com/PLiagre/VictoriaCityLab/pull/18) |
 | Échec fermé | Trois preuves refusées n'ont pas été fusionnées | PR #5, #8 et #11 fermées ; événements `AUDIT_REJECTED` conservés |
+| Sortie Unicode Windows | Un flux acteur contenant `→` est journalisé en UTF-8 et rendu sans erreur sur une console CP1252 | `test_console_output_survives_legacy_windows_encoding` ; le run #31611611471 a reproduit l'ancien échec fermé |
 
 ## Resultats
 
