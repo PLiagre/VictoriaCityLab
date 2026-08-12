@@ -1,0 +1,18 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "cycle_id": {"type": "string"},
+    "claim": {"type": "string"},
+    "actors": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "checks": {
+      "type": "array",
+      "items": {"type": "string"}
+    }
+  },
+  "required": ["cycle_id", "claim", "actors", "checks"]
+}
+

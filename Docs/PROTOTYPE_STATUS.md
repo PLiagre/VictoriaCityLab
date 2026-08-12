@@ -105,3 +105,11 @@ chaque `Update` sans sacrifier la fluidite visuelle.
   affectées sont déjà jouables ;
 - augmenter la variation des facades, personnages, animations, effets, sons et
   compositions de village, puis valider plusieurs centaines d'habitants.
+
+## Automatisation de production
+
+La file de production est pilotée par l'unique incrément `EN_COURS` de la
+roadmap. Hermes planifie, Codex produit, Cursor audite et Claude évalue dans des
+sessions séparées. La mécanique n'ajoute aucune fonction jouable et reste
+`ACTIVE` tant que la preuve distante de fusion et d'archivage n'est pas
+enregistrée.

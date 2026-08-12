@@ -1,0 +1,56 @@
+name: pipeline-audit
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+concurrency:
+  group: pipeline-audit-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
+  cancel-in-progress: true
+
+jobs:
+  cursor-claude-audit:
+    if: >-
+      github.event.pull_request.draft == false &&
+      startsWith(github.head_ref, 'codex/')
+    runs-on: [self-hosted, Windows, X64, citylab-full-auto]
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Restore local GitHub identity
+        shell: powershell
+        run: |
+          git config --local --unset-all http.https://github.com/.extraheader 2>$null
+          gh auth setup-git
+      - name: Cursor audit and Claude challenge
+        shell: powershell
+        run: >-
+          py harness/pipeline/pr_audit.py
+          --pr '${{ github.event.pull_request.number }}'
+          --head-sha '${{ github.event.pull_request.head.sha }}'
+      - name: Validate generated audit
+        shell: powershell
+        run: |
+          $audit = Get-ChildItem Architecture/inbox/CURSOR-*.md | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          py harness/audit_schema.py $audit.FullName
+          py harness/audit_ledger.py Architecture/audit-ledger.jsonl --validate
+      - name: Publish immutable audit record PR
+        id: record
+        shell: powershell
+        run: |
+          $stamp = Get-Date -Format 'yyyyMMddHHmmss'
+          $branch = "forge-bot/audit-record-${{ github.event.pull_request.number }}-$stamp"
+          git switch -c $branch
+          git add Architecture/inbox Architecture/reviews Architecture/decisions Architecture/audit-ledger.jsonl
+          git -c user.name='citylab-pipeline' -c user.email='citylab-pipeline@users.noreply.github.com' commit -m "audit: PR #${{ github.event.pull_request.number }}"
+          git push -u origin $branch
+          $url = gh pr create --base main --head $branch --title "audit: PR #${{ github.event.pull_request.number }}" --body "Audit Cursor, challenge Claude et décision déterministe pour le SHA `${{ github.event.pull_request.head.sha }}`."
+          gh pr edit $url --add-label pipeline/record
+          "url=$url" >> $env:GITHUB_OUTPUT
+      - name: Merge audit record PR automatically
+        shell: powershell
+        run: gh pr merge '${{ steps.record.outputs.url }}' --squash --delete-branch
+

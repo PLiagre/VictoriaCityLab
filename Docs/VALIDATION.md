@@ -412,3 +412,13 @@ headless artificiellement rapide.
 | Régression | 70/70 EditMode ; 35 989 ticks/hash `f5c411a9...753a82` ; 60 jours/hash `2dc2bdb1...5541e8` ; 1/1 PlayMode | `Logs/editmode-m3-build-final-20260803.xml`, `Logs/playmode-m3-build-final-v2-20260803.xml` |
 | Player | build 308 836 067 octets ; smoke 20 foyers/30 bâtiments/30 habitants, sauvegarde et `CITYLAB_PERF_OK` | `Logs/build-m3-build-final-v2-20260803.log`, `Logs/player-smoke-m3-build-final-v2-20260803.log` |
 | Suite de `M3-BUILD-01` | échafaudages, réparation et démolition restent requis ; la tâche demeure `ACTIVE` | `Docs/ROADMAP.md` |
+
+## Architecture full-auto — 12 août 2026
+
+| Porte | Résultat | Preuve |
+|---|---|---|
+| Harnais | 15/15 tests Python verts | `py -m unittest discover -s harness/tests -v` |
+| Workflows | Six documents YAML chargés sans erreur | parse `yaml.safe_load` |
+| Roadmap | Contrôle structurel vert avec un incrément `EN_COURS` | `CITYLAB_ROADMAP_OK` |
+| Hermes | Profil isolé invoqué sur le modèle local | sortie `CITYLAB_HERMES_OK` |
+| GitHub distant | En attente du bootstrap, du runner et du cycle de preuve | `META-AUTO-01` reste `ACTIVE` |
