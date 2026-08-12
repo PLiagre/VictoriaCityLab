@@ -144,6 +144,14 @@ class ArchitectureLoopTests(unittest.TestCase):
         for path in schema_root.glob("*.json"):
             self.assertIsInstance(json.loads(path.read_text(encoding="utf-8")), dict)
 
+    def test_claude_challenge_contract_uses_sha_facts(self) -> None:
+        source = (Path(__file__).resolve().parents[1] / "pipeline" / "pr_audit.py").read_text(
+            encoding="utf-8"
+        )
+        challenge = source.split("challenge = claude_structured", 1)[1]
+        self.assertIn("faits mécaniques relus via l'API GitHub au SHA", challenge)
+        self.assertNotIn('"\\nDiff:\\n" + diff', challenge)
+
 
 if __name__ == "__main__":
     unittest.main()
