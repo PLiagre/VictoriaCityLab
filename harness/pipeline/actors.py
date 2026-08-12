@@ -118,12 +118,43 @@ def codex_generate(root: Path, prompt: str, schema_path: Path) -> dict[str, Any]
 def claude_structured(root: Path, prompt: str, schema_path: Path) -> dict[str, Any]:
     schema = json.loads(schema_path.read_text(encoding="utf-8"))
     schema.pop("$schema", None)
+    try:
+        output = run(
+            [
+                "claude", "-p", "--permission-mode", "plan", "--output-format", "json",
+                "--json-schema", json.dumps(schema, separators=(",", ":")), prompt,
+            ],
+            cwd=root,
+            timeout=1200,
+        )
+        value = extract_json(output)
+        value["evaluator_transport"] = "claude-code"
+        value["evaluator_model"] = "claude"
+        return value
+    except ActorError as exc:
+        # Claude Code peut être temporairement limité alors que l'abonnement
+        # Cursor autorise encore un modèle Anthropic. Le rôle et le modèle
+        # restent Claude ; seul le transport change et la preuve le consigne.
+        if "429" not in str(exc) and "spend limit" not in str(exc).lower():
+            raise
+    fallback_prompt = (
+        prompt
+        + "\nRéponds uniquement par un objet JSON conforme à ce schema, sans markdown: "
+        + json.dumps(schema, separators=(",", ":"))
+    )
     output = run(
         [
-            "claude", "-p", "--permission-mode", "plan", "--output-format", "json",
-            "--json-schema", json.dumps(schema, separators=(",", ":")), prompt,
+            "agent", "--print", "--mode", "plan", "--trust",
+            "--workspace", str(root),
+            "--model", os.environ.get("CITYLAB_CLAUDE_CURSOR_MODEL", "claude-sonnet-5-thinking-high"),
+            "--output-format", "text", fallback_prompt,
         ],
         cwd=root,
         timeout=1200,
     )
-    return extract_json(output)
+    value = extract_json(output)
+    value["evaluator_transport"] = "cursor-agent"
+    value["evaluator_model"] = os.environ.get(
+        "CITYLAB_CLAUDE_CURSOR_MODEL", "claude-sonnet-5-thinking-high"
+    )
+    return value

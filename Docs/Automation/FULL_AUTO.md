@@ -37,6 +37,11 @@ Les workflows privilégiés tournent sur le runner privé portant le label
 `citylab-local-orchestrator`. Aucun jeton de ces outils n'est copié dans le
 dépôt ou dans les secrets GitHub.
 
+Si Claude Code répond avec une limite d'usage 429, le rôle évaluateur utilise
+le modèle Claude Sonnet exposé par l'abonnement Cursor. Le transport et le
+modèle exacts sont inscrits dans le verdict ; aucun repli vers Codex n'est
+autorisé pour juger une production Codex.
+
 ## Installation du runner
 
 ```powershell
