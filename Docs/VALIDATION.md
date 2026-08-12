@@ -417,8 +417,14 @@ headless artificiellement rapide.
 
 | Porte | Résultat | Preuve |
 |---|---|---|
-| Harnais | 15/15 tests Python verts | `py -m unittest discover -s harness/tests -v` |
+| Harnais | 20/20 tests Python verts | `py -m unittest discover -s harness/tests -v` |
 | Workflows | Six documents YAML chargés sans erreur | parse `yaml.safe_load` |
 | Roadmap | Contrôle structurel vert avec un incrément `EN_COURS` | `CITYLAB_ROADMAP_OK` |
 | Hermes | Profil isolé invoqué sur le modèle local | sortie `CITYLAB_HERMES_OK` |
-| GitHub distant | En attente du bootstrap, du runner et du cycle de preuve | `META-AUTO-01` reste `ACTIVE` |
+| Runner | `citylab-full-auto-pe` en ligne, labels Windows/X64/citylab-full-auto | API GitHub Actions runners |
+| Orchestration | Hermes, Codex et Claude exécutés ; CI verte ; PR témoin créée | [run 31606929060](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31606929060) |
+| Audit | Cursor `PASS`, Claude `PASS`, décision au SHA `485847d...` | [audit record #15](https://github.com/PLiagre/VictoriaCityLab/pull/15) |
+| Fusion automatique | PR témoin fusionnée par le merge bot au SHA `5f2421a...` | [PR #14](https://github.com/PLiagre/VictoriaCityLab/pull/14) |
+| Archivage | FSM complète jusqu'à `AUDIT_ARCHIVED`, archive fusionnée | [PR #16](https://github.com/PLiagre/VictoriaCityLab/pull/16) |
+| Hermes | Dashboard calculé et fusionné automatiquement | [PR #18](https://github.com/PLiagre/VictoriaCityLab/pull/18) |
+| Échec fermé | Trois preuves refusées n'ont pas été fusionnées | PR #5, #8 et #11 fermées ; événements `AUDIT_REJECTED` conservés |

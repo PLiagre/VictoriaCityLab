@@ -110,6 +110,8 @@ chaque `Update` sans sacrifier la fluidite visuelle.
 
 La file de production est pilotée par l'unique incrément `EN_COURS` de la
 roadmap. Hermes planifie, Codex produit, Cursor audite et Claude évalue dans des
-sessions séparées. La mécanique n'ajoute aucune fonction jouable et reste
-`ACTIVE` tant que la preuve distante de fusion et d'archivage n'est pas
-enregistrée.
+sessions séparées. La boucle est opérationnelle : le cycle témoin #14 a été
+fusionné automatiquement après CI et double verdict `PASS`, puis archivé par
+le workflow post-fusion jusqu'à `AUDIT_ARCHIVED`. Cette infrastructure
+n'ajoute aucune fonction jouable ; elle reprend maintenant l'incrément
+`M3-BUILD-01`.
