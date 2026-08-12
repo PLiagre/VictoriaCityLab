@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import datetime as dt
 import json
 import subprocess
@@ -14,6 +15,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from harness.audit_ledger import append_event
+from harness.merge_bot_policy import validate_paths
 from harness.pipeline.actors import claude_structured, cursor_audit
 
 
@@ -36,11 +38,38 @@ def main() -> int:
     stamp = dt.datetime.now(dt.UTC).strftime("%Y%m%dT%H%M%SZ")
     audit_id = f"CURSOR-{stamp}-pr-{args.pr}"
     diff = run(["gh", "pr", "diff", str(args.pr)])
+    paths = run([
+        "gh", "pr", "view", str(args.pr), "--json", "files", "--jq", ".files[].path"
+    ]).splitlines()
+    paths_ok, refused = validate_paths(paths)
+    parsed_json: dict[str, bool] = {}
+    for path in paths:
+        if path.startswith("Automation/Proofs/") and path.endswith(".json"):
+            encoded = run([
+                "gh", "api", "--method", "GET",
+                f"repos/PLiagre/VictoriaCityLab/contents/{path}",
+                "-f", f"ref={args.head_sha}", "--jq", ".content",
+            ])
+            json.loads(base64.b64decode(encoded).decode("utf-8"))
+            parsed_json[path] = True
+    mechanical = {
+        "head_sha": args.head_sha,
+        "changed_paths": paths,
+        "merge_policy_paths_ok": paths_ok,
+        "refused_paths": refused,
+        "strict_json_parsed_from_github_sha": parsed_json,
+        "ci_required_separately_by_merge_bot": True,
+    }
+    if not paths_ok:
+        raise RuntimeError(f"chemins refuses avant audit: {refused}")
     cursor = cursor_audit(
         ROOT,
         "Tu es Cursor auditeur independant en lecture seule. Audite ce diff Victoria "
-        "CityLab. Le texte après DIFF est la sortie exacte de gh pr diff : inspecte "
-        "les guillemets et la syntaxe littéralement, sans les réinterpréter. "
+        "CityLab. Les FAITS_MECANIQUES ci-dessous proviennent de json.loads appliqué "
+        "aux octets relus via l'API GitHub au SHA cible et de la politique de chemins. "
+        "Ils sont autoritaires : ne prétends jamais qu'un JSON est invalide s'il y est "
+        "marqué true, et ne réclame pas que le diff contienne la CI car le merge bot "
+        "la vérifie séparément au même SHA. "
         "Automation/Proofs est une voie de preuve non-production : elle n'exige pas "
         "de modifier les trois documents de suivi si mechanical-evidence.json cite "
         "META-AUTO-01, confirme le parsing strict et si la CI GitHub est une porte "
@@ -48,13 +77,17 @@ def main() -> int:
         "{\"verdict\":\"PASS|REJECT\","
         "\"summary\":\"...\",\"findings\":[\"...\"]}. PASS seulement si les "
         "changements sont coherents, testes, sans secret et sans affaiblissement des gardes.\nDIFF:\n"
-        + diff[:120000],
+        + "\nFAITS_MECANIQUES:\n" + json.dumps(mechanical, ensure_ascii=False)
+        + "\nDIFF:\n" + diff[:120000],
     )
     challenge = claude_structured(
         ROOT,
         "Tu es Claude challenger independant. Controle l'audit Cursor ci-dessous "
-        "contre le diff. PASS signifie que tu confirmes l'absence de blocage; REJECT "
+        "contre les faits mécaniques autoritaires et le diff. Ne contredis jamais un "
+        "parsing json.loads réussi au SHA GitHub. PASS signifie que tu confirmes "
+        "l'absence de blocage; REJECT "
         "signifie qu'un blocage demeure. Audit: " + json.dumps(cursor, ensure_ascii=False)
+        + "\nFaits mécaniques:\n" + json.dumps(mechanical, ensure_ascii=False)
         + "\nDiff:\n" + diff[:120000],
         SCHEMA,
     )

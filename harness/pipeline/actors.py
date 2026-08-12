@@ -85,6 +85,7 @@ def cursor_audit(root: Path, prompt: str) -> dict[str, Any]:
     output = run(
         [
             "agent", "--print", "--mode", "plan", "--trust", "--workspace", str(root),
+            "--model", os.environ.get("CITYLAB_CURSOR_AUDIT_MODEL", "gpt-5.6-sol-high"),
             "--output-format", "text", prompt,
         ],
         cwd=root,

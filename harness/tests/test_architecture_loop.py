@@ -139,6 +139,11 @@ class ArchitectureLoopTests(unittest.TestCase):
         self.assertTrue(ok)
         self.assertEqual([], refused)
 
+    def test_all_committed_schemas_parse_as_strict_json(self) -> None:
+        schema_root = Path(__file__).resolve().parents[1] / "schemas"
+        for path in schema_root.glob("*.json"):
+            self.assertIsInstance(json.loads(path.read_text(encoding="utf-8")), dict)
+
 
 if __name__ == "__main__":
     unittest.main()
