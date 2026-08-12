@@ -37,7 +37,6 @@ def main() -> int:
     args = parser.parse_args()
     stamp = dt.datetime.now(dt.UTC).strftime("%Y%m%dT%H%M%SZ")
     audit_id = f"CURSOR-{stamp}-pr-{args.pr}"
-    diff = run(["gh", "pr", "diff", str(args.pr)])
     paths = run([
         "gh", "pr", "view", str(args.pr), "--json", "files", "--jq", ".files[].path"
     ]).splitlines()
@@ -76,9 +75,11 @@ def main() -> int:
         "séparée obligatoire du merge bot. Reponds uniquement JSON: "
         "{\"verdict\":\"PASS|REJECT\","
         "\"summary\":\"...\",\"findings\":[\"...\"]}. PASS seulement si les "
-        "changements sont coherents, testes, sans secret et sans affaiblissement des gardes.\nDIFF:\n"
+        "changements sont coherents, testes, sans secret et sans affaiblissement des gardes. "
+        f"Relis toi-meme le diff complet de la PR #{args.pr} au SHA exact {args.head_sha} "
+        "avec `gh pr diff`; ne te fonde pas sur la branche main seule."
         + "\nFAITS_MECANIQUES:\n" + json.dumps(mechanical, ensure_ascii=False)
-        + "\nDIFF:\n" + diff[:120000],
+        + "\nLe diff n'est volontairement pas injecte dans la ligne de commande Windows.",
     )
     challenge = claude_structured(
         ROOT,

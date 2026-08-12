@@ -187,6 +187,17 @@ class ArchitectureLoopTests(unittest.TestCase):
         self.assertIn("faits mécaniques relus via l'API GitHub au SHA", challenge)
         self.assertNotIn('"\\nDiff:\\n" + diff', challenge)
 
+    def test_cursor_audit_reads_large_pr_diff_out_of_band(self) -> None:
+        source = (Path(__file__).resolve().parents[1] / "pipeline" / "pr_audit.py").read_text(
+            encoding="utf-8"
+        )
+        cursor_prompt = source.split("cursor = cursor_audit", 1)[1].split(
+            "challenge = claude_structured", 1
+        )[0]
+        self.assertIn("gh pr diff", cursor_prompt)
+        self.assertIn("args.head_sha", cursor_prompt)
+        self.assertNotIn("diff[:120000]", source)
+
     def test_dashboard_script_bootstraps_repository_imports(self) -> None:
         source = (Path(__file__).resolve().parents[2] / "hermes" / "dashboard.py").read_text(
             encoding="utf-8"
