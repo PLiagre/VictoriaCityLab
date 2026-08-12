@@ -1,0 +1,15 @@
+{
+  "verdict": "PASS",
+  "summary": "L'objet de preuve pour le cycle CITYLAB-20260812T141225Z identifie correctement les cinq acteurs requis et les quatre contrôles requis; le claim et le cycle_id correspondent exactement à la demande.",
+  "findings": [
+    "Le champ actors contient exactement les cinq acteurs requis: Hermes, Codex, Claude, Cursor, GitHub Actions.",
+    "Le champ checks contient exactement les quatre contrôles requis: roadmap, tests, audit indépendant, merge automatique.",
+    "Le champ claim correspond mot pour mot au texte requis: \"Codex a produit le lot témoin.\"",
+    "Le cycle_id correspond exactement à celui demandé: CITYLAB-20260812T141225Z.",
+    "Le raw_output montre une session Codex en sandbox read-only et approval never, cohérente avec la consigne \"Ne modifie aucun fichier\".",
+    "Réserve: l'objet ne contient que la liste des contrôles prévus, pas leurs résultats d'exécution réels (statut pass/fail de tests, audit, merge); il ne doit pas être interprété comme la preuve que l'audit indépendant a effectivement été mené par un acteur distinct de Codex.",
+    "Réserve: la sortie brute affiche le JSON en double (écho terminal), artefact de capture sans incidence sur le contenu évalué."
+  ],
+  "evaluator_transport": "cursor-agent",
+  "evaluator_model": "claude-sonnet-5-thinking-high"
+}
