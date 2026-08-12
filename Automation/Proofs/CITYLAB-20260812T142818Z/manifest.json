@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "cycle_id": "CITYLAB-20260812T142818Z",
+  "producer": "codex",
+  "evaluator": "claude",
+  "producer_session": "a4752a2432ade944",
+  "evaluator_session": "2326b9dd6956358c",
+  "status": "GENERATED_EVALUATED",
+  "evidence": [
+    "hermes-plan.md",
+    "codex-generator.json",
+    "claude-evaluator.json",
+    "mechanical-evidence.json"
+  ]
+}
