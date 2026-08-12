@@ -17,6 +17,16 @@ Avant toute modification :
 Une demande explicite de l'utilisateur peut changer la priorité, mais la
 roadmap doit alors être mise à jour pour refléter cette décision.
 
+## Boucle full-auto
+
+- Le pipeline autoritaire est décrit dans `Docs/Automation/FULL_AUTO.md`.
+- Une seule ligne `EN_COURS` est admise dans « Sessions Codex ordonnées ».
+- Hermes orchestre, Codex produit, Cursor audite et Claude contredit ; aucun
+  acteur ne peut valider sa propre production.
+- La fusion automatique exige à la fois la CI verte, un verdict d'audit `PASS`
+  enregistré sur `main` et la politique de chemins fermée.
+- Une issue ouverte portant `pipeline/pause` neutralise les générations.
+
 ## Suivi obligatoire
 
 Toute session qui modifie du code, des assets, des scènes, des réglages ou de la

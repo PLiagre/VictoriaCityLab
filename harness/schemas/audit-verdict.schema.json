@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "verdict": {"type": "string", "enum": ["PASS", "REJECT"]},
+    "summary": {"type": "string"},
+    "findings": {"type": "array", "items": {"type": "string"}}
+  },
+  "required": ["verdict", "summary", "findings"]
+}
+

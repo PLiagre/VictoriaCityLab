@@ -2,7 +2,7 @@
 
 <!-- CITYLAB_ROADMAP
 schema: 1
-last_updated: 2026-08-03
+last_updated: 2026-08-12
 active_milestone: M3
 roadmap_status: ACTIVE
 -->
@@ -21,10 +21,10 @@ de jeu complet ou de qualité AAA que lorsque tous les critères de la section
 
 | Champ | Valeur |
 |---|---|
-| Dernière mise à jour | 3 août 2026 |
+| Dernière mise à jour | 12 août 2026 |
 | Jalon actif | `M3` — ville organique et société |
 | Dernier jalon validé | `M2` — économie de village jouable |
-| Priorité immédiate | `M3-BUILD-01` — construction physique complète |
+| Priorité immédiate | `META-AUTO-01` — boucle full-auto auditable, puis `M3-BUILD-01` |
 | Build de référence | `Builds/Windows/VictoriaCityLab.exe` |
 | Dépôt distant | `https://github.com/PLiagre/VictoriaCityLab` — branche `main` |
 | Preuves de référence | `Docs/VALIDATION.md` et `Logs/` |
@@ -95,6 +95,7 @@ remplies :
 | `M0-REL-01` | Build Windows et smoke test | DONE | `Docs/VALIDATION.md`. |
 | `META-ROADMAP-01` | Pilotage persistant du projet | DONE | `AGENTS.md`, `Tools/check_roadmap.ps1` et contrôle `CITYLAB_ROADMAP_OK`. |
 | `META-REPO-01` | Publication GitHub et Git LFS | DONE | Dépôt privé `PLiagre/VictoriaCityLab`, branche `main` et 790 objets LFS publiés. |
+| `META-AUTO-01` | Architecture full-auto multi-acteurs | ACTIVE | Runner CityLab en ligne ; Hermes/Codex/Cursor/Claude exécutés ; PR de preuve auditée, fusionnée automatiquement puis archivée avec ledger valide. |
 
 ## M1 — fondations de production
 
@@ -137,7 +138,7 @@ la première tâche `ACTIVE`, puis la première tâche `NEXT` non bloquée.
 | ID | Travail | État | Critère principal |
 |---|---|---|---|
 | `M3-PLOT-01` | Parcelles organiques | DONE | Parcelles orientées sur la route à frontage/profondeur variables ; pente maximale 180 ‰ et chevauchements refusés ; jardins persistants et jusqu'à deux extensions selon le niveau du foyer ; 3/3 tests dédiés, 67/67 Editor, 1/1 PlayMode, build et smoke player verts. |
-| `M3-BUILD-01` | Construction physique complète | ACTIVE | Socle jouable validé : terrassement échantillonné puis pierre/bois/planches/outils livrés par phase par l'équipe affectée, avec HUD, visuel et reload exact. Restent les échafaudages, la réparation et la démolition pour fermer la tâche. |
+| `M3-BUILD-01` | Construction physique complète | NEXT | Socle jouable validé : terrassement échantillonné puis pierre/bois/planches/outils livrés par phase par l'équipe affectée, avec HUD, visuel et reload exact. Restent les échafaudages, la réparation et la démolition pour fermer la tâche ; reprise automatique après `META-AUTO-01`. |
 | `M3-FAMILY-01` | Foyers et cycle de vie | BACKLOG | Âge, couples, naissances, décès, migration et compétences. |
 | `M3-HEALTH-01` | Santé, maladies et blessures | BACKLOG | Risques, propagation, soins, mortalité et impacts sur le travail. |
 | `M3-FAITH-01` | Foi et sépulture | BACKLOG | Église, offices, cimetière, besoins et effets sociaux. |
@@ -182,6 +183,16 @@ la première tâche `ACTIVE`, puis la première tâche `NEXT` non bloquée.
 | `REL-PERF` | 500 habitants et grandes villes | BACKLOG | 60 FPS cible, mémoire stable, chargements et sauvegardes dans le budget. |
 | `REL-QA` | Tests et campagne de régression | BACKLOG | Zéro critique/majeur ouvert et campagne 20 heures validée. |
 | `REL-SHIP` | Packaging Windows | BACKLOG | Build signé, crédits/licences, crash reporting et procédure de mise à jour. |
+
+## Sessions Codex ordonnées
+
+| Ordre | Suivi | Tâche | Incrément de session | Preuve de fermeture de l'incrément |
+|---:|---|---|---|---|
+| 01 | EN_COURS | `M3-BUILD-01` | Échafaudages, usure, réparation et démolition déterministes. | Tests EditMode/PlayMode, reload exact, HUD et validation mise à jour. |
+
+Cette file est consommée par le workflow full-auto toutes les six heures. Un
+incrément ne devient `PROUVÉ` qu'après production Codex, évaluation Claude,
+audit Cursor, CI verte, fusion GitHub et archivage du ledger.
 
 ## Prochain lot ordonné
 
@@ -229,6 +240,7 @@ Avant de terminer une session qui a modifié le projet :
 
 | Date | Tâches | Résultat | Preuves | Prochaine priorité |
 |---|---|---|---|---|
+| 2026-08-12 | `META-AUTO-01` | Port complet de l'architecture ForgeHistory engagé : rôles Hermes/Codex/Cursor/Claude, harnais fail-closed, audits, décisions, ledger, CI, fusion et archivage automatisés. La tâche reste `ACTIVE` jusqu'au cycle distant de preuve. | 15/15 tests Python ; six workflows YAML chargés ; profil Hermes `citylab-local-orchestrator` exécuté localement. | Installer le runner, publier le bootstrap et obtenir une PR de preuve fusionnée/archivée automatiquement. |
 | 2026-07-31 | `M0-*` | Vertical slice forêt/construction validé ; `M0` passe à `DONE`, `M1-SAVE-01` devient `ACTIVE`. | `Docs/VALIDATION.md`, build Windows et capture player. | Concevoir et tester la sauvegarde versionnée. |
 | 2026-07-31 | `META-ROADMAP-01` | Roadmap 1.0, règles de session et vérificateur de démarrage ajoutés. | `CITYLAB_ROADMAP_OK`, `git diff --check`. | `M1-SAVE-01`. |
 | 2026-07-31 | `META-REPO-01` | Projet publié sur GitHub ; `main` configurée pour suivre `origin/main`. | Commit `8a4b728`, push Git et 790 objets LFS transférés. | `M1-SAVE-01`. |

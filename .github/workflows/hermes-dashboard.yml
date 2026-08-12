@@ -1,0 +1,42 @@
+name: hermes-dashboard
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '47 */6 * * *'
+
+concurrency:
+  group: citylab-hermes-dashboard
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: [self-hosted, Windows, X64, citylab-full-auto]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Restore local GitHub identity
+        shell: powershell
+        run: |
+          git config --local --unset-all http.https://github.com/.extraheader 2>$null
+          gh auth setup-git
+      - name: Render owner dashboard
+        shell: powershell
+        run: py hermes/dashboard.py
+      - name: Publish dashboard update through a PR
+        shell: powershell
+        run: |
+          if (git diff --quiet -- hermes/DASHBOARD.md) { Write-Host 'Dashboard already current.'; exit 0 }
+          $stamp = Get-Date -Format 'yyyyMMddHHmmss'
+          $branch = "hermes/dashboard-$stamp"
+          git switch -c $branch
+          git add hermes/DASHBOARD.md
+          git -c user.name='hermes-citylab' -c user.email='hermes-citylab@users.noreply.github.com' commit -m 'hermes: refresh owner dashboard'
+          git push -u origin $branch
+          $url = gh pr create --base main --head $branch --title 'hermes: refresh owner dashboard' --body 'Vue calculée depuis GitHub et le ledger; aucune modification de production.'
+          gh pr edit $url --add-label pipeline/record
+          gh pr merge $url --squash --delete-branch
+
