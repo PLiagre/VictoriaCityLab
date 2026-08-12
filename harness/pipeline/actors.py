@@ -43,11 +43,15 @@ def resolve_command(command: Sequence[str]) -> list[str]:
     return [resolved, *values[1:]]
 
 
-def run(command: Sequence[str], *, cwd: Path, timeout: int = 900) -> str:
+def run(
+    command: Sequence[str], *, cwd: Path, timeout: int = 900,
+    stdin_text: str | None = None,
+) -> str:
     resolved = resolve_command(command)
     result = subprocess.run(
         resolved, cwd=cwd, text=True, encoding="utf-8", errors="replace",
-        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=timeout, check=False,
+        input=stdin_text, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        timeout=timeout, check=False,
     )
     if result.returncode:
         raise ActorError(f"acteur en echec ({result.returncode}): {' '.join(command[:3])}\n{result.stdout}")
@@ -123,10 +127,11 @@ def claude_structured(root: Path, prompt: str, schema_path: Path) -> dict[str, A
         output = run(
             [
                 "claude", "-p", "--permission-mode", "plan", "--output-format", "json",
-                "--json-schema", json.dumps(schema, separators=(",", ":")), prompt,
+                "--json-schema", json.dumps(schema, separators=(",", ":")),
             ],
             cwd=root,
             timeout=1200,
+            stdin_text=prompt,
         )
         value = extract_json(output)
         value["evaluator_transport"] = "claude-code"

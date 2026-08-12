@@ -26,6 +26,7 @@ Cette validation structurelle ne remplace aucune preuve Unity ou player.
 | Échec fermé | Trois preuves refusées n'ont pas été fusionnées | PR #5, #8 et #11 fermées ; événements `AUDIT_REJECTED` conservés |
 | Sortie Unicode Windows | Un flux acteur contenant `→` est journalisé en UTF-8 et rendu sans erreur sur une console CP1252 | `test_console_output_survives_legacy_windows_encoding` ; le run #31611611471 a reproduit l'ancien échec fermé |
 | Outil acteur détaché | Un `CTRL_C` reçu après la fin de l'acteur devient une itération refusée et récupérable ; une interruption pendant que l'acteur vit encore reste propagée | `test_post_exit_console_interrupt_becomes_retryable_actor_failure`, `test_live_actor_console_interrupt_is_not_swallowed` ; run refusé #31615708173 |
+| Invite évaluateur volumineuse | L'invite Claude transite par stdin et ne dépend plus de la limite de longueur de ligne de commande Windows | `test_actor_prompt_can_be_sent_over_stdin` ; `WinError 206` reproduit par le run #31617561462 |
 
 ## Resultats
 
