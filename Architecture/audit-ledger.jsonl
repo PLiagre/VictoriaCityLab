@@ -1,0 +1,3 @@
+{"actor": "cursor-agent", "audit_id": "CURSOR-20260812T140632Z-pr-5", "event": "AUDIT_PROPOSED", "event_id": "CURSOR-20260812T140632Z-pr-5:0001:AUDIT_PROPOSED", "payload": {"pull_request": 5, "target_commit": "0551c79fbc4f7ea35e9fbff357aa28bcca7b7aa5"}, "timestamp": "2026-08-12T14:08:49.318229Z"}
+{"actor": "claude", "audit_id": "CURSOR-20260812T140632Z-pr-5", "event": "AUDIT_CHALLENGED", "event_id": "CURSOR-20260812T140632Z-pr-5:0002:AUDIT_CHALLENGED", "payload": {"verdict": "REJECT"}, "timestamp": "2026-08-12T14:08:49.328194Z"}
+{"actor": "auto-policy", "audit_id": "CURSOR-20260812T140632Z-pr-5", "event": "AUDIT_REJECTED", "event_id": "CURSOR-20260812T140632Z-pr-5:0003:AUDIT_REJECTED", "payload": {"decision": "REJECT"}, "timestamp": "2026-08-12T14:08:49.336549Z"}
