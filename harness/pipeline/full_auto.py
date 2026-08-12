@@ -26,7 +26,7 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from harness.pipeline.actors import ActorError, claude_structured, hermes_plan
+from harness.pipeline.actors import ActorError, claude_structured, hermes_plan, resolve_command
 
 
 DEFAULT_CONFIG = ROOT / "harness" / "pipeline" / "config.json"
@@ -124,7 +124,7 @@ def select_increment(roadmap: Path) -> Increment:
 
 def run_capture(command: Sequence[str], *, check: bool = True) -> str:
     completed = subprocess.run(
-        list(command), cwd=ROOT, text=True, encoding="utf-8", errors="replace",
+        resolve_command(command), cwd=ROOT, text=True, encoding="utf-8", errors="replace",
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False,
     )
     if check and completed.returncode != 0:
@@ -229,7 +229,7 @@ def run_streaming(
     started = time.monotonic()
     with output_file.open("w", encoding="utf-8") as log:
         process = subprocess.Popen(
-            list(command), cwd=ROOT, stdin=subprocess.PIPE if stdin_text is not None else None,
+            resolve_command(command), cwd=ROOT, stdin=subprocess.PIPE if stdin_text is not None else None,
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
             encoding="utf-8", errors="replace",
         )

@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import shutil
 import subprocess
 from pathlib import Path
 from typing import Any, Sequence
@@ -14,9 +15,38 @@ class ActorError(RuntimeError):
     pass
 
 
+def resolve_command(command: Sequence[str]) -> list[str]:
+    """Résout aussi les wrappers PowerShell/CMD installés par les CLI Windows."""
+    values = list(command)
+    if not values:
+        raise ActorError("commande acteur vide")
+    name = values[0]
+    if os.name == "nt" and name.lower() == "codex":
+        wrapper = shutil.which("codex.cmd")
+        if wrapper:
+            script = Path(wrapper).parent / "node_modules" / "@openai" / "codex" / "bin" / "codex.js"
+            node = shutil.which("node.exe")
+            if script.exists() and node:
+                return [node, str(script), *values[1:]]
+    resolved = shutil.which(name)
+    if not resolved:
+        return values
+    suffix = Path(resolved).suffix.lower()
+    if os.name == "nt" and name.lower() == "agent" and suffix in {".cmd", ".bat"}:
+        script = Path(resolved).with_name("cursor-agent.ps1")
+        if script.exists():
+            return [
+                shutil.which("powershell.exe") or "powershell.exe",
+                "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(script),
+                *values[1:],
+            ]
+    return [resolved, *values[1:]]
+
+
 def run(command: Sequence[str], *, cwd: Path, timeout: int = 900) -> str:
+    resolved = resolve_command(command)
     result = subprocess.run(
-        list(command), cwd=cwd, text=True, encoding="utf-8", errors="replace",
+        resolved, cwd=cwd, text=True, encoding="utf-8", errors="replace",
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=timeout, check=False,
     )
     if result.returncode:

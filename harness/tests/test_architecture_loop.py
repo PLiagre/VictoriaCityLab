@@ -4,6 +4,7 @@ import hashlib
 import json
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 from harness.audit_decision import decide
@@ -11,10 +12,27 @@ from harness.audit_ledger import LedgerError, append_event, read_events, validat
 from harness.audit_schema import SchemaError, validate_audit
 from harness.merge_bot_policy import validate_paths
 from harness.pipeline.supervisor import Supervisor
+from harness.pipeline.actors import resolve_command
 from harness.verdict_audit import validate_brief
 
 
 class ArchitectureLoopTests(unittest.TestCase):
+    def test_windows_wrappers_are_resolved_without_a_shell(self) -> None:
+        with mock.patch("harness.pipeline.actors.os.name", "nt"), mock.patch(
+            "harness.pipeline.actors.shutil.which",
+            side_effect=lambda value: {
+                "codex.cmd": r"C:\Npm\codex.cmd",
+                "node.exe": r"C:\Node\node.exe",
+                "agent": r"C:\Cursor\agent.CMD",
+                "powershell.exe": r"C:\Windows\powershell.exe",
+            }.get(value),
+        ), mock.patch("harness.pipeline.actors.Path.exists", return_value=True):
+            self.assertEqual(r"C:\Node\node.exe", resolve_command(["codex", "exec"])[0])
+            self.assertIn("codex.js", resolve_command(["codex", "exec"])[1])
+            cursor = resolve_command(["agent", "--print", "prompt"])
+            self.assertEqual(r"C:\Windows\powershell.exe", cursor[0])
+            self.assertIn("cursor-agent.ps1", cursor[5])
+
     def test_full_audit_state_machine(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             ledger = Path(temp) / "ledger.jsonl"
