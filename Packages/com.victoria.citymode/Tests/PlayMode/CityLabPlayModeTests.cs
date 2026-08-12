@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Linq;
+using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -56,17 +57,44 @@ namespace Victoria.CityMode.Tests
                 .Find(item => item.id == granary.createdId);
             Assert.IsNotNull(granaryState);
             Assert.AreEqual(BuildingArchetype.Granary, granaryState.archetype);
-            Assert.IsNotNull(Object.FindObjectsByType<BuildingView>(FindObjectsSortMode.None)
-                .FirstOrDefault(item => item.BuildingId == granary.createdId));
+            var granaryView = Object.FindObjectsByType<BuildingView>(FindObjectsSortMode.None)
+                .FirstOrDefault(item => item.BuildingId == granary.createdId);
+            Assert.IsNotNull(granaryView);
+            var scaffold = granaryView.GetComponent<ConstructionScaffoldVisual>();
+            Assert.IsNotNull(scaffold, "Chaque chantier civique doit porter son échafaudage.");
 
             var controller = Object.FindFirstObjectByType<CityBuildController>();
             Assert.IsNotNull(controller);
-            var selectedId = snapshot.buildings[0].id;
+            var selectedId = granary.createdId;
             controller.SelectBuilding(selectedId);
             controller.SetSelectedPriority(3);
             yield return null;
             Assert.AreEqual(selectedId, controller.SelectedBuildingId);
             Assert.AreEqual(3, game.StateSource.GetSnapshot(1001).buildings.Find(item => item.id == selectedId).priority);
+            Assert.IsTrue(granaryView.IsSelected);
+            Assert.IsTrue(scaffold.IsSelected,
+                "La sélection du chantier doit atteindre son échafaudage.");
+
+            var serialized = CitySaveService.Serialize(game.StateSource.GetSnapshot(1001));
+            Assert.IsTrue(CitySaveService.TryDeserialize(serialized,
+                out var reloadedSnapshot, out var reloadReason), reloadReason);
+            var restore = typeof(CityLabGame).GetMethod("RestoreSnapshot",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.IsNotNull(restore);
+            restore.Invoke(game, new object[] { reloadedSnapshot });
+            yield return null;
+
+            var reloadedView = Object.FindObjectsByType<BuildingView>(FindObjectsSortMode.None)
+                .FirstOrDefault(item => item.BuildingId == selectedId);
+            Assert.IsNotNull(reloadedView);
+            var reloadedScaffold = reloadedView.GetComponent<ConstructionScaffoldVisual>();
+            Assert.IsNotNull(reloadedScaffold);
+            Assert.AreEqual(reloadedSnapshot.buildings.Find(item => item.id == selectedId).phase,
+                reloadedScaffold.CurrentPhase);
+            Assert.IsTrue(reloadedView.IsSelected,
+                "Le rechargement doit réappliquer le surlignage du chantier sélectionné.");
+            Assert.IsTrue(reloadedScaffold.IsSelected,
+                "Le rechargement doit réappliquer les marqueurs de l'échafaudage sélectionné.");
 
             game.SetSimulationSpeed(2f);
             Assert.AreEqual(2f, game.SimulationSpeed);

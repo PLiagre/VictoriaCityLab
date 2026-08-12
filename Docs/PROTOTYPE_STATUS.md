@@ -22,6 +22,9 @@
 - nouveaux chantiers précédés d'un terrassement calculé sur cinq points de
   l'emprise ; bâtiments civiques alimentés physiquement en pierre, bois,
   planches puis outils selon leur phase, avec progression et matériau visibles ;
+- échafaudages déterministes à quatre niveaux cumulatifs, absents avant le
+  terrassement et retirés à l'achèvement ; leur niveau `1/4` à `4/4` apparaît
+  dans la fiche du chantier, et sélection comme phase sont restaurées au reload ;
 - production forestiere deterministe et suivi du bois en stock, reserve, en
   transit et livre aux chantiers ;
 - tâches logistiques persistantes pilotées par priorité, avec sources et
@@ -74,6 +77,14 @@ restent dans `Packages/com.victoria.citymode`. La scene, le catalogue visuel et 
 adaptateurs d'assets tiers restent dans `Assets/CityLabHost`. Aucun code du package
 ne reference directement un dossier Vendor.
 
+La production est pilotable par le harnais full-auto sous `harness/`. Hermes
+sélectionne l'unique incrément `EN_COURS`, Codex produit, Cursor audite et
+Claude contredit dans des exécutions séparées. La fusion automatique exige la
+CI verte, les deux verdicts `PASS`, une décision enregistrée sur `main` et la
+politique de chemins fermée. Les workflows, l'orchestrateur, la gouvernance et
+les sources Vendor restent protégés ; quatre coupe-circuits permettent un
+retour immédiat au mode manuel.
+
 L'économie forestière est exposée par `PlaceLumberCamp` et
 `ProductionSiteState`. L'affectation est physique : seuls les bûcherons présents
 au camp construisent puis produisent. Les huit emplois, leurs lieux de travail,
@@ -85,8 +96,8 @@ sauvegardé. L'abattage individuel de chaque arbre reste à produire.
 Les jalons visuels sont captures depuis le player Windows a 1920 x 1080 dans
 `Logs/Captures`. Le smoke test charge une fixture hote de 20 foyers, 30 batiments
 et 30 habitants et refuse de valider un scenario incomplet. La validation du
-3 août 2026 passe 70/70 tests EditMode et 1/1 test PlayMode ; le build Windows
-de référence pèse 308 836 067 octets. Le stress déterministe couvre 100 habitants pendant
+12 août 2026 passe 71/71 tests EditMode et 1/1 test PlayMode ; le build Windows
+de référence pèse 308 842 899 octets. Le stress déterministe couvre 100 habitants pendant
 20 minutes sans échec de navigation. Le smoke valide aussi un round-trip de
 sauvegarde dans le player ; la mesure visible de référence reste 60,0 FPS et
 16,683 ms au p95 sur 1 800 frames. L'économie M2 progresse aussi 60 jours,
@@ -95,23 +106,19 @@ Les snapshots metier sont rafraichis a 10 Hz et les vues d'habitants interpolent
 leur position a chaque frame, ce qui evite une serialisation JSON complete dans
 chaque `Update` sans sacrifier la fluidite visuelle.
 
+Le 12 août 2026, les 20 tests Python du harnais passent et le cycle témoin de la
+PR #14 a été fusionné automatiquement après CI, audit Cursor `PASS` et challenge
+Claude `PASS`. L'audit #15, l'archive terminale #16 et le dashboard Hermes #18
+sont fusionnés ; le ledger atteint `AUDIT_ARCHIVED`. Cette preuve porte sur
+l'automatisation de production et ne remplace aucune porte Unity ou player.
+
 ## Limites connues et prochaines priorites
 
 - le livrable est un vertical slice jouable et valide, pas un jeu AAA termine ;
 - ajouter objectifs, tutoriel et options completes, puis étendre la sauvegarde
   aux futurs systèmes au fil de leur intégration ;
-- terminer la construction physique avec échafaudages, réparation et démolition
-  (`M3-BUILD-01`) ; le terrassement, les matériaux par étape et les équipes
-  affectées sont déjà jouables ;
+- terminer la construction physique avec usure, réparation et démolition
+  (`M3-BUILD-01`) ; terrassement, matériaux par étape, équipes affectées et
+  échafaudages synchronisés sont déjà jouables ;
 - augmenter la variation des facades, personnages, animations, effets, sons et
   compositions de village, puis valider plusieurs centaines d'habitants.
-
-## Automatisation de production
-
-La file de production est pilotée par l'unique incrément `EN_COURS` de la
-roadmap. Hermes planifie, Codex produit, Cursor audite et Claude évalue dans des
-sessions séparées. La boucle est opérationnelle : le cycle témoin #14 a été
-fusionné automatiquement après CI et double verdict `PASS`, puis archivé par
-le workflow post-fusion jusqu'à `AUDIT_ARCHIVED`. Cette infrastructure
-n'ajoute aucune fonction jouable ; elle reprend maintenant l'incrément
-`M3-BUILD-01`.

@@ -38,6 +38,8 @@ namespace Victoria.CityMode
         Material houseMaterial;
         Material villagerMaterial;
         Material woodMaterial;
+        Material scaffoldMaterial;
+        Material scaffoldAccentMaterial;
         Material smokeMaterial;
         Material baseMaterial;
         Terrain worldTerrain;
@@ -66,7 +68,9 @@ namespace Victoria.CityMode
             var isCapture = Array.Exists(arguments, item => item == "-citylabCapture");
             var isCharacterReview = Array.Exists(arguments, item => item == "-citylabCharacterReview");
             var isBuildingReview = Array.Exists(arguments, item => item == "-citylabBuildingReview");
-            automatedRun = isSmoke || isPerformance || isCapture || isCharacterReview || isBuildingReview;
+            var isScaffoldingReview = Array.Exists(arguments, item => item == "-citylabScaffoldingReview");
+            automatedRun = isSmoke || isPerformance || isCapture || isCharacterReview ||
+                isBuildingReview || isScaffoldingReview;
             var fixture = Resources.Load<TextAsset>(isSmoke || isPerformance || isBuildingReview
                 ? "city_fixture_performance_1001"
                 : "city_fixture_1001");
@@ -130,6 +134,10 @@ namespace Victoria.CityMode
             else if (isBuildingReview)
             {
                 gameObject.AddComponent<CityLabBuildingReviewProbe>();
+            }
+            else if (isScaffoldingReview)
+            {
+                gameObject.AddComponent<CityLabScaffoldingReviewProbe>();
             }
         }
 
@@ -325,11 +333,17 @@ namespace Victoria.CityMode
                 hud?.ShowMessage($"Chargement refuse : {reason}", false);
                 return;
             }
+            RestoreSnapshot(snapshot);
+            hud?.ShowMessage("Partie chargee", true);
+        }
+
+        void RestoreSnapshot(CitySnapshot snapshot)
+        {
             simulation = new LocalCitySimulation(snapshot, buildingCatalog);
             simulation.SetParcelTerrainSampler(new TerrainParcelSampler(worldTerrain));
             ClearSnapshotViews();
             RefreshSnapshotViews();
-            hud?.ShowMessage("Partie chargee", true);
+            SetSelectedBuilding(buildController != null ? buildController.SelectedBuildingId : 0);
         }
 
         void RunSaveRuntimeSmoke()
@@ -453,6 +467,8 @@ namespace Victoria.CityMode
             houseMaterial = MakeMaterial("House", new Color(0.46f, 0.22f, 0.14f));
             villagerMaterial = MakeMaterial("Villager", new Color(0.20f, 0.29f, 0.43f));
             woodMaterial = MakeMaterial("Wood", new Color(0.43f, 0.24f, 0.09f));
+            scaffoldMaterial = MakeMaterial("Scaffolding", new Color(0.46f, 0.27f, 0.10f));
+            scaffoldAccentMaterial = MakeMaterial("Scaffolding Accent", new Color(0.86f, 0.55f, 0.12f));
             smokeMaterial = MakeMaterial("Hearth Smoke", new Color(0.14f, 0.15f, 0.14f, 0.20f), true);
             var smokeTexture = CreateSoftParticleTexture();
             smokeMaterial.SetTexture("_BaseMap", smokeTexture);
@@ -995,8 +1011,14 @@ namespace Victoria.CityMode
                     footprint, foundationMaterial);
                 view.transform.rotation = Quaternion.Euler(0f, building.yaw, 0f);
                 view.AddComponent<BuildingView>().Initialize(building.id, baseMaterial);
+                view.AddComponent<ConstructionScaffoldVisual>().Initialize(
+                    definition.footprintWidth, definition.footprintDepth,
+                    scaffoldMaterial, scaffoldAccentMaterial);
                 buildingViews.Add(building.id, view);
             }
+
+            view.GetComponent<ConstructionScaffoldVisual>()?.Refresh(
+                building.phase, building.terrainPrepared);
 
             var renderer = view.GetComponent<Renderer>();
             switch (building.phase)
@@ -1328,6 +1350,7 @@ namespace Victoria.CityMode
         LineRenderer selection;
 
         public int BuildingId { get; private set; }
+        public bool IsSelected => selection != null && selection.enabled;
 
         public void Initialize(int buildingId, Material baseMaterial)
         {
@@ -1352,6 +1375,7 @@ namespace Victoria.CityMode
         {
             if (selection != null)
                 selection.enabled = selected;
+            GetComponent<ConstructionScaffoldVisual>()?.SetSelected(selected);
         }
 
         void LateUpdate()
@@ -1682,6 +1706,65 @@ namespace Victoria.CityMode
                 animator.Update(0f);
             }
         }
+    }
+
+    public sealed class CityLabScaffoldingReviewProbe : MonoBehaviour
+    {
+        static readonly BuildingPhase[] Phases =
+        {
+            BuildingPhase.Foundation, BuildingPhase.Framing,
+            BuildingPhase.Roofing, BuildingPhase.Detailing
+        };
+        int frames;
+
+        void Awake()
+        {
+            var controller = FindFirstObjectByType<RtsCameraController>();
+            if (controller != null)
+                controller.enabled = false;
+            var game = FindFirstObjectByType<CityLabGame>();
+            var camera = game != null ? game.WorldCamera : FindFirstObjectByType<Camera>();
+            if (camera == null)
+                throw new InvalidOperationException("CityLab scaffolding review camera is missing.");
+            var rotation = Quaternion.Euler(36f, 0f, 0f);
+            camera.transform.SetPositionAndRotation(new Vector3(0f, 30f, -51f), rotation);
+
+            var baseMaterial = Resources.Load<Material>("CityLabBaseMaterial");
+            if (baseMaterial == null)
+                throw new InvalidOperationException("CityLab scaffolding review material is missing.");
+            var timber = NewMaterial(baseMaterial, "Scaffolding review timber",
+                new Color(0.46f, 0.27f, 0.10f));
+            var accent = NewMaterial(baseMaterial, "Scaffolding review accent",
+                new Color(0.86f, 0.55f, 0.12f));
+
+            for (var index = 0; index < Phases.Length; index++)
+            {
+                var root = new GameObject($"Scaffolding review phase {index + 1}");
+                root.transform.position = new Vector3(-24f + index * 16f, 0f, 8f);
+                var scaffold = root.AddComponent<ConstructionScaffoldVisual>();
+                scaffold.Initialize(11f, 13f, timber, accent);
+                scaffold.Refresh(Phases[index], true);
+                scaffold.SetSelected(index == Phases.Length - 1);
+                if (scaffold.VisibleStageCount != index + 1)
+                    throw new InvalidOperationException("Scaffolding review phase synchronization failed.");
+            }
+        }
+
+        void Update()
+        {
+            if (++frames < 25)
+                return;
+            var path = Path.GetFullPath(
+                "Logs/Captures/Buildings/m3-scaffolding-four-phases-20260811.png");
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            CityLabCaptureProbe.CaptureOffscreen(path);
+            Debug.Log("CITYLAB_SCAFFOLDING_REVIEW_OK phases=4 cumulative=true selection=true path=" + path);
+            Application.Quit(0);
+            enabled = false;
+        }
+
+        static Material NewMaterial(Material source, string label, Color color) =>
+            new Material(source) { name = label, color = color };
     }
 
     public sealed class CityLabBuildingReviewProbe : MonoBehaviour

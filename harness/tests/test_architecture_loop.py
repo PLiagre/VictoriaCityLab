@@ -100,9 +100,15 @@ class ArchitectureLoopTests(unittest.TestCase):
         ok, refused = validate_paths([".github/workflows/pwn.yml"])
         self.assertFalse(ok)
         self.assertEqual([".github/workflows/pwn.yml"], refused)
-        ok, refused = validate_paths(["Packages/com.victoria.citymode/Tests/EditMode/Bypass.cs"])
+        ok, refused = validate_paths([
+            "Docs/ROADMAP.md",
+            "Packages/com.victoria.citymode/Tests/Editor/RepairTests.cs",
+        ])
+        self.assertTrue(ok)
+        self.assertEqual([], refused)
+        ok, refused = validate_paths(["Tools/check_roadmap.ps1"])
         self.assertFalse(ok)
-        self.assertEqual(["Packages/com.victoria.citymode/Tests/EditMode/Bypass.cs"], refused)
+        self.assertEqual(["Tools/check_roadmap.ps1"], refused)
 
     def test_supervisor_stops_budget_and_plateau(self) -> None:
         supervisor = Supervisor(max_iterations=3, plateau_limit=2)

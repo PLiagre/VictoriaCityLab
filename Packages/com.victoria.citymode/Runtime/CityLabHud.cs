@@ -618,12 +618,14 @@ namespace Victoria.CityMode
                 else if (CurrentConstructionMaterial(selected) is ConstructionMaterialState material)
                 {
                     selectionDetails.text =
-                        $"{PhaseName(selected.phase)}   •   {ResourceName(material.resource)} {material.delivered}/{material.required}";
+                        $"{PhaseName(selected.phase)}   •   Échafaudage {ScaffoldStage(selected.phase)}/4   •   " +
+                        $"{ResourceName(material.resource)} {material.delivered}/{material.required}";
                 }
                 else
                 {
                     selectionDetails.text =
-                        $"Priorité {PriorityName(selected.priority)}   •   {PhaseName(selected.phase)} en travaux";
+                        $"Priorité {PriorityName(selected.priority)}   •   {PhaseName(selected.phase)}   •   " +
+                        $"Échafaudage {ScaffoldStage(selected.phase)}/4";
                 }
                 priorityControls.SetEnabled(true);
                 priorityControls.style.opacity = 1f;
@@ -735,6 +737,15 @@ namespace Victoria.CityMode
             BuildingPhase.Roofing => "Couverture",
             BuildingPhase.Detailing => "Finitions",
             _ => "Ouvrage"
+        };
+
+        static int ScaffoldStage(BuildingPhase phase) => phase switch
+        {
+            BuildingPhase.Foundation => 1,
+            BuildingPhase.Framing => 2,
+            BuildingPhase.Roofing => 3,
+            BuildingPhase.Detailing => 4,
+            _ => 0
         };
 
         static string ResourceName(CityResourceKind resource) => resource switch
