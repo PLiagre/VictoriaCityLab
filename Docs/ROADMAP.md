@@ -169,7 +169,7 @@ Ces cibles guident CityLab sans lui redonner l'autorité du monde :
 | `META-ROADMAP-01` | Pilotage persistant du projet | DONE | `AGENTS.md`, `Tools/check_roadmap.ps1` et contrôle `CITYLAB_ROADMAP_OK`. |
 | `META-REPO-01` | Publication GitHub et Git LFS | DONE | Dépôt privé `PLiagre/VictoriaCityLab`, branche `main` et 790 objets LFS publiés. |
 | `META-CODEX-01` | Plan de production exécutable par sessions Codex | DONE | Cible premium, contrat de session, file ordonnée et prompt de lancement consignés ; `AGENTS.md` sélectionne l'unique incrément `EN_COURS` ; le vérificateur contrôle ordre, définition et concordance avec la tâche active ; `CITYLAB_ROADMAP_OK` et `git diff --check`. |
-| `META-AUTO-01` | Architecture full-auto adaptée de ForgeHistory | DONE | Runner `citylab-full-auto-pe` en ligne ; run #31606929060 ; PR #14 auditée `PASS` puis fusionnée automatiquement ; audit #15, archive terminale #16 et dashboard Hermes #18 ; 20/20 tests Python et trois cycles refusés conservés comme preuves fail-closed. |
+| `META-AUTO-01` | Architecture full-auto adaptée de ForgeHistory | DONE | Runner `citylab-full-auto-pe` en ligne ; chaque lot conserve CI, chemins fermés et évaluation Claude séparée ; Cursor/Claude et le ledger sont réservés aux points critiques déterministes ou au label explicite `pipeline/critical-audit` ; le cycle critique témoin #14→#15→#16 reste la preuve de référence. |
 
 ## M1 — fondations de production
 
@@ -330,7 +330,12 @@ ForgeHistory, chargée depuis sa carte principale. ForgeHistory reste en lecture
 seule et possède simulation, horloge et sauvegarde ; CityLab est un client de
 présentation et un laboratoire. Livre contrats versionnés, cycle de chargement,
 adaptateur/mocks, tests et preuves sans créer de seconde autorité. Mets à jour
-les documents uniquement selon ce qui est réellement validé.
+les documents uniquement selon ce qui est réellement validé. Travaille depuis
+un worktree propre basé sur `origin/main`, préserve le dossier principal s'il
+est sale et poursuis jusqu'à fermer l'incrément ou prouver un blocage réel.
+N'invoque Cursor que pour les points critiques définis dans
+`Docs/Automation/FULL_AUTO.md` ; les autres PR conservent Claude, CI et la
+politique de chemins sans audit Cursor.
 ```
 
 ## Sessions Codex ordonnées
@@ -452,6 +457,7 @@ Avant de terminer une session qui a modifié le projet :
 
 | Date | Tâches | Résultat | Preuves | Prochaine priorité |
 |---|---|---|---|---|
+| 2026-08-13 | `META-AUTO-01` | L'audit Cursor n'est plus déclenché à l'ouverture, la synchronisation ou la mise à jour de chaque PR. Les lots ordinaires restent gardés par l'évaluation Claude du générateur, la CI et les chemins autorisés ; les frontières d'autorité/packaging, transitions, synchronisation/sauvegarde et portes performance/QA/release reçoivent automatiquement `pipeline/critical-audit`, avec possibilité de ciblage manuel par PR et SHA. | Politique critique dans `harness/pipeline/config.json`, workflow limité à `labeled`/`workflow_dispatch`, merge bot conditionnel, archivage critique uniquement et tests de non-régression du harnais. | Reprendre `M3-FH-02`, lui-même point critique, après fusion de la politique. |
 | 2026-08-13 | `M3-FH-02` | Premier découpage livré sans clore l'incrément : le contrat devient un package UPM autonome sans dépendance Unity ; `CityModeSession` impose ouverture/fermeture explicites, snapshot initial concordant et une seule instance ; le bootstrap global est supprimé et la scène de laboratoire conserve son `CityLabGame` explicite. | `com.victoria.citymode.contracts`, `CITY_MODE_HOST_API.md`, tests NUnit session/bootstrap ; 8/8 tests Python et validateur hors Unity verts. Suites Unity non exécutées, adaptateur laboratoire encore mêlé à la présentation. | Séparer présentation et adaptateur laboratoire, puis importer les contrats dans un hôte Unity minimal et exécuter les suites Unity/player. |
 | 2026-08-13 | `M3-FH-01` | Contrat v1 fermé : l'hôte ForgeHistory possède identité, tick, simulation et sauvegarde ; City Mode reçoit un contexte, lit un snapshot complet révisionné et émet des intentions corrélées/idempotentes. Le cycle de chargement, les erreurs, la politique de temps, le découpage de portage et huit demandes amont Hermes sont explicites. ForgeHistory est resté en lecture seule. | `FORGEHISTORY_CITY_MODE_CONTRACT.md`, contrat C# sans Unity, schéma JSON 2020-12 et cinq exemples ; 8/8 tests Python ; `CITYLAB_FORGEHISTORY_CONTRACT_OK protocol=1 documents=5 upstream_writes=0`. | `M3-FH-02` : isoler l'adaptateur de laboratoire et remplacer le bootstrap global par une API hôte explicite. |
 | 2026-08-13 | `M3-FH-01` | Pivot de produit : CityLab devient la vue ville jouable de ForgeHistory, ouverte depuis sa carte principale. L'audit lecture seule confirme Unity 6000.0.43f1 commun, mais révèle une divergence d'autorité : CityLab simule/sauvegarde dans Unity et se bootstrap après chaque scène, tandis que ForgeHistory exige une simulation unique hors Unity. La roadmap place donc contrats, packaging, rendu, transition, adaptateur backend et portage d'assets avant la suite des mécaniques locales. | ForgeHistory `268e8aab...e311`, `VISION.md`, `unity/README.md`, `Main.unity`, `MapDisplaySystem`, `PilotMapProvider`, manifests Unity ; CityLab `CityLabBootstrap`, `CityLabGame`, `CityContracts`, manifests et schéma de sauvegarde. | Exécuter l'incrément 02 : documenter le contrat d'autorité/chargement/portage sans écrire dans ForgeHistory. |

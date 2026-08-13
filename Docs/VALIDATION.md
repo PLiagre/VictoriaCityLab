@@ -53,6 +53,7 @@ Cette validation structurelle ne remplace aucune preuve Unity ou player.
 | Sortie Unicode Windows | Un flux acteur contenant `→` est journalisé en UTF-8 et rendu sans erreur sur une console CP1252 | `test_console_output_survives_legacy_windows_encoding` ; le run #31611611471 a reproduit l'ancien échec fermé |
 | Outil acteur détaché | Un `CTRL_C` reçu après la fin de l'acteur devient une itération refusée et récupérable ; une interruption pendant que l'acteur vit encore reste propagée | `test_post_exit_console_interrupt_becomes_retryable_actor_failure`, `test_live_actor_console_interrupt_is_not_swallowed` ; run refusé #31615708173 |
 | Invites d'audit volumineuses | L'invite Claude transite par stdin ; Cursor reçoit un ordre borné et relit lui-même le diff complet de la PR au SHA ciblé avec `gh pr diff` | `test_actor_prompt_can_be_sent_over_stdin` ; `test_cursor_audit_reads_large_pr_diff_out_of_band` ; `WinError 206` reproduit par le run #31617561462 |
+| Cadence Cursor | Aucun audit à l'ouverture/synchronisation d'une PR ; déclenchement seulement par `pipeline/critical-audit` ou ciblage manuel PR+SHA ; le merge bot n'exige une décision versionnée que pour ces PR critiques | `test_cursor_audit_is_reserved_for_declared_critical_tasks`, `test_pr_audit_only_runs_on_explicit_critical_label`, `test_merge_bot_requires_audit_only_for_critical_prs` |
 
 ## Resultats
 

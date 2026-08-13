@@ -89,12 +89,15 @@ présentation et de l'adaptateur local ainsi que le chargement dans l'hôte rest
 à implémenter ; aucune intégration player ForgeHistory n'est encore revendiquée.
 
 La production est pilotable par le harnais full-auto sous `harness/`. Hermes
-sélectionne l'unique incrément `EN_COURS`, Codex produit, Cursor audite et
-Claude contredit dans des exécutions séparées. La fusion automatique exige la
-CI verte, les deux verdicts `PASS`, une décision enregistrée sur `main` et la
-politique de chemins fermée. Les workflows, l'orchestrateur, la gouvernance et
-les sources Vendor restent protégés ; quatre coupe-circuits permettent un
-retour immédiat au mode manuel.
+sélectionne l'unique incrément `EN_COURS`, Codex produit et Claude évalue dans
+des exécutions séparées. La CI et la politique de chemins restent obligatoires
+pour chaque PR. Cursor, son challenge Claude, la décision versionnée et
+l'archivage ne s'exécutent plus sur les lots courants : ils sont réservés aux
+frontières d'autorité/packaging, transitions, synchronisation/sauvegarde et
+portes performance/QA/release déclarées critiques, ou à un label critique
+posé explicitement. Les workflows, l'orchestrateur, la gouvernance et les
+sources Vendor restent protégés ; quatre coupe-circuits permettent un retour
+immédiat au mode manuel.
 
 L'économie forestière est exposée par `PlaceLumberCamp` et
 `ProductionSiteState`. L'affectation est physique : seuls les bûcherons présents

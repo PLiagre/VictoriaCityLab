@@ -22,10 +22,12 @@ roadmap doit alors être mise à jour pour refléter cette décision.
 
 - Le pipeline autoritaire est décrit dans `Docs/Automation/FULL_AUTO.md`.
 - Une seule ligne `EN_COURS` est admise dans « Sessions Codex ordonnées ».
-- Hermes orchestre, Codex produit, Cursor audite et Claude contredit ; aucun
-  acteur ne peut valider sa propre production.
-- La fusion automatique exige à la fois la CI verte, un verdict d'audit `PASS`
-  enregistré sur `main` et la politique de chemins fermée.
+- Hermes orchestre, Codex produit et Claude évalue chaque lot dans une invocation
+  distincte ; Cursor audite seulement les points critiques définis dans
+  `Docs/Automation/FULL_AUTO.md`.
+- La fusion automatique exige toujours CI verte et politique de chemins fermée ;
+  une PR marquée `pipeline/critical-audit` exige en plus un verdict Cursor puis
+  un challenge Claude `PASS` enregistré sur `main`.
 - Une issue ouverte portant `pipeline/pause` neutralise les générations.
 
 ## Suivi obligatoire
