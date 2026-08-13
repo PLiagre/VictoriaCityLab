@@ -7,6 +7,32 @@ a CityLab : `py Tools/run_unity_locked.py -- <Unity.exe> ...`.
 Cette validation porte sur un vertical slice jouable. Elle ne constitue pas une
 certification qu'un jeu AAA complet est termine.
 
+## Contrat ForgeHistory ↔ City Mode v1 — 13 août 2026
+
+Cette porte valide la frontière de données et d'autorité hors Unity. Elle ne
+prouve pas encore le chargement du package, la transition de scène ni un player
+ForgeHistory.
+
+| Porte | Résultat | Preuve |
+|---|---|---|
+| Dépendance amont | ForgeHistory audité au commit `268e8aab151452b0c740a44a7cc97ca3fd37e311`, zéro écriture | `Docs/Integration/FORGEHISTORY_CITY_MODE_CONTRACT.md` |
+| Autorité | monde, tick, simulation et sauvegarde attribués à ForgeHistory ; vue et entrées à City Mode | matrice d'autorité v1 |
+| Contrat C# | contexte, snapshot, intention, reçu, révision, erreurs et interfaces ; aucune référence Unity | `ForgeHistoryCityModeContracts.cs` |
+| Schéma filaire | JSON Schema draft 2020-12, protocole v1 et cinq documents exemples cohérents | `Docs/Integration/Schemas/` |
+| Contrats négatifs | contexte incomplet, temps incohérent, révision négative, hash invalide et reçu contradictoire refusés | 8/8 tests Python |
+| Validateur | version, identité, révision, SHA-256, pureté C# et documentation contrôlés | `CITYLAB_FORGEHISTORY_CONTRACT_OK protocol=1 documents=5 upstream_writes=0` |
+| Package minimal | `com.victoria.citymode.contracts`, zéro dépendance Unity et assembly `noEngineReferences` | `package.json`, `Victoria.CityMode.Contracts.asmdef` |
+| Lifecycle hôte | ouverture/fermeture explicite, double instance refusée, intention périmée bloquée avant l'hôte | `CityModeSession`, tests NUnit ajoutés |
+| Bootstrap laboratoire | aucun `RuntimeInitializeOnLoadMethod` ; la scène possède explicitement `CityLabGame` | validateur structurel et `CityLabBootstrapTests.cs` |
+| Unity | tests NUnit ajoutés mais non exécutés dans cet environnement | tests contrat/session/bootstrap |
+
+Commandes reproduites :
+
+```bash
+python3 -m unittest discover -s Tools/tests -p 'test_forgehistory_city_mode_contract.py' -v
+python3 Tools/validate_forgehistory_city_mode_contract.py
+```
+
 ## Architecture full-auto — 12 août 2026
 
 Cette validation structurelle ne remplace aucune preuve Unity ou player.

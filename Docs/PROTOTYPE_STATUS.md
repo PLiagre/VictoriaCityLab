@@ -77,6 +77,17 @@ restent dans `Packages/com.victoria.citymode`. La scene, le catalogue visuel et 
 adaptateurs d'assets tiers restent dans `Assets/CityLabHost`. Aucun code du package
 ne reference directement un dossier Vendor.
 
+Le contrat d'intégration v1 ForgeHistory ↔ City Mode est maintenant défini en
+C# pur et JSON versionné. ForgeHistory possède le monde, le tick, la simulation
+et la sauvegarde ; City Mode reçoit un `CityLaunchContext`, consomme un snapshot
+révisionné et émet des intentions corrélées. `LocalCitySimulation`, le save local
+et les fixtures restent des outils de laboratoire, pas une autorité de
+production. Le contrat vit désormais dans un package UPM sans dépendance Unity,
+la session hôte est explicite et le bootstrap global a été retiré ; la scène du
+laboratoire possédait déjà son `CityLabGame`. La séparation complète de la
+présentation et de l'adaptateur local ainsi que le chargement dans l'hôte restent
+à implémenter ; aucune intégration player ForgeHistory n'est encore revendiquée.
+
 La production est pilotable par le harnais full-auto sous `harness/`. Hermes
 sélectionne l'unique incrément `EN_COURS`, Codex produit, Cursor audite et
 Claude contredit dans des exécutions séparées. La fusion automatique exige la
@@ -117,6 +128,11 @@ l'automatisation de production et ne remplace aucune porte Unity ou player.
 - le livrable est un vertical slice jouable et valide, pas un jeu AAA termine ;
 - ajouter objectifs, tutoriel et options completes, puis étendre la sauvegarde
   aux futurs systèmes au fil de leur intégration ;
+- finir le découpage présentation/adaptateur laboratoire, puis prouver l'import
+  du package de contrats et le lifecycle explicite dans un hôte Unity minimal
+  (`M3-FH-02`) ;
+- valider ensuite la convergence Built-in/URP et les packages Unity avant tout
+  portage d'assets (`M3-FH-03`) ;
 - terminer la construction physique avec usure, réparation et démolition
   (`M3-BUILD-01`) ; terrassement, matériaux par étape, équipes affectées et
   échafaudages synchronisés sont déjà jouables ;
