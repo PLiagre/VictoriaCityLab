@@ -2,42 +2,50 @@
 
 <!-- CITYLAB_ROADMAP
 schema: 1
-last_updated: 2026-08-12
+last_updated: 2026-08-13
 active_milestone: M3
 roadmap_status: ACTIVE
 -->
 
-Ce document est la source de vérité du développement. L'objectif est un jeu de
-gestion seigneuriale médiévale complet, avec construction organique, économie
-physique, société, carte régionale et batailles tactiques. Il vise la profondeur
-et la finition d'un grand city-builder commercial tout en conservant une
-identité, des règles, des visuels et des contenus originaux à Victoria CityLab.
+Ce document est la source de vérité du développement de CityLab. Le produit
+cible n'est plus un jeu autonome : CityLab doit devenir la vue **ville jouable**
+ouverte depuis la carte principale de ForgeHistory. Le dépôt autonome reste un
+laboratoire, un harnais de validation et la source du package de présentation ;
+le runtime de production est `PLiagre/ForgeHistory/unity/game_unity`.
 
-La cible de production est un city-builder médiéval premium haut de gamme : une
-ville lisible sans HUD, une économie entièrement incarnée, une société dont les
-familles ont une histoire et des batailles rares mais persistantes. Les œuvres
-commerciales du genre servent uniquement de niveau d'exigence ; aucune règle,
-interface, dénomination, composition visuelle ou propriété tierce ne doit être
-copiée. La file « Sessions Codex ordonnées » transforme cette vision en lots
-exécutables et constitue l'ordre de production par défaut.
+ForgeHistory est la source de vérité du monde, du temps, de la simulation et de
+la sauvegarde. CityLab rend cet état, collecte des intentions joueur et présente
+leurs résultats ; il ne possède jamais une seconde simulation de production. Le
+dépôt ForgeHistory est une dépendance amont en lecture seule pour CityLab.
+L'audit initial est épinglé à `PLiagre/ForgeHistory@268e8aab151452b0c740a44a7cc97ca3fd37e311`
+(`master`, 13 août 2026). Toute évolution nécessaire côté ForgeHistory doit
+faire l'objet d'une demande à son propriétaire Hermes, jamais d'une modification
+implicite depuis ce dépôt.
 
-Le projet est actuellement un vertical slice jouable. Il ne doit être qualifié
-de jeu complet ou de qualité AAA que lorsque tous les critères de la section
-« Définition de la version 1.0 » sont objectivement validés.
+Les deux projets utilisent Unity `6000.0.43f1`, ce qui rend le portage de code
+possible sans upgrade moteur. En revanche, le chargement de scènes, le pipeline
+de rendu, les packages, l'autorité de simulation, les identifiants, l'horloge et
+la persistance doivent converger avant tout ajout majeur de gameplay. La file
+« Sessions Codex ordonnées » place désormais cette intégration avant la suite
+des fonctionnalités locales.
+
+Le projet actuel reste un vertical slice autonome jouable et validé. Il sert de
+preuve et de banc d'essai, pas de second jeu ni de seconde source de vérité.
 
 ## État de pilotage
 
 | Champ | Valeur |
 |---|---|
-| Dernière mise à jour | 12 août 2026 |
-| Jalon actif | `M3` — ville organique et société |
-| Dernier jalon validé | `M2` — économie de village jouable |
-| Priorité immédiate | `M3-BUILD-01` — construction physique complète |
-| Prochaine tâche prête | `M3-ART-01` — bible artistique et kit héroïque de production |
-| Cible produit | City-builder médiéval premium original, campagne 20 h et bac à sable rejouable |
-| Build de référence | `Builds/Windows/VictoriaCityLab.exe` |
-| Dépôt distant | `https://github.com/PLiagre/VictoriaCityLab` — branche `main` |
-| Preuves de référence | `Docs/VALIDATION.md` et `Logs/` |
+| Dernière mise à jour | 13 août 2026 |
+| Jalon actif | `M3` — intégration ForgeHistory et première ville chargeable |
+| Dernier jalon validé | `M2` — économie de village jouable dans le laboratoire autonome |
+| Priorité immédiate | `M3-FH-01` — contrat d'autorité, de chargement et de portage |
+| Prochaine tâche prête | `M3-FH-02` — découpage package/hôte et bootstrap explicite |
+| Cible produit | Vue ville jouable de ForgeHistory, issue de sa carte principale et de sa simulation unique |
+| Hôte de production | `PLiagre/ForgeHistory/unity/game_unity` — dépendance amont en lecture seule |
+| Hôte laboratoire | `PLiagre/VictoriaCityLab` — branche `main` |
+| Build de référence actuel | `Builds/Windows/VictoriaCityLab.exe` — preuve autonome, non build intégré |
+| Preuves de référence | `Docs/VALIDATION.md`, `Logs/` et futurs tests de contrat d'intégration |
 
 ### États autorisés
 
@@ -52,89 +60,100 @@ ou d'une compilation réussie. Sa colonne « Sortie / preuve » doit être satis
 
 ## Définition de la version 1.0
 
-La version 1.0 est atteinte uniquement si les conditions suivantes sont toutes
-remplies :
+La version 1.0 de CityLab est atteinte uniquement si les conditions suivantes
+sont toutes remplies dans le build ForgeHistory :
 
-- une campagne ou partie libre jouable pendant au moins 20 heures sans blocage ;
-- une boucle complète collecte, production, logistique, marché, construction,
-  besoins des foyers, fiscalité et croissance ;
-- au moins 10 familles de ressources, 30 chaînes de production et 70 bâtiments
-  réellement différenciés par leur fonction ou leur évolution ;
-- 500 habitants simulés à 60 FPS sur la machine cible recommandée, avec un p95
-  CPU inférieur à 16,7 ms dans le scénario de référence ;
-- sauvegarde/chargement versionné, autosave, récupération d'erreur et migrations ;
-- au moins 6 régions jouables, revendication territoriale, 3 seigneurs IA,
-  diplomatie et conflits résolus dans le monde de jeu ;
-- armées, équipement, formations, moral, fatigue, pertes et conséquences
-  économiques persistantes, avec une bataille de référence d'au moins
-  200 combattants dans le budget de performance ;
-- saisons, météo, agriculture, maladies, incendies et pénuries ayant un effet
-  lisible et équilibré ;
-- tutoriel, objectifs, options graphiques/audio/commandes, accessibilité et
-  localisation française/anglaise ;
-- direction artistique cohérente et originale, sans primitives de secours dans
-  les scènes de production ni dépendance visuelle à une propriété tierce connue ;
-- zéro erreur bloquante connue, zéro corruption de sauvegarde connue, tests de
-  régression verts et campagne complète validée par QA ;
-- build Windows signé et reproductible, crash reporting, crédits et licences.
+- depuis `Assets/Scenes/Main.unity`, le joueur sélectionne une ville réelle de
+  la carte puis choisit « Entrer dans la ville » ;
+- le chargement asynchrone affiche progression, erreur et possibilité de retour,
+  sans écran figé ni création implicite du runtime CityLab dans la scène carte ;
+- la ville ouverte est identifiée par le `city_id` ForgeHistory, son
+  `cell_id`/territoire parent, le tick monde, la révision d'état et une graine
+  dérivée du monde ; aucun identifiant `1001` n'est codé en dur en production ;
+- la simulation ForgeHistory est l'unique autorité : CityLab consomme des
+  snapshots et émet des intentions versionnées, corrélées, idempotentes et
+  explicitement acceptées ou refusées ;
+- `LocalCitySimulation`, les fixtures et `CitySaveService` ne servent qu'au
+  laboratoire et aux tests ; le build intégré ne lance ni horloge, ni autosave,
+  ni économie parallèle ;
+- l'entrée et la sortie de la ville conservent exactement le viewport, la
+  sélection, le temps monde et les conséquences économiques ; le retour à la
+  carte reflète les changements validés par le backend ;
+- agrégation et désagrégation ville/monde sont conservatives : personnes,
+  familles, stocks, bâtiments, emplois et ordres ne sont ni créés ni perdus par
+  un changement de vue ;
+- une politique explicite décide si le monde continue, ralentit ou se met en
+  pause pendant la vue ville ; une seule horloge applique cette décision ;
+- la sauvegarde/charge ForgeHistory restaure carte et ville au même tick et à la
+  même révision, avec migrations, checksum et refus propre des données
+  incompatibles ;
+- le portage préserve les GUID et licences, ne référence aucun prefab Vendor
+  direct et résout les écarts de packages/rendu sans régression de la carte
+  principale ;
+- cinquante cycles carte→ville→carte et un soak de deux heures passent sans fuite
+  mémoire croissante, double bootstrap, état dupliqué ni corruption ;
+- une ville de 250 habitants tient 60 FPS en 1080p avec un p95 CPU inférieur à
+  16,7 ms sur la machine cible ; 500 habitants reste la porte d'optimisation
+  finale ;
+- tutoriel d'entrée/sortie, remapping, accessibilité, français/anglais, gestion
+  d'erreur, crédits et licences sont validés dans le build intégré ;
+- zéro erreur bloquante connue, zéro corruption connue et toutes les régressions
+  carte, simulation, transition et ville sont vertes.
 
 ## Cibles d'ambition premium
 
-Ces cibles guident la conception et les budgets. Elles ne permettent jamais de
-qualifier le jeu de « AAA », « alpha », « bêta » ou « 1.0 » avant le passage des
-portes correspondantes :
+Ces cibles guident CityLab sans lui redonner l'autorité du monde :
 
-- 70 bâtiments fonctionnels ou évolutifs, 30 chaînes de production et au moins
-  10 familles de ressources, sans variantes purement cosmétiques comptées comme
-  fonctions distinctes ;
-- 8 à 12 régions présentant des sols, ressources, risques, routes et enjeux
-  politiques propres ;
-- 3 à 5 seigneurs IA aux stratégies économiques et diplomatiques différenciées ;
-- 500 habitants simulés à 60 FPS comme porte ferme de livraison, avec 800 à
-  1 000 habitants comme cible d'optimisation non bloquante si le budget matériel
-  le permet ;
-- batailles lisibles de 200 à 400 combattants, issues des foyers et des stocks du
-  monde, dont les morts, blessés, captifs et équipements perdus persistent ;
-- campagne d'au moins 20 heures, mode libre rejouable et objectifs proposant
-  plusieurs trajectoires économiques, sociales ou militaires ;
-- direction artistique originale et cohérente aux trois zooms, avec bâtiments
-  héroïques, matériaux PBR, population variée, animations contextuelles, VFX et
-  paysage sonore sans placeholder de production.
+- plusieurs villes data-driven, ouvertes depuis leurs marqueurs réels, avec
+  terrain, ressources, population, richesse et culture dérivés de ForgeHistory ;
+- ville lisible aux trois zooms, 70 bâtiments ou évolutions fonctionnelles et
+  30 chaînes à terme, sans compter les variantes purement cosmétiques ;
+- 500 habitants comme porte ferme de livraison et 800 à 1 000 comme cible
+  d'optimisation non bloquante si le budget matériel le permet ;
+- chargement froid inférieur à 10 s, retour carte inférieur à 5 s et transition
+  chaude inférieure à 3 s sur la machine cible, budgets à confirmer par le
+  prototype d'intégration ;
+- contenus visuels partitionnés par socle commun, culture/biome et ville, avec
+  cache borné et libération mesurée ;
+- conséquences des décisions, crises et guerres ForgeHistory visibles dans la
+  ville, sans implémenter dans CityLab une seconde diplomatie, IA stratégique ou
+  bataille ;
+- direction artistique originale, bâtiments héroïques, matériaux cohérents,
+  population variée, animations contextuelles, VFX et paysage sonore sans
+  placeholder de production.
 
 ## Piliers non négociables
 
-1. **Ville organique lisible** — les routes, parcelles, chantiers, extensions,
-   métiers, niveaux de richesse, dégâts et saisons racontent l'état de la ville
-   directement dans le monde.
-2. **Simulation physique et déterministe** — toute ressource importante est
-   produite, réservée, transportée, consommée et persistée ; toute exception au
-   déterminisme est documentée et testée.
-3. **Société persistante** — chaque habitant appartient à un foyer, travaille,
-   consomme, vieillit, migre, peut être blessé ou mourir, et transmet ces effets
-   à l'économie et à la stabilité.
-4. **Région stratégique systémique** — territoire, influence, commerce,
-   diplomatie et guerre reposent sur le même état de simulation, pas sur des
-   mini-jeux isolés.
-5. **Guerre à coût humain** — lever une armée retire de vrais travailleurs ; les
-   équipements proviennent des ateliers et les pertes changent durablement les
-   familles, la production et le pouvoir.
-6. **Qualité prouvée** — aucune fonctionnalité ne passe à `DONE` sans preuve
+1. **Une simulation, plusieurs vues** — ForgeHistory possède le monde ; carte,
+   ville, quartier et bataille observent les mêmes identités et le même tick.
+2. **Unity client mince** — CityLab rend, anime et collecte des intentions. La
+   logique métier de production vit dans le backend ForgeHistory et fonctionne
+   sans Unity.
+3. **Transition jouable et réversible** — charger, entrer, jouer, sortir et
+   reprendre la carte est un parcours testé, mesuré et récupérable.
+4. **Ville physique et lisible** — routes, parcelles, chantiers, ressources,
+   familles et saisons racontent l'état validé par le backend dans le monde.
+5. **LOD conservatif et persistance unique** — aucun changement de vue ne
+   duplique ni ne détruit l'état ; la sauvegarde ForgeHistory est autoritaire.
+6. **Portage explicite** — bootstrap, dépendances, rendu, assets, protocoles et
+   budgets sont décidés et prouvés ; aucun couplage implicite entre deux projets.
+7. **Qualité prouvée** — aucune fonctionnalité ne passe à `DONE` sans preuve
    automatique et, lorsqu'elle est visuelle ou ergonomique, sans revue player.
 
 ## Jalons
 
 | ID | Jalon | État | Porte de sortie |
 |---|---|---|---|
-| `M0` | Vertical slice forêt et construction | DONE | Routes, parcelles, maisons, transport du bois, camp forestier, HUD, build Windows et tests validés. |
-| `M1` | Fondations de production | DONE | Sauvegarde fiable, données versionnées, navigation robuste, emplois physiques et tests déterministes. |
-| `M2` | Économie de village jouable | DONE | Six ressources, alimentation, agriculture, sept chaînes, stockage local, marché, besoins, commerce et simulation 60 jours/2 heures sans invariant cassé. |
-| `M3` | Ville organique et société | ACTIVE | Parcelles évolutives, familles, santé, foi, ordre, fiscalité et croissance jusqu'à 250 habitants. |
-| `M4` | Région stratégique | BACKLOG | Six régions, revendication, commerce régional, diplomatie et au moins trois seigneurs IA fonctionnels. |
-| `M5` | Guerre tactique | BACKLOG | Levées, suite, équipement, formations, moral, bataille de référence à 200 combattants et conséquences persistantes. |
-| `M6` | Alpha jouable de bout en bout | BACKLOG | Partie complète de 8 heures, objectifs, défaite/victoire, sauvegarde et contenu représentatif. |
-| `M7` | Contenu et qualité de production | BACKLOG | Art final, audio, VFX, animations, variations et UX sans placeholders. |
-| `M8` | Bêta et équilibrage | BACKLOG | Feature complete, performances cibles, télémétrie QA et aucune régression critique. |
-| `M9` | Release Candidate 1.0 | BACKLOG | Campagne 20 heures validée, localisation, accessibilité, packaging et critères 1.0 remplis. |
+| `M0` | Vertical slice forêt et construction | DONE | Routes, parcelles, maisons, transport du bois, camp forestier, HUD, build Windows et tests validés dans le laboratoire. |
+| `M1` | Fondations de production | DONE | Sauvegarde de laboratoire, données versionnées, navigation, emplois physiques et tests déterministes. |
+| `M2` | Économie de village jouable | DONE | Six ressources, agriculture, sept chaînes, stockage, marché, besoins et commerce validés dans le laboratoire. |
+| `M3` | Intégration ForgeHistory et première ville | ACTIVE | Contrats d'autorité, package portable, rendu compatible, transition asynchrone et premier aller-retour carte→ville→carte. |
+| `M4` | Synchronisation, LOD et multi-ville | BACKLOG | Agrégation conservative, sauvegarde monde, streaming borné et plusieurs villes sans identifiant codé en dur. |
+| `M5` | Société urbaine intégrée | BACKLOG | Familles, santé, foi, ordre, fiscalité et catastrophes pilotés par le backend et lisibles dans la vue ville. |
+| `M6` | Parcours ForgeHistory de bout en bout | BACKLOG | Partie intégrée de huit heures avec transitions, reprise, erreurs récupérables et aucune divergence d'état. |
+| `M7` | Contenu et qualité de production | BACKLOG | Art, audio, VFX, animations, variations et UX sans placeholders dans l'hôte ForgeHistory. |
+| `M8` | Performance et QA intégrées | BACKLOG | 500 habitants, budgets de chargement/mémoire, soak et régressions carte/ville verts. |
+| `M9` | Release Candidate City Mode | BACKLOG | Accessibilité, localisation, packaging ForgeHistory et critères 1.0 remplis. |
 
 ## M0 — vertical slice validé
 
@@ -149,7 +168,7 @@ portes correspondantes :
 | `M0-REL-01` | Build Windows et smoke test | DONE | `Docs/VALIDATION.md`. |
 | `META-ROADMAP-01` | Pilotage persistant du projet | DONE | `AGENTS.md`, `Tools/check_roadmap.ps1` et contrôle `CITYLAB_ROADMAP_OK`. |
 | `META-REPO-01` | Publication GitHub et Git LFS | DONE | Dépôt privé `PLiagre/VictoriaCityLab`, branche `main` et 790 objets LFS publiés. |
-| `META-CODEX-01` | Plan de production exécutable par sessions Codex | DONE | Cible premium, contrat de session, file ordonnée M3→M9 et prompt de lancement consignés ; `AGENTS.md` sélectionne l'unique incrément `EN_COURS` ; le vérificateur exige les nouvelles sections, compte 41 incréments et contrôle ordre, définition et concordance avec la tâche active ; `CITYLAB_ROADMAP_OK` et `git diff --check`. |
+| `META-CODEX-01` | Plan de production exécutable par sessions Codex | DONE | Cible premium, contrat de session, file ordonnée et prompt de lancement consignés ; `AGENTS.md` sélectionne l'unique incrément `EN_COURS` ; le vérificateur contrôle ordre, définition et concordance avec la tâche active ; `CITYLAB_ROADMAP_OK` et `git diff --check`. |
 | `META-AUTO-01` | Architecture full-auto adaptée de ForgeHistory | DONE | Runner `citylab-full-auto-pe` en ligne ; run #31606929060 ; PR #14 auditée `PASS` puis fusionnée automatiquement ; audit #15, archive terminale #16 et dashboard Hermes #18 ; 20/20 tests Python et trois cycles refusés conservés comme preuves fail-closed. |
 
 ## M1 — fondations de production
@@ -188,159 +207,177 @@ la première tâche `ACTIVE`, puis la première tâche `NEXT` non bloquée.
 | `M2-HOME-01` | Besoins et évolution des foyers | DONE | Nourriture quotidienne, combustible/vêtements mensuels, outils bimensuels et logement pondèrent une satisfaction 0–1000 et quatre niveaux persistants ; pénuries séparées et HUD agrégé ; 3/3 tests, 60/60 Editor et 1/1 PlayMode. |
 | `M2-TRADE-01` | Commerce extérieur initial | DONE | Ordres import/export persistants, volume maximal 40, capacité/trésor vérifiés, réservation et annulation sûres, frais 10 %, délai 2–3 jours et marchand interpolé ; 3/3 tests dédiés. |
 
-## M3 — ville, population et société
+## M3 — intégration ForgeHistory et première ville
 
 | ID | Travail | État | Critères d'acceptation | Sortie / preuve minimale |
 |---|---|---|---|---|
-| `M3-PLOT-01` | Parcelles organiques | DONE | Parcelles orientées sur la route à frontage/profondeur variables ; pente maximale 180 ‰ et chevauchements refusés ; jardins persistants et jusqu'à deux extensions selon le niveau du foyer. | 3/3 tests dédiés, 67/67 Editor, 1/1 PlayMode, build et smoke player verts. |
-| `M3-BUILD-01` | Construction physique complète | ACTIVE | Échafaudages synchronisés avec les quatre phases ; usure et réparation consommant matériaux/temps ; démolition progressive, sûre pour les réservations, stocks et habitants ; les trois axes survivent au save/reload. | Échafaudages prouvés par 4/4 ciblés, 71/71 Editor, 1/1 PlayMode, build/smoke et capture des quatre phases ; réparation et démolition restent ouvertes avant `DONE`. |
-| `M3-ART-01` | Bible artistique et kit héroïque de production | NEXT | Bible originale aux trois zooms ; palette, silhouettes, matériaux, densité de détail et budgets validés ; huit fonctions héroïques adaptées sans prefab Vendor direct ; provenance/licence/hash complets ; quatre phases et trois LOD. | Planche avant/après, captures player jour/nuit et trois zooms, QA Factory verte et approbation artistique humaine explicite ; peut fermer `M1-ASSET-05`. |
-| `M3-FAMILY-01` | Foyers et cycle de vie | BACKLOG | Âge, couples, parenté, naissances, décès, migration, compétences et taille de foyer ; règles bornées, déterministes et persistantes ; croissance stable jusqu'à 250 habitants. | Tests d'événements de vie et reload, simulation longue un an, PlayMode, profil 250 habitants et inspection de foyers dans le HUD. |
-| `M3-HEALTH-01` | Santé, maladies et blessures | BACKLOG | Risques liés au travail/logement/saison, contagion locale, soins, incapacité, récupération et mortalité ; aucun décès arbitraire non explicable. | Tests propagation/soins/reload, scénario de 90 jours, HUD lisible et capture d'un service de soin en activité. |
-| `M3-FAITH-01` | Foi et sépulture | BACKLOG | Offices planifiés, capacité et couverture d'église, cimetière physique, sépultures persistantes, besoin de foi et effets sociaux bornés. | Tests calendrier/capacité/reload, trajet réel vers office ou sépulture, PlayMode et capture player. |
-| `M3-ORDER-01` | Ordre et criminalité | BACKLOG | Mécontentement produit des délits explicables ; vol conserve les ressources ; milice, arrestation et sanctions graduées influencent les foyers sans boucle punitive incontrôlée. | Tests déterministes vol/intervention/reload, scénario de crise, télémétrie et revue HUD/monde. |
-| `M3-TAX-01` | Fiscalité et trésor | BACKLOG | Impôts, dîme, salaires et dépenses sont comptabilisés ; politiques persistantes ; insolvabilité et pression fiscale provoquent des réactions lisibles. | Livre de comptes conservatif, tests politiques/reload, simulation 180 jours et panneau financier inspecté. |
-| `M3-FIRE-01` | Incendies et catastrophes | BACKLOG | Départ et propagation liés aux matériaux, météo et densité ; alerte, eau, intervention, dégâts, victimes, réparation et reconstruction persistants. | Tests propagation/intervention/reload, invariants de ressources, PlayMode et capture d'un cycle incendie→reconstruction. |
-| `M3-ART-02` | Environnement, population et animation de ville | BACKLOG | Variantes de façades/toits, accessoires sociaux, végétation, métiers, animaux, saisons et animations contextuelles cohérents avec `M3-ART-01`, budgets LOD/occlusion respectés. | Audit de diversité, captures des trois zooms et quatre saisons, profil 250 habitants et revue artistique humaine. |
+| `M3-FH-01` | Contrat d'autorité, de chargement et de portage | ACTIVE | Épingler le commit ForgeHistory audité ; cartographier carte, sélection de ville, scène, packages, rendu, données, horloge, commandes, sauvegarde et LOD ; définir `CityLaunchContext`, snapshot, intention/accusé, révision, erreurs et propriétaire de chaque donnée ; consigner les changements amont comme demandes Hermes sans écrire dans ForgeHistory. | Document d'architecture versionné, matrice d'autorité exhaustive, schémas JSON/C# versionnés, tests de contrat rouge/vert hors Unity et aucune ambiguïté sur l'autorité. |
+| `M3-FH-02` | Package portable et bootstrap explicite | NEXT | Séparer contrats, présentation, assets et adaptateur de laboratoire ; supprimer le bootstrap global `AfterSceneLoad` du chemin de production ; l'hôte crée et détruit explicitement une instance par contexte de ville ; aucune dépendance à une scène ou fixture CityLab. | Import du package dans un hôte minimal, tests zéro auto-démarrage/double instance, API publique documentée et laboratoire autonome toujours vert. |
+| `M3-FH-03` | Convergence rendu et dépendances | BACKLOG | Comparer Built-in actuel de ForgeHistory et URP CityLab ; choisir une stratégie unique après prototype ; résoudre Input System, AI Navigation, Entities/Burst/Collections et shaders sans casser la carte. | Matrice de packages, build test, captures dorées carte avant/après, capture ville sans shader rose et profil CPU/GPU. |
+| `M3-FH-04` | Shell de transition asynchrone | BACKLOG | Depuis un hôte miroir de `Main.unity`, sélectionner une ville puis charger la scène ville de façon asynchrone ; progression, timeout, annulation, erreur et retour ; préserver viewport/sélection et empêcher les entrées concurrentes. | Tests PlayMode succès/annulation/échec/double clic, 50 transitions, budgets froid/chaud/retour et mémoire enregistrés. |
+| `M3-FH-05` | Adaptateur ForgeHistory snapshot/intention | BLOCKED | Remplacer `LocalCitySimulation` en production par un adaptateur au backend ForgeHistory ; commandes corrélées/idempotentes, ordre par tick/révision, refus explicites, reconnexion et resynchronisation. Dépend de la couche villes et du transport runtime décidés par Hermes dans ForgeHistory. | Tests de contrat avec backend factice puis réel, latence/ordre/perte simulés, aucune écriture métier Unity et demande amont ForgeHistory acceptée. |
+| `M3-FH-06` | Portage des assets et catalogues | BACKLOG | Porter uniquement les assets approuvés avec GUID, LFS, provenance et licences ; retirer les `Resources.Load` structurants du chemin intégré ; partitionner socle/biome/ville et charger/libérer selon le budget mesuré. | Manifeste de portage, hash source→cible, build sans asset manquant, captures trois zooms et profil mémoire. |
+| `M3-FH-07` | Première ville intégrée jouable | BLOCKED | Entrer depuis un marqueur ForgeHistory réel, recevoir l'état autoritaire, jouer une boucle construction/logistique via intentions, sortir et observer les conséquences sur la carte ; aucune sauvegarde ou horloge parallèle. | Parcours player enregistré, tests carte→ville→carte, restart/reload, hash d'état avant/après et régressions carte/sim/ville vertes. |
+| `M3-PLOT-01` | Parcelles organiques de laboratoire | DONE | Preuve historique conservée ; le comportement de production devra être réémis par le backend ForgeHistory avant intégration. | 3/3 tests dédiés, 67/67 Editor, 1/1 PlayMode, build et smoke player verts. |
+| `M3-BUILD-01` | Construction physique complète | BACKLOG | Échafaudages déjà prouvés ; usure, réparation et démolition reprennent après `M3-FH-01..07` et doivent être pilotées par l'autorité ForgeHistory, pas par une nouvelle logique locale. | Tests de contrat backend, conservation/reload monde, HUD, capture et régression intégrée. |
+| `M3-ART-01` | Bible artistique et kit héroïque | BACKLOG | Bible compatible carte→ville, matériaux selon le pipeline choisi, silhouettes et budgets de streaming ; approbation humaine. | Document, planches, huit fonctions, captures dans l'hôte intégré et QA licences/LOD. |
+| `M3-ART-02` | Environnement, population et animation de ville | BACKLOG | Variations, saisons et animations contextuelles cohérentes, chargées par catalogue et compatibles avec les budgets intégrés. | Audit de diversité, quatre saisons, profil et revue artistique humaine. |
 
-## M4 — région stratégique et IA
-
-| ID | Travail | État | Critères d'acceptation | Sortie / preuve minimale |
-|---|---|---|---|---|
-| `M4-MAP-01` | Carte en plusieurs régions | BACKLOG | Au moins six régions au jalon, frontières et ressources propres, chargement/transition sans perte d'état, architecture extensible vers 8–12 régions. | Tests de transition/reload, parcours player de trois régions et profil mémoire/chargement. |
-| `M4-CLAIM-01` | Influence et revendication | BACKLOG | Influence produite/consommée, coût, progression, contestation et changement de contrôle avec historique persistant. | Tests de concurrence/reload et scénario player de revendication contestée. |
-| `M4-TRADE-01` | Routes commerciales régionales | BACKLOG | Offre/demande, prix locaux, convois physiques, distance, risque, saison et contrôle territorial ; conservation exacte des biens et monnaies. | Tests économiques 365 jours, disparition de convoi sûre, PlayMode et télémétrie des marchés. |
-| `M4-AI-01` | Seigneurs IA économiques | BACKLOG | Au moins trois seigneurs aux priorités distinctes bâtissent un village viable, réagissent aux pénuries, commercent, revendiquent et poursuivent des objectifs sans information cachée illégitime. | Trois seigneurs × trois graines × 365 jours sans invariant cassé, comparaison déterministe, télémétrie de décision et partie observée. |
-| `M4-DIPLO-01` | Diplomatie | BACKLOG | Relations, demandes, accords, menaces, paix et mémoire des actions ; décisions IA explicables par état et personnalité. | Tests de mémoire/accord/reload, journal diplomatique et scénario player multi-issue. |
-| `M4-EVENT-01` | Événements et objectifs | BACKLOG | Événements data-driven à conditions/choix/conséquences, objectifs économiques, sociaux et territoriaux, victoire/défaite persistantes. | Validation de catalogue, tests de branches/reload et partie guidée de deux heures. |
-
-## M5 — guerre tactique
+## M4 — synchronisation, LOD et multi-ville
 
 | ID | Travail | État | Critères d'acceptation | Sortie / preuve minimale |
 |---|---|---|---|---|
-| `M5-LEVY-01` | Levées issues des foyers | BACKLOG | Mobilisation retire de vrais adultes aptes des emplois, conserve identité/foyer/compétences et produit un coût économique mesurable. | Tests mobilisation/retour/reload et comparaison économique ville mobilisée/témoin. |
-| `M5-EQUIP-01` | Fabrication et distribution d'équipement | BACKLOG | Armes, boucliers, armures et munitions sont fabriqués, stockés, attribués, usés, récupérés ou perdus sans duplication. | Tests de conservation/reload et inspection d'une unité équipée depuis la forge. |
-| `M5-RETINUE-01` | Suite professionnelle | BACKLOG | Recrutement, solde, entretien, expérience, blessures et équipement persistent ; l'insolvabilité a des conséquences graduées. | Tests de paie/progression/reload et simulation 180 jours. |
-| `M5-FORM-01` | Formations et commandes | BACKLOG | Déplacement groupé, ligne/colonne, orientation, cohésion, obstacles et collisions stables pour 200 à 400 combattants. | Tests déterministes de formation, stress pathfinding et profil player bataille cible. |
-| `M5-COMBAT-01` | Combat, moral et fatigue | BACKLOG | Portée, impact, défense, terrain, moral, fuite, poursuite, fatigue, blessures et mort sont lisibles et bornés. | Replays à hash stable, tests d'équilibrage statistique, PlayMode et capture d'une bataille complète. |
-| `M5-AI-01` | IA tactique | BACKLOG | L'IA choisit terrain, formation, flanc, réserve, objectifs et retraite à partir d'informations autorisées. | Batterie de scénarios, télémétrie de décision et absence de blocage sur 20 batailles. |
-| `M5-CONSEQ-01` | Conséquences persistantes | BACKLOG | Blessés, morts, captifs, butin et équipement retournent au monde ; familles, production, ordre et diplomatie reflètent les pertes. | Round-trip bataille→ville→reload, invariants économiques et revue d'après-bataille. |
+| `M4-FH-LOD-01` | Agrégation/désagrégation conservative | BACKLOG | Personnes, foyers, bâtiments, stocks, emplois et ordres passent du LOD monde au LOD ville sans création, perte ni double comptage. | Invariants, hashes aller-retour multi-graines et soak de transitions. |
+| `M4-FH-SYNC-01` | Synchronisation carte↔ville | BACKLOG | Les changements validés en ville apparaissent sur la carte au tick attendu ; changements monde concurrents resynchronisés sans écrasement silencieux. | Tests de concurrence/révision, latence simulée et capture avant/après. |
+| `M4-FH-MULTI-01` | Plusieurs villes data-driven | BACKLOG | Aucun `city_id` codé en dur ; contexte, terrain, ressources, culture et population varient par ville réelle. | Trois villes contrastées, transitions croisées, reload et profils comparés. |
+| `M4-FH-STREAM-01` | Streaming et cache bornés | BACKLOG | Socle partagé et contenus spécifiques chargés à la demande ; préchauffage, annulation et libération mesurés ; aucune fuite après 50 transitions. | Budgets temps/mémoire, profils froid/chaud et test d'endurance. |
+| `M4-FH-SAVE-01` | Sauvegarde monde autoritaire | BACKLOG | La sauvegarde ForgeHistory inclut l'état urbain et le contexte de vue ; le save autonome CityLab reste une fixture de migration, jamais une sauvegarde parallèle en production. | Matrice de migrations, corruption refusée, round-trip carte/ville exact. |
+
+### Capacités stratégiques transférées à ForgeHistory
+
+Les identifiants historiques restent traçables mais ne sont plus des lots CityLab.
+Ils ne peuvent être débloqués que par une décision de propriété explicite côté
+ForgeHistory.
+
+| ID | Ancien périmètre | État | Nouveau propriétaire |
+|---|---|---|---|
+| `M4-MAP-01` | Carte en plusieurs régions | BLOCKED | ForgeHistory carte/monde ; CityLab ne fournit que la vue ville et la transition. |
+| `M4-CLAIM-01` | Influence et revendication | BLOCKED | ForgeHistory `sim/`. |
+| `M4-TRADE-01` | Commerce régional | BLOCKED | ForgeHistory `sim/`. |
+| `M4-AI-01` | Seigneurs IA | BLOCKED | ForgeHistory `sim/`. |
+| `M4-DIPLO-01` | Diplomatie | BLOCKED | ForgeHistory `sim/`. |
+| `M4-EVENT-01` | Événements et objectifs monde | BLOCKED | ForgeHistory `sim/` et campagne. |
+
+## M5 — société urbaine intégrée
+
+Les identifiants CityLab historiques sont conservés. Chaque lot exige désormais
+un modèle autoritaire ForgeHistory, un adaptateur de contrat et une présentation
+CityLab ; une implémentation uniquement dans `LocalCitySimulation` ne ferme
+aucune tâche.
+
+| ID | Travail | État | Critères d'acceptation | Sortie / preuve minimale |
+|---|---|---|---|---|
+| `M3-FAMILY-01` | Foyers et cycle de vie | BACKLOG | Identités monde, parenté, âges, migrations et compétences conservés entre LOD. | Simulation backend, tests de contrat/reload, profil 250 habitants et inspection ville. |
+| `M3-HEALTH-01` | Santé, maladies et blessures | BACKLOG | Risques et soins issus du backend, lisibles sans décès arbitraire client. | Scénario backend 90 jours, resynchronisation et revue player. |
+| `M3-FAITH-01` | Foi et sépulture | BACKLOG | Offices, capacité, sépultures et effets sociaux partagés avec le monde. | Tests calendrier/LOD/reload et capture intégrée. |
+| `M3-ORDER-01` | Ordre et criminalité | BACKLOG | Délits et sanctions émergent de l'état monde ; conservation des biens et identités. | Scénario de crise, télémétrie, contrats et revue player. |
+| `M3-TAX-01` | Fiscalité et trésor | BACKLOG | Livre de comptes commun avec ForgeHistory ; aucune monnaie locale parallèle. | Invariants monde/ville, simulation 180 jours et panneau inspecté. |
+| `M3-FIRE-01` | Incendies et catastrophes | BACKLOG | Propagation, intervention, victimes et reconstruction persistent dans l'état monde. | Cycle complet, reload, retour carte et invariants de ressources. |
+
+### Capacités militaires transférées à ForgeHistory
+
+| ID | Ancien périmètre | État | Nouveau propriétaire |
+|---|---|---|---|
+| `M5-LEVY-01` | Levées | BLOCKED | ForgeHistory population/armées. |
+| `M5-EQUIP-01` | Équipement | BLOCKED | ForgeHistory économie/armées. |
+| `M5-RETINUE-01` | Suite professionnelle | BLOCKED | ForgeHistory armées. |
+| `M5-FORM-01` | Formations | BLOCKED | ForgeHistory bataille tactique. |
+| `M5-COMBAT-01` | Combat | BLOCKED | ForgeHistory bataille tactique. |
+| `M5-AI-01` | IA tactique | BLOCKED | ForgeHistory bataille tactique. |
+| `M5-CONSEQ-01` | Conséquences persistantes | BLOCKED | ForgeHistory, exposées ensuite par CityLab. |
 
 ## M6 à M9 — finition et sortie
 
 | ID | Jalon | Domaine | État | Porte de sortie vérifiable |
 |---|---|---|---|---|
-| `M6-GAME-01` | M6 | Boucle de partie de bout en bout | BACKLOG | Départ nu, croissance, crise, revendication, conflit et victoire/défaite jouables pendant huit heures, avec sauvegarde à tout moment et aucun blocage. |
-| `M6-ONBOARD-01` | M6 | Tutoriel, objectifs et encyclopédie | BACKLOG | Un nouveau joueur termine le tutoriel sans aide externe et comprend les causes d'au moins 80 % des alertes de test utilisateur. |
-| `M6-SAVE-01` | M6 | Robustesse campagne | BACKLOG | Autosave rotatif, récupération après interruption, migrations de toutes les versions publiées et zéro corruption connue sur la matrice QA. |
-| `REL-CONTENT` | M7 | 70 bâtiments, 30 chaînes, régions et événements | BACKLOG | Contenu fonctionnel équilibré et sans placeholder ; chaque entrée a une utilité, un coût, un visuel et une preuve player. |
-| `REL-ART` | M7 | Environnements, architecture, personnages, UI et VFX | BACKLOG | Cohérence finale aux trois zooms et quatre saisons ; provenance/licence, LOD, occlusion, budgets et diversité validés ; aucun prefab Vendor direct. |
-| `REL-ANIM` | M7 | Locomotion, métiers, construction et combat | BACKLOG | Transitions propres, IK, variations, réactions contextuelles et budgets CPU validés sur foule cible. |
-| `REL-AUDIO` | M7 | Musique, ambiances et sound design | BACKLOG | Mix dynamique, spatialisation, variations, lisibilité des alertes et options complètes validés en partie longue. |
-| `REL-UX` | M7 | Interface et lisibilité de production | BACKLOG | Toutes les actions critiques sont découvrables, annulables ou confirmées ; UI testée à 1080p/1440p/4K et à trois tailles. |
-| `REL-PERF` | M8 | 500 habitants et grandes villes | BACKLOG | 60 FPS et p95 CPU < 16,7 ms sur machine cible, mémoire stable, zéro allocation majeure récurrente et budgets de chargement/sauvegarde respectés. |
-| `M8-BALANCE-01` | M8 | Équilibrage et télémétrie | BACKLOG | Au moins 30 parties automatisées multi-graines et 10 parties humaines terminables ; aucune stratégie unique dominante ni spirale inévitable non signalée. |
-| `REL-QA` | M8 | Tests et campagne de régression | BACKLOG | Zéro critique/majeur ouvert, soak test, matrice graphique, campagne 20 heures et migrations validés par QA. |
-| `REL-ACCESS` | M9 | Accessibilité | BACKLOG | Remapping complet, navigation clavier, sous-titres, tailles UI, contrastes, daltonisme, réduction des effets et options de confort validés. |
-| `REL-LOC` | M9 | Français et anglais | BACKLOG | Aucun texte codé en dur, pluriels/variables corrects, débordements contrôlés et relecture humaine terminée. |
-| `REL-SHIP` | M9 | Packaging Windows | BACKLOG | Build signé/reproductible, installateur, crédits/licences, crash reporting, confidentialité, sauvegarde cloud si retenue et procédure de mise à jour/rollback testée. |
+| `M6-GAME-01` | M6 | Parcours intégré de bout en bout | BACKLOG | Huit heures depuis la carte ForgeHistory avec entrées/sorties de villes, crises, reprise et aucune divergence d'état. |
+| `M6-ONBOARD-01` | M6 | Tutoriel carte→ville | BACKLOG | Un nouveau joueur entre, agit, comprend les retours backend et revient à la carte sans aide externe. |
+| `M6-SAVE-01` | M6 | Robustesse de la sauvegarde monde | BACKLOG | Autosaves ForgeHistory, récupération, migrations ville/monde et zéro corruption sur la matrice QA. |
+| `REL-CONTENT` | M7 | Contenu urbain | BACKLOG | Bâtiments, chaînes et variations utiles, data-driven et compatibles avec plusieurs villes ForgeHistory. |
+| `REL-ART` | M7 | Environnements, architecture, personnages, UI et VFX | BACKLOG | Cohérence carte→ville, provenance/licence, LOD, occlusion, budgets et diversité validés. |
+| `REL-ANIM` | M7 | Locomotion, métiers et construction | BACKLOG | Transitions, IK, variations et budgets CPU validés sur foule cible. |
+| `REL-AUDIO` | M7 | Musique, ambiances et sound design | BACKLOG | Mix dynamique lors des transitions et en ville, options et variations validées. |
+| `REL-UX` | M7 | Interface et lisibilité | BACKLOG | Actions critiques découvrables et retours backend explicites à 1080p/1440p/4K. |
+| `REL-PERF` | M8 | 500 habitants et transitions | BACKLOG | 60 FPS, p95 < 16,7 ms, mémoire stable et budgets froid/chaud/retour tenus. |
+| `M8-BALANCE-01` | M8 | Équilibrage observable | BACKLOG | Simulation équilibrée côté ForgeHistory et présentation CityLab sans règle compensatoire locale. |
+| `REL-QA` | M8 | Régression intégrée | BACKLOG | Soak, 50 transitions, matrice graphique, sauvegardes et carte/ville sans critique ouvert. |
+| `REL-ACCESS` | M9 | Accessibilité | BACKLOG | Remapping, navigation clavier, tailles UI, contrastes, daltonisme et réduction des effets validés. |
+| `REL-LOC` | M9 | Français et anglais | BACKLOG | Aucun texte codé en dur, pluriels/variables et débordements validés. |
+| `REL-SHIP` | M9 | Packaging ForgeHistory | BACKLOG | City Mode inclus dans le build ForgeHistory signé/reproductible avec crédits, licences, crash reporting et rollback. |
 
 ## Contrat d'une session Codex
 
 Une session Codex de production doit livrer une tranche verticale, pas seulement
 un squelette de code. Ce contrat complète `AGENTS.md` :
 
-1. prendre la tâche `ACTIVE`, puis l'unique incrément `EN_COURS` dans la table
-   « Sessions Codex ordonnées » ; si elle est `DONE` ou réellement bloquée,
-   promouvoir la première tâche `NEXT` et le premier incrément `À_FAIRE` associé ;
-2. annoncer l'identifiant de roadmap et l'incrément visé avant toute modification ;
-3. inspecter les contrats, tests, scènes, assets et changements Git concernés
-   avant de concevoir l'implémentation ; préserver tout travail utilisateur ;
-4. pour une mécanique, livrer ensemble données versionnées, simulation,
-   persistance, représentation monde, HUD/feedback et tests déterministes ;
-5. pour un asset, conserver la source Vendor immuable, enregistrer provenance,
-   licence et SHA-256, publier seulement une variante sous
-   `Assets/CityLabHost/Adapted`, puis valider UV, matériaux, LOD, colliders,
-   pivots, budgets, import Unity et rendu player ;
-6. exécuter d'abord les tests ciblés, puis la régression proportionnée au risque ;
-   toute modification visuelle exige au moins une capture player inspectable ;
-7. ne jamais réduire silencieusement un critère pour terminer dans une session :
-   garder la tâche et l'incrément `EN_COURS`, documenter la preuve acquise et
-   reprendre le même ID à la session suivante ; quand la preuve est complète,
-   passer l'incrément à `PROUVÉ` et le suivant à `EN_COURS` ;
-8. ne marquer `DONE` que lorsque chaque critère de la ligne est prouvé. Mettre
-   alors la prochaine tâche de la file en `NEXT` ou `ACTIVE`, synchroniser les
-   trois documents de pilotage concernés et ajouter une entrée au journal ;
-9. terminer par `Tools/check_roadmap.ps1`, `git diff --check` et un résumé des
-   fichiers, preuves, limites et prochaine action. Aucun commit, push, achat ou
-   publication externe n'est implicite.
+1. prendre la tâche `ACTIVE`, puis l'unique incrément `EN_COURS` ;
+2. traiter ForgeHistory comme une dépendance amont en lecture seule ; toute
+   évolution amont devient une demande Hermes documentée ;
+3. distinguer explicitement code portable, présentation, adaptateur de
+   laboratoire et contrat d'hôte ;
+4. ne jamais ajouter de logique métier de production dans Unity : les fixtures
+   et `LocalCitySimulation` peuvent prouver le protocole, pas devenir l'autorité ;
+5. pour une intégration, livrer ensemble schéma versionné, gestion du cycle de
+   vie, erreurs, annulation, observabilité, tests de contrat et budget mesuré ;
+6. pour un asset, conserver source immuable, provenance, licence et SHA-256,
+   publier seulement une variante approuvée puis valider import, rendu, LOD,
+   mémoire et déchargement ;
+7. exécuter tests ciblés puis régression proportionnée ; toute modification
+   visuelle ou de transition exige une capture ou une vidéo player inspectable ;
+8. ne jamais réduire silencieusement un critère ; conserver `EN_COURS` tant
+   que la preuve manque, puis promouvoir l'incrément suivant ;
+9. synchroniser roadmap, statut et validation uniquement avec des capacités
+   réellement prouvées ; terminer par le contrôle de roadmap et
+   `git diff --check`. Aucun commit, push, achat ou changement ForgeHistory
+   n'est implicite.
 
 ### Prompt de lancement recommandé
 
 ```text
-Continue Victoria CityLab depuis la roadmap. Respecte AGENTS.md, prends la
-tâche ACTIVE puis l'unique incrément EN_COURS de « Sessions Codex ordonnées ».
-Livre une tranche verticale complète et déterministe : données, simulation,
-sauvegarde, monde, HUD, tests et preuve player selon le contrat de session.
-Ne réduis aucun critère, ne modifie aucune source Vendor et ne marque DONE
-qu'avec toutes les preuves. Mets à jour ROADMAP, PROTOTYPE_STATUS et VALIDATION
-uniquement selon ce qui est réellement validé, puis exécute les contrôles finaux.
+Continue Victoria CityLab depuis la roadmap. Respecte AGENTS.md et prends la
+tâche ACTIVE puis l'unique incrément EN_COURS. La cible est une ville jouable de
+ForgeHistory, chargée depuis sa carte principale. ForgeHistory reste en lecture
+seule et possède simulation, horloge et sauvegarde ; CityLab est un client de
+présentation et un laboratoire. Livre contrats versionnés, cycle de chargement,
+adaptateur/mocks, tests et preuves sans créer de seconde autorité. Mets à jour
+les documents uniquement selon ce qui est réellement validé.
 ```
 
 ## Sessions Codex ordonnées
 
-Cette table est la file de production autoritaire. Un incrément peut demander
-plusieurs sessions : tant que sa preuve manque, il reste `EN_COURS`. Une fois
-prouvé, il passe à `PROUVÉ` et le premier `À_FAIRE` devient `EN_COURS`.
-`BLOQUÉ` exige une dépendance explicite dans le journal. Lorsqu'une tâche se
-ferme, la session qui la ferme promeut la prochaine tâche de cette table à
-`NEXT` ou `ACTIVE`. `M1-ASSET-05` reste une approbation
-humaine isolée ; s'il bloque `M3-ART-01`, consigner le blocage et poursuivre
-`M3-FAMILY-01` sans déclarer la porte artistique acquise.
+Cette table est la file autoritaire. Le nouveau paradigme d'intégration précède
+la suite des mécaniques locales. `BLOQUÉ` nomme une dépendance ForgeHistory
+explicite ; il n'autorise aucune écriture amont implicite.
 
 | Ordre | Suivi | Tâche | Incrément de session | Preuve de fermeture de l'incrément |
 |---:|---|---|---|---|
-| 01 | PROUVÉ | `M3-BUILD-01` | Échafaudages synchronisés aux quatre phases, sélection et reload. | 4/4 ciblés, 71/71 Editor, 1/1 PlayMode, build/smoke et capture player des quatre phases. |
-| 02 | EN_COURS | `M3-BUILD-01` | Usure, panne et réparation physique consommant matériaux et travail. | Tests conservation/reload, HUD et capture avant/après. |
-| 03 | À_FAIRE | `M3-BUILD-01` | Démolition progressive avec récupération bornée et nettoyage des contrats. | Tests destruction en concurrence, régression complète, build/smoke ; fermeture de `M3-BUILD-01`. |
-| 04 | À_FAIRE | `M3-ART-01` | Bible visuelle originale : références, palette, matériaux, silhouettes, densité aux trois zooms et budgets. | Document versionné, planche de direction et approbation humaine. |
-| 05 | À_FAIRE | `M3-ART-01` | Kit héroïque des huit fonctions, adaptation/licences, phases, LOD et rendu Unity. | QA Factory, captures jour/nuit et trois zooms ; fermeture ou blocage humain explicite. |
-| 06 | À_FAIRE | `M3-FAMILY-01` | Contrats familiaux : âge, sexe, parenté, foyer, compétences, migration et migration de sauvegarde. | Tests de création/reload/migration et invariants. |
-| 07 | À_FAIRE | `M3-FAMILY-01` | Couples, naissances, vieillissement, décès, héritage du logement et croissance. | Simulation un an multi-graines sans incohérence. |
-| 08 | À_FAIRE | `M3-FAMILY-01` | Représentation player, inspection HUD et performance de 250 habitants. | PlayMode, build/smoke, profil 250 habitants ; fermeture de la tâche. |
-| 09 | À_FAIRE | `M3-HEALTH-01` | Risques, maladies, contagion, blessures, soins, incapacité et mortalité. | Scénario 90 jours, tests/reload et revue player. |
-| 10 | À_FAIRE | `M3-FAITH-01` | Offices, couverture, cimetière, sépultures et effets sociaux. | Tests calendrier/capacité/reload et revue player. |
-| 11 | À_FAIRE | `M3-ORDER-01` | Mécontentement, délits, vol conservatif, milice et sanctions. | Scénario de crise, télémétrie, tests/reload et revue player. |
-| 12 | À_FAIRE | `M3-TAX-01` | Trésor, impôts, dîme, dépenses et politiques avec réactions des foyers. | Livre conservatif, simulation 180 jours et panneau inspecté. |
-| 13 | À_FAIRE | `M3-FIRE-01` | Incendie déterministe, intervention, victimes, dégâts et reconstruction. | Cycle complet capturé, tests/reload et invariants. |
-| 14 | À_FAIRE | `M3-ART-02` | Variations environnement/population, animations de métiers, saisons et optimisation 250 habitants. | Audit de diversité, quatre saisons, profil et fermeture de M3. |
-| 15 | À_FAIRE | `M4-MAP-01` | Modèle régional, six régions initiales, streaming/transition et sauvegarde. | Tests transition/reload, profil mémoire et parcours player. |
-| 16 | À_FAIRE | `M4-CLAIM-01` | Influence, revendication, contestation et contrôle persistant. | Scénario contesté déterministe et HUD régional. |
-| 17 | À_FAIRE | `M4-TRADE-01` | Prix régionaux, routes, convois, risques et conservation économique. | Simulation 365 jours, disparition sûre et télémétrie. |
-| 18 | À_FAIRE | `M4-AI-01` | Trois seigneurs économiques différenciés utilisant les mêmes règles que le joueur. | Trois seigneurs × trois graines × 365 jours et journal de décisions. |
-| 19 | À_FAIRE | `M4-DIPLO-01` | Relations, mémoire, accords, menaces, guerre et paix. | Tests de branches/reload et scénario multi-issue. |
-| 20 | À_FAIRE | `M4-EVENT-01` | Catalogue d'événements, objectifs et victoire/défaite. | Partie guidée deux heures ; fermeture de M4. |
-| 21 | À_FAIRE | `M5-LEVY-01` | Mobilisation de vrais habitants et coût économique. | Comparaison ville mobilisée/témoin et reload. |
-| 22 | À_FAIRE | `M5-EQUIP-01` | Production, attribution, usure, récupération et perte d'équipement. | Tests de conservation et inspection d'unité. |
-| 23 | À_FAIRE | `M5-RETINUE-01` | Suite professionnelle, solde, expérience, blessures et entretien. | Simulation 180 jours et reload exact. |
-| 24 | À_FAIRE | `M5-FORM-01` | Commandes et formations stables pour 200 à 400 combattants. | Stress pathfinding, déterminisme et profil player. |
-| 25 | À_FAIRE | `M5-COMBAT-01` | Combat, terrain, fatigue, moral, fuite, blessures et mort. | Replays stables, tests statistiques et bataille capturée. |
-| 26 | À_FAIRE | `M5-AI-01` | IA tactique : terrain, flancs, réserve, objectifs et retraite. | Batterie de 20 batailles et télémétrie explicable. |
-| 27 | À_FAIRE | `M5-CONSEQ-01` | Retour des pertes, captifs, butin et effets familiaux/économiques. | Round-trip bataille→ville→reload ; fermeture de M5. |
-| 28 | À_FAIRE | `M6-GAME-01` | Partie complète de huit heures, crises et fins de partie. | Campagne QA sans blocage et sauvegardes valides. |
-| 29 | À_FAIRE | `M6-ONBOARD-01` | Tutoriel, objectifs, encyclopédie et explication des alertes. | Tests utilisateurs et taux de compréhension documenté. |
-| 30 | À_FAIRE | `M6-SAVE-01` | Autosaves rotatifs, récupération et matrice de migrations. | Matrice QA zéro corruption ; fermeture de M6. |
-| 31 | À_FAIRE | `REL-CONTENT` | Monter progressivement à 70 bâtiments, 30 chaînes et contenu régional. | Catalogue validé, équilibrage et revue player sans placeholder. |
-| 32 | À_FAIRE | `REL-ART` | Passe finale environnement, architecture, personnages, UI et VFX. | Revue aux trois zooms/quatre saisons et budgets verts. |
-| 33 | À_FAIRE | `REL-ANIM` | Locomotion, métiers, construction et combat de production. | Revue de transitions/IK/variations et profil foule. |
-| 34 | À_FAIRE | `REL-AUDIO` | Musique, ambiances, spatialisation et alertes. | Mix de partie longue, variations et options validés. |
-| 35 | À_FAIRE | `REL-UX` | Interface finale, lisibilité et résolutions cibles. | Tests 1080p/1440p/4K et trois tailles d'UI ; fermeture de M7. |
-| 36 | À_FAIRE | `REL-PERF` | Optimisation 500 habitants et grande ville de référence. | 60 FPS, p95 < 16,7 ms, mémoire/GC/chargements dans le budget. |
-| 37 | À_FAIRE | `M8-BALANCE-01` | Équilibrage automatisé et humain multi-stratégies. | 30 parties automatiques et 10 humaines terminables. |
-| 38 | À_FAIRE | `REL-QA` | Soak, régression, configurations et campagne 20 heures. | Zéro critique/majeur et fermeture de M8. |
-| 39 | À_FAIRE | `REL-ACCESS` | Accessibilité et options de confort complètes. | Checklist et tests utilisateurs ciblés. |
-| 40 | À_FAIRE | `REL-LOC` | Localisation et relecture française/anglaise. | Audit zéro texte dur, pseudo-localisation et relecture humaine. |
-| 41 | À_FAIRE | `REL-SHIP` | Signature, installateur, licences, crash reporting et rollback. | RC reproductible et campagne finale ; fermeture de M9/1.0. |
+| 01 | PROUVÉ | `M3-BUILD-01` | Échafaudages synchronisés aux quatre phases, sélection et reload dans le laboratoire. | 4/4 ciblés, 71/71 Editor, 1/1 PlayMode, build/smoke et capture player. |
+| 02 | EN_COURS | `M3-FH-01` | Audit lecture seule ForgeHistory et contrat d'autorité/chargement/portage épinglé au commit observé. | Matrice exhaustive, schémas versionnés, décisions d'autorité et tests de contrat initiaux. |
+| 03 | À_FAIRE | `M3-FH-02` | Découper package, présentation et adaptateur laboratoire ; remplacer le bootstrap global par un démarrage hôte explicite. | Hôte minimal, zéro auto-démarrage/double instance, laboratoire vert. |
+| 04 | À_FAIRE | `M3-FH-03` | Prototype de convergence Built-in/URP et matrice de packages Unity. | Captures dorées carte/ville, build et profil sans shader cassé. |
+| 05 | À_FAIRE | `M3-FH-04` | Transition asynchrone carte→ville→carte avec progression, annulation, erreur et restauration du viewport. | PlayMode, 50 transitions et budgets froid/chaud/retour. |
+| 06 | BLOQUÉ | `M3-FH-05` | Adaptateur snapshot/intention vers le backend ForgeHistory. | Dépendance : contrat runtime et couche villes acceptés par Hermes côté ForgeHistory. |
+| 07 | À_FAIRE | `M3-FH-06` | Manifeste de portage assets/catalogues et chargement borné. | Hashes, licences, build, captures et profil mémoire. |
+| 08 | BLOQUÉ | `M3-FH-07` | Première ville réelle jouable depuis un marqueur ForgeHistory. | Dépend de 03–07 et d'un hôte ForgeHistory modifiable par son propriétaire. |
+| 09 | À_FAIRE | `M3-BUILD-01` | Reprendre usure, panne et réparation via le backend autoritaire. | Contrats, conservation/reload monde, HUD et capture intégrée. |
+| 10 | À_FAIRE | `M3-BUILD-01` | Démolition progressive et récupération bornée via intentions. | Concurrence, retour carte, régression complète et fermeture de la tâche. |
+| 11 | À_FAIRE | `M3-ART-01` | Bible visuelle carte→ville et kit héroïque compatible pipeline choisi. | Planche, approbation humaine, QA et captures intégrées. |
+| 12 | À_FAIRE | `M4-FH-LOD-01` | Agrégation/désagrégation conservative ville↔monde. | Hashes aller-retour et invariants multi-graines. |
+| 13 | À_FAIRE | `M4-FH-SYNC-01` | Synchronisation révisionnée des changements concurrents. | Tests latence/ordre/conflit et capture carte/ville. |
+| 14 | À_FAIRE | `M4-FH-MULTI-01` | Trois villes data-driven sans identifiant codé en dur. | Transitions croisées, reload et profils. |
+| 15 | À_FAIRE | `M4-FH-STREAM-01` | Streaming/cache bornés pour socle, biome et ville. | 50 transitions, mémoire stable et budgets. |
+| 16 | À_FAIRE | `M4-FH-SAVE-01` | Sauvegarde ForgeHistory autoritaire incluant le contexte de vue. | Migrations et round-trip exact carte/ville. |
+| 17 | À_FAIRE | `M3-FAMILY-01` | Familles et cycle de vie partagés entre LOD. | Backend, contrats, reload et profil 250 habitants. |
+| 18 | À_FAIRE | `M3-HEALTH-01` | Santé et soins autoritaires, présentation ville. | Scénario 90 jours et revue player. |
+| 19 | À_FAIRE | `M3-FAITH-01` | Foi, offices et sépultures partagés avec le monde. | Tests calendrier/LOD et capture. |
+| 20 | À_FAIRE | `M3-ORDER-01` | Ordre et criminalité sans règle compensatoire client. | Scénario, télémétrie et contrats. |
+| 21 | À_FAIRE | `M3-TAX-01` | Fiscalité et trésor communs avec ForgeHistory. | Livre conservatif et panneau inspecté. |
+| 22 | À_FAIRE | `M3-FIRE-01` | Incendie, intervention et reconstruction persistants. | Cycle complet et retour carte. |
+| 23 | À_FAIRE | `M3-ART-02` | Variations, saisons et animations de ville. | Audit de diversité, profil et revue humaine. |
+| 24 | À_FAIRE | `M6-GAME-01` | Parcours intégré de huit heures. | QA sans blocage ni divergence. |
+| 25 | À_FAIRE | `M6-ONBOARD-01` | Tutoriel carte→ville et retours backend. | Tests utilisateurs. |
+| 26 | À_FAIRE | `M6-SAVE-01` | Autosaves/migrations monde et récupération. | Matrice zéro corruption. |
+| 27 | À_FAIRE | `REL-CONTENT` | Contenu urbain multi-ville. | Catalogue, équilibrage et revue player. |
+| 28 | À_FAIRE | `REL-ART` | Art final carte→ville. | Revue trois zooms/quatre saisons. |
+| 29 | À_FAIRE | `REL-ANIM` | Animations de production. | Transitions/IK/variations et profil. |
+| 30 | À_FAIRE | `REL-AUDIO` | Audio de transition et de ville. | Mix long et options. |
+| 31 | À_FAIRE | `REL-UX` | UX finale et erreurs récupérables. | Résolutions et tailles UI. |
+| 32 | À_FAIRE | `REL-PERF` | 500 habitants et budgets de transition. | 60 FPS, p95, mémoire et chargements. |
+| 33 | À_FAIRE | `M8-BALANCE-01` | Équilibrage backend observable. | Parties automatiques/humaines sans compensation locale. |
+| 34 | À_FAIRE | `REL-QA` | Soak et régression intégrée. | Zéro critique/majeur. |
+| 35 | À_FAIRE | `REL-ACCESS` | Accessibilité complète. | Checklist et tests utilisateurs. |
+| 36 | À_FAIRE | `REL-LOC` | Français et anglais. | Pseudo-localisation et relecture. |
+| 37 | À_FAIRE | `REL-SHIP` | Packaging City Mode dans ForgeHistory. | RC reproductible, licences et rollback. |
 
 ## Stratégie d'assets 3D de qualité
 
@@ -368,18 +405,19 @@ l'Asset Factory, et création/commande sur mesure pour les silhouettes héroïqu
 
 | Risque | Niveau | Réponse obligatoire |
 |---|---|---|
-| Simulation locale trop liée au vertical slice | Élevé | Stabiliser les contrats et les données avant d'ajouter beaucoup de contenu. |
-| Extension des flux au-delà du bois | Moyen | Réutiliser le contrat de ressources et d'extrémités de `M1-LOG-01` sans recréer de transport spécifique. |
-| Coût de navigation à plus de 100 habitants | Moyen | Conserver le test 20 minutes et profiler à nouveau dans `M1-PERF-01`. |
-| Accumulation d'assets hétérogènes | Moyen | Conserver l'adaptation sous `Assets/CityLabHost/Adapted` et auditer chaque source. |
-| Dérivés Store non traçables ou redistribuables | Élevé | Provenance, licence, hashes d'entrée, workbench non publié et sortie uniquement intégrée au jeu. |
-| Pipeline conversationnel non reproductible | Élevé | Blender headless et recettes versionnées sont la source de vérité ; MCP réservé à l'exploration. |
-| Ambition AAA sans budget mesuré | Élevé | Utiliser les portes M1–M9 ; ne jamais remplacer une preuve par un pourcentage subjectif. |
-| Régression performance par ajout de contenu | Élevé | Rejouer le scénario de référence à chaque jalon. |
-| Fonctionnalités larges livrées à moitié | Élevé | Appliquer le contrat vertical données→simulation→save→monde→HUD→tests et reprendre le même ID tant que la preuve manque. |
-| Art final repoussé après les systèmes | Élevé | Exécuter `M3-ART-01` dès la fermeture de la construction, puis imposer la bible à chaque nouveau contenu. |
-| Achats ou commandes non maîtrisés | Élevé | Codex prépare spécifications et audits, mais toute dépense, licence non standard ou engagement externe exige une autorisation utilisateur explicite. |
-| File Codex devenue obsolète | Moyen | La session qui ferme une tâche promeut la suivante, met à jour la file et documente toute dépendance nouvellement découverte. |
+| Deux simulations ou deux horloges actives | Critique | ForgeHistory seul autoritaire ; adapter/mocks CityLab exclus du build intégré et test zéro double tick. |
+| Bootstrap `AfterSceneLoad` injecté dans `Main.unity` | Critique | Démarrage explicite par l'hôte, une instance par `CityLaunchContext`, test zéro auto-démarrage. |
+| `cityId = 1001` et fixture locale en production | Élevé | Identifiants fournis par ForgeHistory, tests multi-ville et refus des contextes incomplets. |
+| Sauvegardes concurrentes CityLab/ForgeHistory | Critique | Sauvegarde monde unique ; service CityLab limité au laboratoire et aux migrations. |
+| Écart Built-in/URP et shaders carte | Élevé | Prototype avant portage, stratégie unique, captures dorées et régression GPU. |
+| Conflits de packages Entities/Input/Navigation/URP | Élevé | Matrice de versions épinglée, hôte minimal puis build ForgeHistory avant migration d'assets. |
+| Chargement synchrone et `Resources.Load` massif | Élevé | Transition asynchrone, catalogues partitionnés, annulation et budgets froid/chaud/mémoire. |
+| LOD monde/ville non conservatif | Critique | Invariants de masse/identité, hashes aller-retour et conflits de révision testés. |
+| Couche villes ForgeHistory non commencée | Élevé | Contrat CityLab d'abord, demande Hermes explicite, tâches dépendantes `BLOCKED` sans écriture amont. |
+| Dérive de la dépendance ForgeHistory | Moyen | Audit épinglé à un commit et revalidation du delta avant chaque lot d'intégration. |
+| Assets hétérogènes ou non redistribuables | Élevé | Provenance, licences, hashes, GUID/LFS et portage par manifeste. |
+| Régression performance par transition/contenu | Élevé | 50 transitions, soak deux heures, profil 250 puis 500 habitants. |
+| File Codex devenue obsolète | Moyen | La session qui ferme une tâche promeut la suivante et documente toute dépendance nouvelle. |
 
 ## Protocole de mise à jour
 
@@ -414,6 +452,7 @@ Avant de terminer une session qui a modifié le projet :
 
 | Date | Tâches | Résultat | Preuves | Prochaine priorité |
 |---|---|---|---|---|
+| 2026-08-13 | `M3-FH-01` | Pivot de produit : CityLab devient la vue ville jouable de ForgeHistory, ouverte depuis sa carte principale. L'audit lecture seule confirme Unity 6000.0.43f1 commun, mais révèle une divergence d'autorité : CityLab simule/sauvegarde dans Unity et se bootstrap après chaque scène, tandis que ForgeHistory exige une simulation unique hors Unity. La roadmap place donc contrats, packaging, rendu, transition, adaptateur backend et portage d'assets avant la suite des mécaniques locales. | ForgeHistory `268e8aab...e311`, `VISION.md`, `unity/README.md`, `Main.unity`, `MapDisplaySystem`, `PilotMapProvider`, manifests Unity ; CityLab `CityLabBootstrap`, `CityLabGame`, `CityContracts`, manifests et schéma de sauvegarde. | Exécuter l'incrément 02 : documenter le contrat d'autorité/chargement/portage sans écrire dans ForgeHistory. |
 | 2026-08-12 | `META-AUTO-01` | L'évaluation indépendante accepte désormais les lots réels volumineux sous Windows : l'invite complète est transmise à Claude par stdin ; Cursor reçoit un ordre borné et relit le diff complet du PR au SHA ciblé avec `gh pr diff`. L'absence de verdict reste un échec fermé. | `WinError 206` reproduit par le run #31617561462 ; test stdin avec une invite de 100 000 caractères ; test de relecture Cursor hors ligne de commande ; harnais et roadmap verts. | Relancer l'évaluation de `M3-BUILD-01`, incrément 02, depuis `main` corrigée. |
 | 2026-08-12 | `META-AUTO-01` | Le superviseur Windows distingue désormais une vraie interruption d'un `CTRL_C` tardif émis après la fin de l'acteur par un outil détaché : la première arrête le cycle, le second produit un rejet mécanique borné et permet l'itération corrective suivante. | Run refusé #31615708173 après 8/8 tests ciblés ; deux tests de signal post-sortie/acteur vivant ; harnais et roadmap verts. | Relancer `M3-BUILD-01`, incrément 02, en conservant un comportement fail-closed. |
 | 2026-08-12 | `META-AUTO-01` | Durcissement du flux acteur sous Windows : une sortie Unicode non représentable par la page de codes de la console ne peut plus interrompre le cycle après génération ; le journal UTF-8 intégral reste la preuve de référence. L'échec est resté fermé et aucune modification de production n'a été publiée. | Run refusé #31611611471 ; test de non-régression CP1252 ; suite du harnais et contrôle roadmap verts. | Relancer `M3-BUILD-01`, incrément 02, après fusion du correctif. |
