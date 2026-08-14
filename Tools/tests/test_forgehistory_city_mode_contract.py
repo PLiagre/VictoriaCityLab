@@ -25,6 +25,12 @@ class ForgeHistoryCityModeContractTests(unittest.TestCase):
     def test_contract_assembly_and_host_lifecycle_are_explicit(self) -> None:
         validate_repository()
 
+    def test_production_presentation_isolated_from_laboratory(self) -> None:
+        validate_repository()
+
+    def test_production_asset_partitions_are_host_owned_and_isolated(self) -> None:
+        validate_repository()
+
     def test_examples_match_versioned_schema(self) -> None:
         validate_examples(self.schema, self.examples)
 

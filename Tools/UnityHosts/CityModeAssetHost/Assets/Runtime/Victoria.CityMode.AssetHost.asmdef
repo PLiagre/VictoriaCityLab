@@ -1,0 +1,9 @@
+{
+  "name": "Victoria.CityMode.AssetHost",
+  "rootNamespace": "Victoria.CityMode.AssetHost",
+  "references": [
+    "Victoria.CityMode.Assets",
+    "UnityEngine.ImageConversionModule"
+  ],
+  "autoReferenced": true
+}

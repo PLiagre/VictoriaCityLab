@@ -120,6 +120,9 @@ class ArchitectureLoopTests(unittest.TestCase):
         ok, refused = validate_paths([
             "Automation/Proofs/a.json",
             "Architecture/inbox/a.md",
+            "Packages/com.victoria.citymode.assets/Runtime/Content/Common/trim.png",
+            "Packages/com.victoria.citymode.contracts/Runtime/Contract.cs",
+            "Packages/com.victoria.citymode.presentation/Runtime/View.cs",
             "Packages/com.victoria.citymode/Runtime/Simulation/Foo.cs",
             "Assets/CityLabHost/Adapted/foo.prefab",
             "Docs/VALIDATION.md",

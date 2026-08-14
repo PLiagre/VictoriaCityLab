@@ -9,12 +9,23 @@ manifests CityLab vivent dans ce dépôt.
 
 - la simulation déterministe reste dans `Packages/com.victoria.citymode` ;
 - les scènes, catalogues hôtes et adaptateurs restent sous `Assets/CityLabHost` ;
+- les copies de production approuvées vivent dans
+  `Packages/com.victoria.citymode.assets/Runtime/Content`, séparées en
+  `Common`, `Biome` et `City` ;
 - les imports Unity Store restent intacts dans leur dossier racine sous
   `Assets/<éditeur>` ;
 - le code de l'usine vit sous `Tools/AssetFactory` ;
 - recettes, manifests, rapports et workbench vivent sous `AssetFactory` ;
 - seules les sorties approuvées sont copiées sous
-  `Assets/CityLabHost/Adapted/Factory`.
+`Assets/CityLabHost/Adapted/Factory`.
+
+Tout passage du laboratoire vers le package portable est décrit dans
+`Docs/Integration/city-mode-asset-port-v1.json`. Le fichier source et la cible
+doivent être bit-identiques, leurs GUID source/cible doivent être explicites et
+distincts, et chaque binaire doit suivre Git LFS. Les `.meta` cible sont générés
+par Unity puis versionnés ; ils ne sont jamais fabriqués à la main. Cette règle
+évite une collision de GUID tant que le laboratoire et le package coexistent
+dans le même dépôt.
 
 Le package métier ne référence jamais directement une source Vendor ou un
 artefact de workbench. La génération, les previews et la QA s'exécutent sans
@@ -25,6 +36,11 @@ L'admission d'une nouvelle source exige un profil versionné avec provenance,
 licence vérifiée et hashes des composants retenus. La publication générique est
 un dry-run par défaut ; une copie explicite est atomique, refuse toute sortie
 hors `Assets/CityLabHost/Adapted/Factory` et ne lance jamais Unity.
+
+Le portage vers le package de production est une seconde admission explicite,
+après publication Factory : licence, provenance, hash source→cible, budget de
+partition, build et capture player sont obligatoires. Il ne donne au package
+aucune autorité de simulation, d'horloge ou de sauvegarde.
 
 Les textures partagées sont produites comme un ensemble PBR cohérent :
 `BaseColor`, `Normal`, `AO`, `Roughness`, `Metallic` et masque de variation.

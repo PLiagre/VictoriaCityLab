@@ -1,0 +1,11 @@
+{
+  "name": "Victoria.CityMode.TransitionHost.Editor",
+  "rootNamespace": "Victoria.CityMode.TransitionHost.Editor",
+  "references": [
+    "Victoria.CityMode.TransitionHost"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "autoReferenced": true
+}

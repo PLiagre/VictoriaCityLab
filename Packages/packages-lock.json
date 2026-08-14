@@ -155,9 +155,31 @@
       "depth": 0,
       "source": "embedded",
       "dependencies": {
+        "com.victoria.citymode.contracts": "0.1.0",
+        "com.victoria.citymode.presentation": "0.1.0",
         "com.unity.inputsystem": "1.13.1",
         "com.unity.ai.navigation": "2.0.6",
         "com.unity.render-pipelines.universal": "17.0.4"
+      }
+    },
+    "com.victoria.citymode.assets": {
+      "version": "file:com.victoria.citymode.assets",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.victoria.citymode.contracts": {
+      "version": "file:com.victoria.citymode.contracts",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.victoria.citymode.presentation": {
+      "version": "file:com.victoria.citymode.presentation",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.victoria.citymode.contracts": "0.1.0"
       }
     },
     "com.unity.modules.ai": {

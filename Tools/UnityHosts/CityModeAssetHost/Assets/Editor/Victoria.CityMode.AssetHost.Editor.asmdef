@@ -1,0 +1,13 @@
+{
+  "name": "Victoria.CityMode.AssetHost.Editor",
+  "rootNamespace": "Victoria.CityMode.AssetHost.Editor",
+  "references": [
+    "Victoria.CityMode.AssetHost",
+    "Victoria.CityMode.Assets",
+    "Unity.RenderPipelines.Universal.Runtime"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "autoReferenced": true
+}

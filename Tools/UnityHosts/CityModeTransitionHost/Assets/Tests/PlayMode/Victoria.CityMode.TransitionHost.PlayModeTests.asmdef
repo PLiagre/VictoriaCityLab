@@ -1,0 +1,13 @@
+{
+  "name": "Victoria.CityMode.TransitionHost.PlayModeTests",
+  "rootNamespace": "Victoria.CityMode.TransitionHost.Tests",
+  "references": [
+    "Victoria.CityMode.Contracts",
+    "Victoria.CityMode.Presentation",
+    "Victoria.CityMode.TransitionHost"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ],
+  "autoReferenced": false
+}

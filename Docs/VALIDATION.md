@@ -1,6 +1,6 @@
 # Validation du vertical slice
 
-Derniere validation complete : 12 août 2026, Unity `6000.0.43f1`, Windows 11,
+Derniere validation complete : 13 août 2026, Unity `6000.0.43f1`, Windows 11,
 player URP en 1920 x 1080. Toutes les commandes Unity passent par le verrou propre
 a CityLab : `py Tools/run_unity_locked.py -- <Unity.exe> ...`.
 
@@ -19,19 +19,120 @@ ForgeHistory.
 | Autorité | monde, tick, simulation et sauvegarde attribués à ForgeHistory ; vue et entrées à City Mode | matrice d'autorité v1 |
 | Contrat C# | contexte, snapshot, intention, reçu, révision, erreurs et interfaces ; aucune référence Unity | `ForgeHistoryCityModeContracts.cs` |
 | Schéma filaire | JSON Schema draft 2020-12, protocole v1 et cinq documents exemples cohérents | `Docs/Integration/Schemas/` |
-| Contrats négatifs | contexte incomplet, temps incohérent, révision négative, hash invalide et reçu contradictoire refusés | 8/8 tests Python |
-| Validateur | version, identité, révision, SHA-256, pureté C# et documentation contrôlés | `CITYLAB_FORGEHISTORY_CONTRACT_OK protocol=1 documents=5 upstream_writes=0` |
+| Contrats négatifs | contexte incomplet, temps incohérent, révision négative, hash invalide et reçu contradictoire refusés | 10/10 tests Python, dont isolation des partitions d'assets |
+| Validateur | version, identité, révision, SHA-256, pureté C# et documentation contrôlés | `CITYLAB_FORGEHISTORY_CONTRACT_OK protocol=1 documents=5 asset_partitions=3 upstream_writes=0` |
 | Package minimal | `com.victoria.citymode.contracts`, zéro dépendance Unity et assembly `noEngineReferences` | `package.json`, `Victoria.CityMode.Contracts.asmdef` |
-| Lifecycle hôte | ouverture/fermeture explicite, double instance refusée, intention périmée bloquée avant l'hôte | `CityModeSession`, tests NUnit ajoutés |
+| Présentation portable | `com.victoria.citymode.presentation` dépend seulement des contrats et de `UnityEngine`, sans URP/Input/Navigation/scène/fixture | `Victoria.CityMode.Presentation.asmdef`, validateur structurel |
+| Lifecycle hôte | session puis présentation créées/détruites explicitement ; double instance refusée ; snapshot, reçu et refresh transmis à la vue | `CityModeSession`, `CityModePresentationHost` |
 | Bootstrap laboratoire | aucun `RuntimeInitializeOnLoadMethod` ; la scène possède explicitement `CityLabGame` | validateur structurel et `CityLabBootstrapTests.cs` |
-| Unity | tests NUnit ajoutés mais non exécutés dans cet environnement | tests contrat/session/bootstrap |
+| Hôte Unity minimal | aucun asset, scène, fixture ou bundle laboratoire ; zéro auto-démarrage, double présentation refusée, lifecycle complet | 3/3 dans `Logs/editmode-m3-fh02-minimal-host.xml` |
+| Régression Unity | contrats, présentation, assets et laboratoire compilent ; vertical slice inchangé | 99/99 EditMode, 6/6 PlayMode ; `Logs/editmode-m3-fh06-full.xml`, `Logs/playmode-m3-fh06-full.xml` |
+| Player laboratoire | build Windows et smoke GPU avec sauvegarde runtime, fixture 20/30/30 et GC p95 nul | 308 862 268 octets ; `Logs/build-m3-fh02.log`, `Logs/player-smoke-m3-fh02-gpu.log` |
 
 Commandes reproduites :
 
 ```bash
 python3 -m unittest discover -s Tools/tests -p 'test_forgehistory_city_mode_contract.py' -v
 python3 Tools/validate_forgehistory_city_mode_contract.py
+
+py Tools/run_unity_locked.py -- '<Unity.exe>' -batchmode -nographics `
+  -projectPath Tools/UnityHosts/CityModeMinimalHost -runTests `
+  -testPlatform EditMode -testResults Logs/editmode-m3-fh02-minimal-host.xml
 ```
+
+## Convergence rendu et dépendances — 13 août 2026
+
+Cette porte `M3-FH-03` compare deux extractions `git archive` jetables de
+ForgeHistory au même commit épinglé. La première conserve Built-in ; la seconde
+ajoute URP `17.0.4`, un pipeline asset et son renderer. Aucune source ni scène du
+dépôt ForgeHistory n'a été modifiée.
+
+| Porte | Résultat | Preuve |
+|---|---|---|
+| Stratégie | URP `17.0.4` retenu pour l'hôte intégré sous Unity `6000.0.43f1` | `Docs/Integration/UNITY_RENDER_DEPENDENCY_MATRIX.md` |
+| Packages hôte | Entities `1.3.15`, Burst `1.8.19`, Collections `2.5.7`, Mathematics `1.3.2`, URP `17.0.4` | `unity-render-convergence-v1.json` et locks des sondes |
+| Isolation | contrats sans Unity ; présentation dépend seulement des contrats ; Input/Navigation/Entities/URP absents du cœur | `CITYLAB_RENDER_CONVERGENCE_OK ... host_packages=5` |
+| Carte avant/après | 3/3 PNG Built-in et URP bit-identiques | hashes `CEB78A31…D99BA8`, `86ED4E41…7717B`, `E2D95319…9B19B` |
+| Shader politique | 787 couleurs, 40,3 % de mer, accord terre/mer GPU↔CPU 99,6 %, six verdicts verts | `Logs/m3-fh03-forgehistory-urp-probe-clean.log`, log `v1_095_gpu_map.log` de la sonde |
+| Build Forge miroir | player Windows URP de `Main.unity` réussi | 178 175 782 octets, `M3_FH_03_URP_PROBE_OK` |
+| Player carte URP | parcours `--ui-capture-dir` code 0, HUD/labels/carte visibles | `Logs/m3-fh03-forgehistory-urp-player.log`, `Logs/Captures/M3-FH-03/ForgeHistory-URP/01_world_neutral.png` |
+| Shader rose | 0/2 073 600 pixels magenta sur carte URP et 0/2 073 600 sur ville | hashes `21F05F3E…7EE0D` et `A370D0FA…1B3B6` |
+| Profil carte | GPU direct 0,042→0,031 ms ; chemin câblé 1,475→0,266 ms ; raster CPU 126,247→101,512 ms | Built-in→URP, budget 16,7 ms/image |
+| Écritures amont | aucune | `git status --short` ForgeHistory vide ; `upstream_writes=0` |
+| Validateur | décision, versions, isolation, goldens, pixels magenta et budgets contrôlés | 3/3 tests Python |
+
+Commandes locales :
+
+```powershell
+py -3 Tools/validate_unity_render_convergence.py
+py -3 -m unittest Tools.tests.test_unity_render_convergence -v
+```
+
+Les temps CPU/GPU sont comparatifs et spécifiques à la machine de session. La
+décision doit être appliquée puis rejouée dans ForgeHistory par Hermes avant
+toute fusion amont ; cette porte ne prétend pas avoir modifié l'hôte réel.
+
+## Shell de transition asynchrone — 13 août 2026
+
+Cette porte `M3-FH-04` compose le package dans un miroir sans données métier :
+`MapMirror` reste chargée, `CityModeView` est additive, et l'adaptateur
+`UnitySceneTransitionHost` appartient à l'hôte. Aucune scène ou source
+ForgeHistory n'est copiée.
+
+| Porte | Résultat | Preuve |
+|---|---|---|
+| Machine d'état | progression, succès, annulation, timeout, échec, rollback, retour et double entrée | `CityModeTransitionShell.cs` |
+| Frontière hôte | aucun `SceneManager`, nom de scène, simulation ou save dans le package | validateur de contrat |
+| Tests shell | 9/9 EditMode et 5/5 PlayMode | `Logs/editmode-m3-fh04-minimal-host.xml`, `Logs/playmode-m3-fh04-minimal-host.xml` |
+| Scènes réelles | sélection→chargement additif→ville→déchargement→viewport restauré | 7/7 PlayMode, `Logs/playmode-m3-fh04-transition-host.xml` |
+| Soak Editor | 50/50 cycles, aucune présentation active finale | froid 3,017 ms ; chaud max 0,728 ms ; retour max 2,159 ms |
+| Mémoire Editor | delta alloué après GC borné | +118 439 octets, seuil 64 Mio |
+| Build miroir | player Windows Development | 118 362 839 octets, `CITY_MODE_TRANSITION_BUILD_OK` |
+| Soak player GPU | 50/50 cycles, cellule `cell:paris` restaurée | froid 15,783 ms ; chaud max 1,222 ms ; retour max 3,882 ms |
+| Seuils | froid <10 s, chaud <3 s, retour <5 s | Editor et player très sous budgets |
+| Autorité | gateway factice uniquement ; aucune horloge/simulation/save dans le shell | packages contrats/présentation isolés |
+
+Le miroir n'est pas `Main.unity` et ne prétend pas être l'intégration finale :
+Hermes doit fournir l'adaptateur réel et appeler le même port depuis la carte
+ForgeHistory.
+
+## Portage des assets et catalogues — 13 août 2026
+
+Cette porte `M3-FH-06` copie uniquement des sorties déjà admises vers
+`com.victoria.citymode.assets`. Les sources laboratoire restent en place ;
+ForgeHistory reste en lecture seule. Les nouveaux GUID cible ont été générés
+par Unity afin d'éviter les collisions tant que source et cible coexistent.
+
+| Porte | Résultat | Preuve |
+|---|---|---|
+| Manifeste | 11 assets, trois partitions et ordre `common→biome→city` / inverse au retour | `Docs/Integration/city-mode-asset-port-v1.json` |
+| Hashes | 11/11 sources et cibles bit-identiques, tailles vérifiées | `CITYLAB_ASSET_PORT_OK ... source_target_hashes=11` |
+| GUID | 11 GUID source conservés dans le manifeste et 11 GUID cible Unity distincts/versionnés | `.meta` source/cible + validateur |
+| LFS | 8 PNG et 3 FBX routés par `filter=lfs` | `.gitattributes`, `git check-attr` |
+| Provenance/licences | textures originales Victoria ; adaptations de scierie sous Unity Asset Store EULA privée | `LICENSES.md`, `VENDOR_AUDIT.md`, manifests Factory |
+| Chemin intégré | aucun `Resources.Load`, Vendor direct, fixture, simulation, horloge ou save dans le package/hôte | validateur statique et contrat ForgeHistory |
+| Catalogue | une révision et un budget par scène ; rollback inclut la partition courante invalide | 4/4 EditMode |
+| Chargement réel | trois scènes additives puis libération inverse, 11 références non nulles | 2/2 PlayMode |
+| Profil Editor | 10 cycles, 30 loads/30 unloads, pic partition 45 096 400 octets, delta après GC +19 731 octets ; load max 10,551 ms, unload max 4,307 ms | `Logs/playmode-m3-fh06-asset-host.log` |
+| Build miroir | Windows Development URP, aucune référence manquante | 165 565 540 octets ; `Logs/build-m3-fh06-asset-host.log` |
+| Profil player GPU | common 16 779 984, biome 1 431 216, city 22 393 444 octets ; +3 449 975 après GC ; load max 18,521 ms, unload max 3,083 ms | `Logs/player-m3-fh06-asset-host-gpu.log` |
+| Trois zooms | stratégique, quartier et détail en 1280×720, hashes distincts, 0 pixel magenta | `36BABF9B…123DB`, `1CA2FD87…E4F7C`, `C5D2FC10…E8103` |
+| Régressions globales | package importé dans CityLab, architecture et outils inchangés | 99/99 EditMode, 6/6 PlayMode, 17/17 outils Python, 30/30 harnais |
+| Écritures amont | aucune | `git status --short` ForgeHistory vide ; `upstream_writes=0` |
+
+Commandes locales :
+
+```powershell
+py -3 Tools/validate_city_mode_asset_port.py
+py -3 -m unittest Tools.tests.test_city_mode_asset_port -v
+py Tools/run_unity_locked.py -- '<Unity.exe>' -batchmode -nographics `
+  -projectPath Tools/UnityHosts/CityModeAssetHost -runTests `
+  -testPlatform PlayMode -testResults Logs/playmode-m3-fh06-asset-host.xml
+```
+
+La preuve utilise des adresses de scène factices et ne revendique aucun backend
+urbain. L'import du package et le rejeu des budgets dans `Main.unity` restent
+une action amont Hermes.
 
 ## Architecture full-auto — 12 août 2026
 
@@ -59,8 +160,8 @@ Cette validation structurelle ne remplace aucune preuve Unity ou player.
 
 | Porte | Resultat | Preuve locale |
 |---|---|---|
-| EditMode | 71/71 réussis | `Logs/editmode-m3-scaffolding-final-integration.xml` |
-| PlayMode | 1/1 réussi | `Logs/playmode-m3-scaffolding-integration.xml` |
+| EditMode | 99/99 réussis | `Logs/editmode-m3-fh06-full.xml` |
+| PlayMode | 6/6 réussis | `Logs/playmode-m3-fh06-full.xml` |
 | Échafaudages | 4/4 : niveaux 1→4, attente du terrassement, retrait final, sélection et reconstruction après reload | `Logs/editmode-m3-scaffolding-integration.xml` |
 | Construction physique | 3/3 : terrassement avant livraison, quatre matériaux séquencés et reload exact | `Logs/editmode-m3-build-targeted-final-20260803.xml` |
 | Parcelles organiques | 3/3 : variation, orientation, pente, jardins, extensions, démolition et reload | `Logs/editmode-m3-plot-targeted-final-20260803.xml` |
@@ -72,8 +173,8 @@ Cette validation structurelle ne remplace aucune preuve Unity ou player.
 | Chaînes de production | 3/3 : sept recettes, consommation/production et transport physique | `Logs/editmode-m2-chain-targeted-v2-20260802.xml` |
 | Agriculture | 3/3 : phases, fertilité, météo et déterminisme | `Logs/editmode-m2-farm-final-20260802.xml` |
 | Simulation 30 jours | 35 989 ticks, hash `f5c411a9...753a82`, minimum 0, navigation 0, bloqués 0 | `Logs/editmode-m3-build-final-20260803.log` |
-| Build Windows x64 | réussi, 308 842 899 octets | `Logs/build-m3-scaffolding-integration-v2.log` |
-| Smoke final | sauvegarde runtime, 20 foyers, 30 bâtiments, 30 habitants et porte fonctionnelle réussie | `Logs/player-smoke-m3-scaffolding-integration.log` |
+| Build Windows x64 | réussi, 308 862 268 octets | `Logs/build-m3-fh02.log` |
+| Smoke final | sauvegarde runtime, 20 foyers, 30 bâtiments, 30 habitants et porte fonctionnelle réussie sur GPU | `Logs/player-smoke-m3-fh02-gpu.log` |
 | Performance | 100 habitants, 60,0 FPS moyens, p95 16,683 ms sur 1 800 frames, GC p95 0 | `Logs/player-perf-m2-final-20260802.log` |
 | Navigation | 100 habitants pendant 20 minutes, zéro échec, hash identique | `DeterministicNavigationGridTests.cs` dans la suite 30/30 |
 | Emplois | exclusivité, horaires, trajets, absence/remplacement et reload exact | `EmploymentSimulationTests.cs`, 4/4 |
