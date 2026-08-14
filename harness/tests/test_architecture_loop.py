@@ -120,6 +120,9 @@ class ArchitectureLoopTests(unittest.TestCase):
         ok, refused = validate_paths([
             "Automation/Proofs/a.json",
             "Architecture/inbox/a.md",
+            "Packages/com.victoria.citymode.assets/Runtime/Content/Common/trim.png",
+            "Packages/com.victoria.citymode.contracts/Runtime/Contract.cs",
+            "Packages/com.victoria.citymode.presentation/Runtime/View.cs",
             "Packages/com.victoria.citymode/Runtime/Simulation/Foo.cs",
             "Assets/CityLabHost/Adapted/foo.prefab",
             "Docs/VALIDATION.md",
@@ -203,6 +206,21 @@ class ArchitectureLoopTests(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertLess(source.index("sys.path.insert"), source.index("from harness.audit_ledger"))
+
+    def test_pr_audit_only_runs_on_explicit_critical_label(self) -> None:
+        workflow = (Path(__file__).resolve().parents[2] / ".github" / "workflows" /
+                    "pipeline-audit.yml").read_text(encoding="utf-8")
+        self.assertIn("types: [labeled]", workflow)
+        self.assertIn("pipeline/critical-audit", workflow)
+        self.assertNotIn("opened, reopened, synchronize", workflow)
+        self.assertNotIn("contains(github.event.pull_request.labels.*.name, 'pipeline/auto-merge')", workflow)
+
+    def test_merge_bot_requires_audit_only_for_critical_prs(self) -> None:
+        workflow = (Path(__file__).resolve().parents[2] / ".github" / "workflows" /
+                    "merge-bot.yml").read_text(encoding="utf-8")
+        self.assertIn("$criticalAudit", workflow)
+        self.assertIn("pipeline/critical-audit", workflow)
+        self.assertIn("Audit Cursor non requis", workflow)
 
 
 if __name__ == "__main__":

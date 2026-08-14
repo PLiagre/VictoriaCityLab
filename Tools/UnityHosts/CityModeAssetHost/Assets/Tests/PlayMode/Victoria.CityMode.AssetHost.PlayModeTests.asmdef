@@ -1,0 +1,12 @@
+{
+  "name": "Victoria.CityMode.AssetHost.PlayModeTests",
+  "rootNamespace": "Victoria.CityMode.AssetHost.Tests",
+  "references": [
+    "Victoria.CityMode.AssetHost",
+    "Victoria.CityMode.Assets"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ],
+  "autoReferenced": false
+}

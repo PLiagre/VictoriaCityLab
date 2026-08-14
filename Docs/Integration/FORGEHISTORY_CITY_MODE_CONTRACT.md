@@ -1,7 +1,8 @@
 # Contrat ForgeHistory ↔ City Mode — version 1
 
-Statut : contrat CityLab prêt à être implémenté par l'hôte ; adaptateur
-ForgeHistory non disponible. Source auditée en lecture seule :
+Statut : contrat, lifecycle de présentation et stratégie URP CityLab prêts à
+être implémentés par l'hôte ; adaptateur ForgeHistory non disponible. Source
+auditée en lecture seule :
 `PLiagre/ForgeHistory@268e8aab151452b0c740a44a7cc97ca3fd37e311`
 (`master`, observé le 13 août 2026).
 
@@ -29,7 +30,7 @@ demandes amont pour Hermes.
 | Temps | horloge du monde | horloge/pause/vitesses locales | politique du monde explicite, jamais deux ticks |
 | Sauvegarde | sauvegarde monde à construire/étendre | `CitySaveService` et autosave local | une seule sauvegarde ForgeHistory |
 | Données | `StreamingAssets`, backend et providers | `Resources.Load` et snapshots CityLab | snapshot versionné fourni par l'hôte |
-| Rendu | pile actuelle ForgeHistory + Entities | URP, Input System, AI Navigation | convergence mesurée avant assets |
+| Rendu | Built-in + Entities au commit épinglé | URP, Input System, AI Navigation | URP 17.0.4 retenu après prototype bit-identique ; Input/Navigation restent des adaptateurs |
 | Chargement | ville non implémentée | scène/laboratoire autonome | transition asynchrone détenue par l'hôte |
 
 ## Matrice d'autorité
@@ -120,14 +121,21 @@ le dernier état autoritaire intact et fournit un message récupérable.
 | Couche | Contenu | Importable dans ForgeHistory |
 |---|---|---|
 | contrats | DTO, validation, interfaces, session explicite, versions | oui, assembly sans Unity |
-| présentation | caméra, HUD, vues, interpolation | oui, après convergence packages/rendu |
-| catalogues/assets | prefabs, matériaux, audio, LOD | par manifeste, jamais par copie aveugle |
+| présentation | lifecycle Unity host-owned et port `ICityModePresentationView` isolés ; caméra, HUD, vues et interpolation à brancher après convergence rendu | oui ; socle sans URP/Input/Navigation déjà prouvé dans l'hôte minimal |
+| catalogues/assets | package `com.victoria.citymode.assets`, catalogues révisionnés, textures/FBX approuvés et LOD | oui par manifeste source→cible ; chargement `common→biome→city`, jamais par copie aveugle ni `Resources.Load` |
 | adaptateur ForgeHistory | snapshot, intentions, lifecycle | côté hôte, après décision amont |
 | adaptateur laboratoire | `LocalCitySimulation`, fixtures, save local | non dans le build intégré |
 
 On ne porte donc pas `Main.unity` dans CityLab et on ne déplace pas la scène
 CityLab entière dans ForgeHistory. Le package devient portable, puis l'hôte
 compose une scène ville et choisit explicitement ses adaptateurs.
+
+Le port v1 d'assets conserve les sources sous `Assets/CityLabHost`, crée des
+GUID cible Unity distincts et versionnés dans le package portable, et consigne
+hashes identiques, LFS, provenance et licence dans
+`city-mode-asset-port-v1.json`. Les scènes de partition et leurs adresses
+restent une responsabilité de l'hôte. Le package ne contient aucun Vendor
+direct, transport, état monde, tick ou sauvegarde.
 
 ## Demandes amont à soumettre à Hermes
 
@@ -144,8 +152,10 @@ Ces demandes ne sont pas des changements dans ForgeHistory :
 6. définir le transport runtime (in-process au départ recommandé) et la stratégie
    de reprise après perte de session ;
 7. fournir un point d'extension Unity explicite pour charger/détruire City Mode ;
-8. faire valider le choix Built-in/URP et la matrice Entities/Input/Navigation
-   avant toute migration importante d'assets.
+8. appliquer dans ForgeHistory la stratégie URP `17.0.4` et la matrice
+   Entities/Burst/Collections/Mathematics prouvées par `M3-FH-03`, puis rejouer
+   build, goldens et profil, importer le package d'assets au commit retenu et
+   rejouer ses budgets avant toute migration importante de contenu.
 
 Les incréments dépendants restent `BLOCKED` jusqu'à acceptation de ces points
 par le propriétaire de ForgeHistory.
@@ -158,6 +168,10 @@ par le propriétaire de ForgeHistory.
   refusés avant chargement ;
 - snapshot sans hash et reçu statut/erreur incohérent refusés ;
 - test de contrat Unity présent pour la future CI ;
+- hôte Unity minimal sans scène/fixture/laboratoire, zéro auto-démarrage et une
+  seule présentation explicite par session ;
+- shell asynchrone piloté par un port d'hôte, rollback sur annulation/timeout/
+  échec, double entrée refusée et restauration du viewport/sélection ;
 - aucune mutation du dépôt ForgeHistory.
 
 Commande hors Unity :

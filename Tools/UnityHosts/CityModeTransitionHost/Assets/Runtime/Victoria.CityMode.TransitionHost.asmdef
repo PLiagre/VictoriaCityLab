@@ -1,0 +1,9 @@
+{
+  "name": "Victoria.CityMode.TransitionHost",
+  "rootNamespace": "Victoria.CityMode.TransitionHost",
+  "references": [
+    "Victoria.CityMode.Contracts",
+    "Victoria.CityMode.Presentation"
+  ],
+  "autoReferenced": true
+}

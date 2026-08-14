@@ -32,17 +32,22 @@ jobs:
       - name: Merge every fully proven PR
         shell: powershell
         run: |
-          $prs = gh pr list --repo PLiagre/VictoriaCityLab --state open --label pipeline/auto-merge --json number,headRefOid,url | ConvertFrom-Json
+          $prs = gh pr list --repo PLiagre/VictoriaCityLab --state open --label pipeline/auto-merge --json number,headRefOid,url,labels | ConvertFrom-Json
           foreach ($pr in $prs) {
             $sha = $pr.headRefOid
             $checks = gh api "repos/PLiagre/VictoriaCityLab/commits/$sha/check-runs" | ConvertFrom-Json
             $ci = $checks.check_runs | Where-Object { $_.name -eq 'harness' -and $_.conclusion -eq 'success' }
             if (-not $ci) { Write-Warning "PR #$($pr.number): CI verte absente"; continue }
-            $decision = Get-ChildItem Architecture/decisions/DECISION-*.json | ForEach-Object {
-              $value = Get-Content $_.FullName -Raw | ConvertFrom-Json
-              if ($value.target_commit -eq $sha -and $value.decision -eq 'PASS') { $value }
-            } | Select-Object -First 1
-            if (-not $decision) { Write-Warning "PR #$($pr.number): décision audit PASS absente"; continue }
+            $criticalAudit = @($pr.labels | ForEach-Object { $_.name }) -contains 'pipeline/critical-audit'
+            if ($criticalAudit) {
+              $decision = Get-ChildItem Architecture/decisions/DECISION-*.json | ForEach-Object {
+                $value = Get-Content $_.FullName -Raw | ConvertFrom-Json
+                if ($value.target_commit -eq $sha -and $value.decision -eq 'PASS') { $value }
+              } | Select-Object -First 1
+              if (-not $decision) { Write-Warning "PR #$($pr.number): décision audit critique PASS absente"; continue }
+            } else {
+              Write-Host "PR #$($pr.number): Audit Cursor non requis (lot courant)."
+            }
             $paths = gh pr view $pr.number --json files --jq '.files[].path'
             @($paths) | Set-Content .git/citylab-pr-paths.txt
             py -c "from pathlib import Path; from harness.merge_bot_policy import validate_paths; p=Path('.git/citylab-pr-paths.txt').read_text().splitlines(); ok,bad=validate_paths(p); print('CITYLAB_MERGE_PATHS',ok,bad); raise SystemExit(0 if ok else 2)"

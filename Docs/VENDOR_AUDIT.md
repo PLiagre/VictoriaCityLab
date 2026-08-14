@@ -44,6 +44,22 @@ traçabilité pour les sept autres familles et leurs 21 variantes.
 hashes FBX et canoniques, les budgets et les portes Unity encore ouvertes des
 32 personnages dérivés.
 
+## Port City Mode v1
+
+Le package privé `com.victoria.citymode.assets` admet onze copies de production
+sans modifier ni déplacer les sources : six textures PBR originales, les deux
+textures originales prairie/route et les trois FBX de scierie déjà approuvés.
+Unity a généré onze GUID cible distincts ; le manifeste
+`Docs/Integration/city-mode-asset-port-v1.json` conserve chaque paire de GUID,
+le SHA-256 identique source→cible, la taille, la partition, la provenance, la
+licence et le marquage LFS.
+
+Les scieries restent soumises à la Unity Asset Store EULA et ne sont
+distribuables que comme contenu embarqué du projet privé. Aucune arborescence
+Vendor, prefab Vendor direct ou script de démonstration n'entre dans le package.
+Les scènes de preuve référencent uniquement les adaptations portées et des
+matériaux URP transitoires détenus par l'hôte.
+
 ## Audit modulaire GanzSe
 
 L'audit hors Unity recense 217 FBX : 2 corps complets issus de la même lignée,

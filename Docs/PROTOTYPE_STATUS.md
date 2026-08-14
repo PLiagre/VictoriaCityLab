@@ -82,19 +82,53 @@ C# pur et JSON versionné. ForgeHistory possède le monde, le tick, la simulatio
 et la sauvegarde ; City Mode reçoit un `CityLaunchContext`, consomme un snapshot
 révisionné et émet des intentions corrélées. `LocalCitySimulation`, le save local
 et les fixtures restent des outils de laboratoire, pas une autorité de
-production. Le contrat vit désormais dans un package UPM sans dépendance Unity,
-la session hôte est explicite et le bootstrap global a été retiré ; la scène du
-laboratoire possédait déjà son `CityLabGame`. La séparation complète de la
-présentation et de l'adaptateur local ainsi que le chargement dans l'hôte restent
-à implémenter ; aucune intégration player ForgeHistory n'est encore revendiquée.
+production. Le contrat vit dans un package UPM sans dépendance Unity. Le
+lifecycle `com.victoria.citymode.presentation` est un second package portable,
+sans URP, Input System, AI Navigation, scène, fixture, simulation ni save ;
+l'hôte crée et détruit explicitement une présentation par session. Le bundle
+historique `com.victoria.citymode` est identifié comme laboratoire uniquement et
+reste composé avec `Assets/CityLabHost`. Un hôte Unity minimal distinct importe
+seulement contrats et présentation. Les vues urbaines riches doivent encore être
+branchées après convergence rendu ; aucune intégration player ForgeHistory n'est
+revendiquée.
+
+La convergence rendu `M3-FH-03` retient URP `17.0.4` pour le futur hôte intégré.
+Sur deux extractions jetables du même commit ForgeHistory, les trois captures de
+carte Built-in et URP sont bit-identiques ; le player URP de `Main.unity` se
+construit et produit un framebuffer complet sans pixel magenta. Entities
+`1.3.15`, Burst `1.8.19`, Collections `2.5.7` et Mathematics `1.3.2` restent
+épinglés par l'hôte. Input System et AI Navigation demeurent des adaptateurs de
+laboratoire/contenu, absents du cœur de présentation. Cette décision est une
+preuve de portabilité, pas une modification ni une intégration livrée dans le
+dépôt ForgeHistory.
+
+Le shell `M3-FH-04` est également portable : `CityModeTransitionShell` orchestre
+progression, timeout, annulation, erreur, entrée et retour via
+`ICityModeTransitionHost`, tandis que le `SceneManager`, les scènes et la
+restauration du viewport restent entièrement côté hôte. Le miroir de carte
+charge `CityModeView` en additif puis restaure cellule et viewport ; il ne
+contient aucune carte, simulation ou sauvegarde ForgeHistory.
+
+Le port d'assets `M3-FH-06` est fermé dans un troisième package portable,
+`com.victoria.citymode.assets`. Onze binaires approuvés sont répartis en socle
+commun, biome et ville avec GUID cible versionnés, hashes source→cible
+identiques, LFS, provenance et licences. `CityModeAssetPartitionLoader` impose
+le chargement `Common→Biome→City`, le déchargement inverse et le rollback sous
+budget via un port hôte. Le package ne contient ni `Resources.Load`, ni scène,
+ni simulation, ni horloge, ni sauvegarde. Le player miroir URP produit trois
+zooms lisibles et dix cycles mémoire bornés ; il ne constitue toujours pas une
+intégration dans le dépôt ForgeHistory.
 
 La production est pilotable par le harnais full-auto sous `harness/`. Hermes
-sélectionne l'unique incrément `EN_COURS`, Codex produit, Cursor audite et
-Claude contredit dans des exécutions séparées. La fusion automatique exige la
-CI verte, les deux verdicts `PASS`, une décision enregistrée sur `main` et la
-politique de chemins fermée. Les workflows, l'orchestrateur, la gouvernance et
-les sources Vendor restent protégés ; quatre coupe-circuits permettent un
-retour immédiat au mode manuel.
+sélectionne l'unique incrément `EN_COURS`, Codex produit et Claude évalue dans
+des exécutions séparées. La CI et la politique de chemins restent obligatoires
+pour chaque PR. Cursor, son challenge Claude, la décision versionnée et
+l'archivage ne s'exécutent plus sur les lots courants : ils sont réservés aux
+frontières d'autorité/packaging, transitions, synchronisation/sauvegarde et
+portes performance/QA/release déclarées critiques, ou à un label critique
+posé explicitement. Les workflows, l'orchestrateur, la gouvernance et les
+sources Vendor restent protégés ; quatre coupe-circuits permettent un retour
+immédiat au mode manuel.
 
 L'économie forestière est exposée par `PlaceLumberCamp` et
 `ProductionSiteState`. L'affectation est physique : seuls les bûcherons présents
@@ -107,8 +141,9 @@ sauvegardé. L'abattage individuel de chaque arbre reste à produire.
 Les jalons visuels sont captures depuis le player Windows a 1920 x 1080 dans
 `Logs/Captures`. Le smoke test charge une fixture hote de 20 foyers, 30 batiments
 et 30 habitants et refuse de valider un scenario incomplet. La validation du
-12 août 2026 passe 71/71 tests EditMode et 1/1 test PlayMode ; le build Windows
-de référence pèse 308 842 899 octets. Le stress déterministe couvre 100 habitants pendant
+13 août 2026 passe 99/99 tests EditMode et 6/6 tests PlayMode ; le build Windows
+de référence pèse 308 862 268 octets. L'hôte Unity minimal passe séparément 3/3
+tests sans charger le laboratoire. Le stress déterministe couvre 100 habitants pendant
 20 minutes sans échec de navigation. Le smoke valide aussi un round-trip de
 sauvegarde dans le player ; la mesure visible de référence reste 60,0 FPS et
 16,683 ms au p95 sur 1 800 frames. L'économie M2 progresse aussi 60 jours,
@@ -116,6 +151,26 @@ soit deux heures de jeu simulé, sans quantité négative ni agent bloqué.
 Les snapshots metier sont rafraichis a 10 Hz et les vues d'habitants interpolent
 leur position a chaque frame, ce qui evite une serialisation JSON complete dans
 chaque `Update` sans sacrifier la fluidite visuelle.
+
+Le prototype rendu ForgeHistory compare également la carte Built-in et URP sur
+le même commit : 3/3 captures SHA-256 identiques, six verdicts carte verts,
+player URP de 178 175 782 octets, framebuffer carte et capture ville 1920×1080
+avec 0 pixel magenta. Le chemin GPU câblé mesure 1,475 ms/image en Built-in et
+0,266 ms/image sous URP sur la machine de session, sous le budget de 16,7 ms.
+Le shell de transition passe 9/9 tests EditMode, 5/5 PlayMode dans l'hôte minimal
+et 7/7 PlayMode dans le miroir. Cinquante scènes réelles mesurent 3,017 ms à
+froid, 0,728 ms au pire à chaud, 2,159 ms au retour et +118 439 octets alloués ;
+le player GPU répète 50 cycles en 15,783/1,222/3,882 ms.
+
+L'hôte d'assets passe 4/4 EditMode et 2/2 PlayMode. Dix cycles réels chargent 30
+partitions et en libèrent 30 avec un delta Editor de 19 731 octets. Le player GPU
+mesure 16 779 984 octets pour `common`, 1 431 216 pour `biome` et 22 393 444
+pour `city`, +3 449 975 octets après GC, 18,521 ms au pire pour charger et
+3,083 ms pour libérer. Son build pèse 165 565 540 octets et les trois captures
+1280×720 sont distinctes, sans pixel magenta.
+
+La régression de fermeture ajoute 17/17 tests Python d'outils et conserve 30/30
+tests du harnais full-auto.
 
 Le 12 août 2026, les 20 tests Python du harnais passent et le cycle témoin de la
 PR #14 a été fusionné automatiquement après CI, audit Cursor `PASS` et challenge
@@ -128,13 +183,12 @@ l'automatisation de production et ne remplace aucune porte Unity ou player.
 - le livrable est un vertical slice jouable et valide, pas un jeu AAA termine ;
 - ajouter objectifs, tutoriel et options completes, puis étendre la sauvegarde
   aux futurs systèmes au fil de leur intégration ;
-- finir le découpage présentation/adaptateur laboratoire, puis prouver l'import
-  du package de contrats et le lifecycle explicite dans un hôte Unity minimal
-  (`M3-FH-02`) ;
-- valider ensuite la convergence Built-in/URP et les packages Unity avant tout
-  portage d'assets (`M3-FH-03`) ;
+- attendre les décisions Hermes qui bloquent l'adaptateur autoritaire
+  (`M3-FH-05`) et la première ville ForgeHistory réelle (`M3-FH-07`) ; shell,
+  URP et portage borné des assets sont prouvés uniquement dans des hôtes miroir ;
 - terminer la construction physique avec usure, réparation et démolition
-  (`M3-BUILD-01`) ; terrassement, matériaux par étape, équipes affectées et
-  échafaudages synchronisés sont déjà jouables ;
+  (`M3-BUILD-01`) seulement après fermeture de `M3-FH-07` ; terrassement,
+  matériaux par étape, équipes affectées et échafaudages synchronisés sont déjà
+  jouables dans le laboratoire ;
 - augmenter la variation des facades, personnages, animations, effets, sons et
   compositions de village, puis valider plusieurs centaines d'habitants.

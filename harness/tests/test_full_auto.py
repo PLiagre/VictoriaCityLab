@@ -14,6 +14,7 @@ from harness.pipeline.full_auto import (
     dry_run_plan,
     load_config,
     parse_increments,
+    requires_critical_audit,
     select_increment,
     validate_change_scope,
     write_console,
@@ -85,6 +86,8 @@ class FullAutoTests(unittest.TestCase):
         self.assertGreaterEqual(config["max_iterations"], 1)
         self.assertLessEqual(config["max_iterations"], 3)
         self.assertTrue(config["publish"]["auto_merge"])
+        self.assertEqual("pipeline/critical-audit", config["critical_audit"]["label"])
+        self.assertIn("REL-SHIP", config["critical_audit"]["task_ids"])
 
     def test_dry_run_plan_exposes_kill_switches_and_roles(self) -> None:
         config = load_config()
@@ -95,6 +98,25 @@ class FullAutoTests(unittest.TestCase):
         )
         self.assertIn("independent-evaluator", plan["gates"])
         self.assertGreaterEqual(len(plan["kill_switches"]), 3)
+
+    def test_cursor_audit_is_reserved_for_declared_critical_tasks(self) -> None:
+        config = load_config()
+        critical = Increment(3, "EN_COURS", "M3-FH-02", "Package", "Tests")
+        routine = Increment(9, "EN_COURS", "M3-BUILD-01", "Usure", "Tests")
+        self.assertTrue(requires_critical_audit(critical, config))
+        self.assertFalse(requires_critical_audit(routine, config))
+        self.assertEqual("critical", dry_run_plan(critical, config, True)["cursor_audit"])
+        self.assertEqual("skipped", dry_run_plan(routine, config, True)["cursor_audit"])
+
+    def test_critical_label_is_applied_before_auto_merge_label(self) -> None:
+        source = (Path(__file__).resolve().parents[1] / "pipeline" / "full_auto.py").read_text(
+            encoding="utf-8"
+        )
+        publish_source = source.split("def publish(", 1)[1].split("def write_report", 1)[0]
+        self.assertLess(
+            publish_source.index('"pipeline/critical-audit"'),
+            publish_source.index('"pipeline/auto-merge"'),
+        )
 
     def test_evaluator_schema_is_strict_json(self) -> None:
         schema_path = Path(__file__).resolve().parents[1] / "schemas" / "evaluator.schema.json"

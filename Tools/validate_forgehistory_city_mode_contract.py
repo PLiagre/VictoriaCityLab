@@ -17,8 +17,22 @@ EXAMPLES_PATH = ROOT / "Docs/Integration/Schemas/forgehistory-city-mode-v1.examp
 CONTRACT_PATH = ROOT / "Packages/com.victoria.citymode.contracts/Runtime/ForgeHistoryCityModeContracts.cs"
 CONTRACT_ASMDEF_PATH = ROOT / "Packages/com.victoria.citymode.contracts/Runtime/Victoria.CityMode.Contracts.asmdef"
 CONTRACT_PACKAGE_PATH = ROOT / "Packages/com.victoria.citymode.contracts/package.json"
+PRESENTATION_PATH = ROOT / "Packages/com.victoria.citymode.presentation/Runtime/CityModePresentationHost.cs"
+PRESENTATION_ASMDEF_PATH = ROOT / "Packages/com.victoria.citymode.presentation/Runtime/Victoria.CityMode.Presentation.asmdef"
+PRESENTATION_PACKAGE_PATH = ROOT / "Packages/com.victoria.citymode.presentation/package.json"
+PRESENTATION_TEST_PATH = ROOT / "Packages/com.victoria.citymode.presentation/Tests/Editor/CityModePresentationHostTests.cs"
+TRANSITION_PATH = ROOT / "Packages/com.victoria.citymode.presentation/Runtime/CityModeTransitionShell.cs"
+TRANSITION_EDITMODE_TEST_PATH = ROOT / "Packages/com.victoria.citymode.presentation/Tests/Editor/CityModeTransitionShellTests.cs"
+TRANSITION_PLAYMODE_TEST_PATH = ROOT / "Packages/com.victoria.citymode.presentation/Tests/PlayMode/CityModeTransitionPlayModeTests.cs"
+TRANSITION_HOST_PATH = ROOT / "Tools/UnityHosts/CityModeTransitionHost"
+ASSET_PACKAGE_PATH = ROOT / "Packages/com.victoria.citymode.assets/package.json"
+ASSET_RUNTIME_PATH = ROOT / "Packages/com.victoria.citymode.assets/Runtime"
+ASSET_HOST_MANIFEST_PATH = ROOT / "Tools/UnityHosts/CityModeAssetHost/Packages/manifest.json"
+LABORATORY_PACKAGE_PATH = ROOT / "Packages/com.victoria.citymode/package.json"
 BOOTSTRAP_PATH = ROOT / "Packages/com.victoria.citymode/Runtime/CityLabBootstrap.cs"
 LAB_SCENE_PATH = ROOT / "Assets/CityLabHost/Scenes/CityLab.unity"
+MINIMAL_HOST_MANIFEST_PATH = ROOT / "Tools/UnityHosts/CityModeMinimalHost/Packages/manifest.json"
+MINIMAL_HOST_VERSION_PATH = ROOT / "Tools/UnityHosts/CityModeMinimalHost/ProjectSettings/ProjectVersion.txt"
 DOCUMENT_PATH = ROOT / "Docs/Integration/FORGEHISTORY_CITY_MODE_CONTRACT.md"
 PINNED_FORGEHISTORY_SHA = "268e8aab151452b0c740a44a7cc97ca3fd37e311"
 
@@ -145,8 +159,25 @@ def validate_sources() -> None:
     contract = CONTRACT_PATH.read_text(encoding="utf-8")
     contract_asmdef = load_json(CONTRACT_ASMDEF_PATH)
     contract_package = load_json(CONTRACT_PACKAGE_PATH)
+    presentation = PRESENTATION_PATH.read_text(encoding="utf-8")
+    presentation_asmdef = load_json(PRESENTATION_ASMDEF_PATH)
+    presentation_package = load_json(PRESENTATION_PACKAGE_PATH)
+    presentation_tests = PRESENTATION_TEST_PATH.read_text(encoding="utf-8")
+    transition = TRANSITION_PATH.read_text(encoding="utf-8")
+    transition_editmode_tests = TRANSITION_EDITMODE_TEST_PATH.read_text(encoding="utf-8")
+    transition_playmode_tests = TRANSITION_PLAYMODE_TEST_PATH.read_text(encoding="utf-8")
+    asset_package = load_json(ASSET_PACKAGE_PATH)
+    asset_runtime = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in sorted(ASSET_RUNTIME_PATH.rglob("*"))
+        if path.is_file() and path.suffix in {".cs", ".asmdef", ".json"}
+    )
+    asset_host_manifest = load_json(ASSET_HOST_MANIFEST_PATH)
+    laboratory_package = load_json(LABORATORY_PACKAGE_PATH)
     bootstrap = BOOTSTRAP_PATH.read_text(encoding="utf-8")
     lab_scene = LAB_SCENE_PATH.read_text(encoding="utf-8")
+    minimal_host_manifest = load_json(MINIMAL_HOST_MANIFEST_PATH)
+    minimal_host_version = MINIMAL_HOST_VERSION_PATH.read_text(encoding="utf-8")
     document = DOCUMENT_PATH.read_text(encoding="utf-8")
     required_symbols = (
         "CityLaunchContext",
@@ -180,6 +211,146 @@ def validate_sources() -> None:
         raise ContractValidationError("contract package name is not stable")
     if contract_package.get("dependencies"):
         raise ContractValidationError("contract package must not pull Unity packages")
+    required_presentation_symbols = (
+        "ICityModePresentationView",
+        "CityModePresentationHost",
+        "public static bool TryCreate",
+        "public bool TryAttachView",
+        "public bool TryRefreshSnapshot",
+        "public bool TrySubmitIntent",
+        "public void Dispose",
+    )
+    for symbol in required_presentation_symbols:
+        if symbol not in presentation:
+            raise ContractValidationError(f"presentation package is missing {symbol}")
+    forbidden_presentation_dependencies = (
+        "LocalCitySimulation",
+        "CitySaveService",
+        "Resources.Load",
+        "RuntimeInitializeOnLoadMethod",
+        "using System.IO",
+        "Unity.AI.Navigation",
+        "UnityEngine.InputSystem",
+        "UnityEngine.Rendering.Universal",
+    )
+    for dependency in forbidden_presentation_dependencies:
+        if dependency in presentation:
+            raise ContractValidationError(
+                f"production presentation depends on laboratory concern {dependency}"
+            )
+    if presentation_asmdef.get("name") != "Victoria.CityMode.Presentation":
+        raise ContractValidationError("presentation assembly name is not stable")
+    if presentation_asmdef.get("references") != ["Victoria.CityMode.Contracts"]:
+        raise ContractValidationError("presentation assembly must only reference host contracts")
+    if presentation_package.get("name") != "com.victoria.citymode.presentation":
+        raise ContractValidationError("presentation package name is not stable")
+    if presentation_package.get("dependencies") != {
+        "com.victoria.citymode.contracts": "0.1.0"
+    }:
+        raise ContractValidationError("presentation package pulls a non-contract dependency")
+    if presentation_tests.count("[Test]") < 3:
+        raise ContractValidationError("presentation lifecycle lacks its three host tests")
+    required_transition_symbols = (
+        "ICityModeTransitionHost",
+        "CityModeTransitionState",
+        "CityModeTransitionBudgets",
+        "Task<CityModeTransitionResult> EnterAsync",
+        "Task<CityModeTransitionResult> ExitAsync",
+        "CityModeErrorCode.Timeout",
+        "CityModeErrorCode.Cancelled",
+        "SessionAlreadyActive",
+        "RestoreMapAsync",
+    )
+    for symbol in required_transition_symbols:
+        if symbol not in transition:
+            raise ContractValidationError(f"transition shell is missing {symbol}")
+    for forbidden in (
+        "SceneManager",
+        "LocalCitySimulation",
+        "CitySaveService",
+        "Assets/Scenes",
+        "Main.unity",
+    ):
+        if forbidden in transition:
+            raise ContractValidationError(
+                f"transition shell owns a forbidden host/laboratory concern {forbidden}"
+            )
+    if transition_editmode_tests.count("[Test]") < 6:
+        raise ContractValidationError("transition shell lacks EditMode failure/soak coverage")
+    if transition_playmode_tests.count("[UnityTest]") < 5:
+        raise ContractValidationError("transition shell lacks PlayMode transition coverage")
+    if asset_package.get("name") != "com.victoria.citymode.assets":
+        raise ContractValidationError("asset package name is not stable")
+    if asset_package.get("dependencies"):
+        raise ContractValidationError("asset package must not pull host or laboratory packages")
+    for symbol in (
+        "CityModeAssetPartitionCatalog",
+        "ICityModeAssetPartitionHost",
+        "CityModeAssetPartitionLoader",
+        "Common",
+        "Biome",
+        "City",
+    ):
+        if symbol not in asset_runtime:
+            raise ContractValidationError(f"asset package is missing {symbol}")
+    for forbidden in (
+        "Resources.Load",
+        "LocalCitySimulation",
+        "CitySaveService",
+        "SceneManager",
+        "RuntimeInitializeOnLoadMethod",
+    ):
+        if forbidden in asset_runtime:
+            raise ContractValidationError(
+                f"asset package owns a forbidden host/laboratory concern {forbidden}"
+            )
+    asset_host_dependencies = asset_host_manifest.get("dependencies", {})
+    if asset_host_dependencies.get("com.victoria.citymode.assets") != (
+        "file:../../../../Packages/com.victoria.citymode.assets"
+    ):
+        raise ContractValidationError("asset proof host does not import the portable package")
+    for forbidden in (
+        "com.victoria.citymode",
+        "com.victoria.citymode.contracts",
+        "com.victoria.citymode.presentation",
+    ):
+        if forbidden in asset_host_dependencies:
+            raise ContractValidationError(
+                f"asset proof host imports forbidden package {forbidden}"
+            )
+    required_transition_host_files = (
+        "Assets/Scenes/MapMirror.unity",
+        "Assets/Scenes/CityModeView.unity",
+        "Assets/Runtime/UnitySceneTransitionHost.cs",
+        "Assets/Tests/PlayMode/TransitionHostIntegrationTests.cs",
+        "ProjectSettings/EditorBuildSettings.asset",
+    )
+    for relative_path in required_transition_host_files:
+        if not (TRANSITION_HOST_PATH / relative_path).is_file():
+            raise ContractValidationError(
+                f"transition mirror host is missing {relative_path}"
+            )
+    if "Laboratory" not in laboratory_package.get("displayName", ""):
+        raise ContractValidationError("legacy package is not identified as laboratory-only")
+    if laboratory_package.get("dependencies", {}).get(
+        "com.victoria.citymode.presentation"
+    ) != "0.1.0":
+        raise ContractValidationError("laboratory does not compose the presentation package")
+    minimal_dependencies = minimal_host_manifest.get("dependencies", {})
+    if set(minimal_dependencies) != {
+        "com.unity.test-framework",
+        "com.victoria.citymode.contracts",
+        "com.victoria.citymode.presentation",
+    }:
+        raise ContractValidationError("minimal host imports an unexpected package")
+    if "com.victoria.citymode" in minimal_dependencies:
+        raise ContractValidationError("minimal host imports the laboratory package")
+    if minimal_host_manifest.get("testables") != [
+        "com.victoria.citymode.presentation"
+    ]:
+        raise ContractValidationError("minimal host does not expose presentation package tests")
+    if "6000.0.43f1" not in minimal_host_version:
+        raise ContractValidationError("minimal host Unity version drifted from ForgeHistory")
     if "RuntimeInitializeOnLoadMethod" in bootstrap:
         raise ContractValidationError("laboratory bootstrap still starts globally")
     if "public static CityLabGame StartLaboratory()" not in bootstrap:
@@ -217,7 +388,10 @@ def main() -> int:
     except (ContractValidationError, OSError, json.JSONDecodeError) as error:
         print(f"CITYLAB_FORGEHISTORY_CONTRACT_ERROR {error}", file=sys.stderr)
         return 1
-    print("CITYLAB_FORGEHISTORY_CONTRACT_OK protocol=1 documents=5 upstream_writes=0")
+    print(
+        "CITYLAB_FORGEHISTORY_CONTRACT_OK protocol=1 documents=5 "
+        "presentation_host_tests=3 transition_tests=14 asset_partitions=3 upstream_writes=0"
+    )
     return 0
 
 

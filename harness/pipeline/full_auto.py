@@ -2,8 +2,9 @@
 
 Le programme selectionne l'unique increment EN_COURS de la roadmap, lance un
 Generateur Codex, execute des portes mecaniques, puis lance Claude en lecture
-seule comme Evaluateur. Un PASS crée une pull request qui reste soumise à
-l'audit Cursor, au challenge Claude et au merge bot. Tout doute échoue fermé.
+seule comme Evaluateur. Un PASS crée une pull request. L'audit Cursor et son
+challenge Claude sont réservés aux points critiques déclarés ; les autres lots
+restent soumis à la CI et au merge bot. Toute porte requise échoue fermé.
 """
 
 from __future__ import annotations
@@ -74,7 +75,10 @@ def load_config(path: Path = DEFAULT_CONFIG) -> dict[str, Any]:
         config = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         raise PipelineError(f"configuration illisible: {path}: {exc}") from exc
-    required = {"mode", "roadmap", "max_iterations", "generator", "evaluator", "publish"}
+    required = {
+        "mode", "roadmap", "max_iterations", "generator", "evaluator", "publish",
+        "critical_audit",
+    }
     missing = sorted(required - config.keys())
     if missing:
         raise PipelineError(f"configuration incomplete: {', '.join(missing)}")
@@ -82,6 +86,17 @@ def load_config(path: Path = DEFAULT_CONFIG) -> dict[str, Any]:
         raise PipelineError("mode doit valoir manual ou full_auto")
     if not isinstance(config["max_iterations"], int) or config["max_iterations"] < 1:
         raise PipelineError("max_iterations doit etre un entier positif")
+    critical = config["critical_audit"]
+    if (
+        not isinstance(critical, dict)
+        or not isinstance(critical.get("label"), str)
+        or not critical["label"].strip()
+        or not isinstance(critical.get("task_ids"), list)
+        or not critical["task_ids"]
+        or any(not isinstance(item, str) or not item.strip() for item in critical["task_ids"])
+        or len(set(critical["task_ids"])) != len(critical["task_ids"])
+    ):
+        raise PipelineError("critical_audit doit definir un label et des task_ids uniques")
     return config
 
 
@@ -170,6 +185,11 @@ def validate_change_scope(paths: Sequence[str], config: dict[str, Any]) -> None:
                 "publication refusee: une modification de production doit synchroniser:\n- "
                 + "\n- ".join(missing)
             )
+
+
+def requires_critical_audit(increment: Increment, config: dict[str, Any]) -> bool:
+    policy = config.get("critical_audit", {})
+    return increment.task in set(policy.get("task_ids", []))
 
 
 def check_preflight(config: dict[str, Any], *, allow_dirty: bool, publishing: bool) -> Increment:
@@ -367,6 +387,7 @@ def publish(
     if not paths:
         raise PipelineError("aucun changement a publier")
     validate_change_scope(paths, config)
+    critical_audit = requires_critical_audit(increment, config)
     run_capture(["git", "add", "-A"])
     run_capture(["git", "commit", "-m", f"auto({increment.task}): increment {increment.order:02d}"])
     remote = config["publish"]["remote"]
@@ -386,6 +407,9 @@ def publish(
                 "Evaluation independante:",
                 evaluation["summary"],
                 "",
+                "Audit Cursor critique:",
+                "requis" if critical_audit else "non requis pour ce lot",
+                "",
                 f"Run local: `{run_dir.relative_to(ROOT)}`",
             ]
         ),
@@ -398,6 +422,11 @@ def publish(
             "--title", title, "--body-file", str(body_file),
         ]
     ).strip().splitlines()[-1]
+    if critical_audit:
+        label = config.get("critical_audit", {}).get(
+            "label", "pipeline/critical-audit"
+        )
+        run_capture(["gh", "pr", "edit", url, "--add-label", label])
     if config["publish"].get("auto_merge"):
         run_capture(["gh", "pr", "edit", url, "--add-label", "pipeline/auto-merge"])
     return url
@@ -418,6 +447,7 @@ def dry_run_plan(increment: Increment, config: dict[str, Any], publishing: bool)
         "generator_model": config["generator"]["model"],
         "evaluator_model": "claude:" + config["evaluator"]["model"],
         "publishing": publishing,
+        "cursor_audit": "critical" if requires_critical_audit(increment, config) else "skipped",
         "gates": ["roadmap", "harness-tests", "diff-check", "independent-evaluator"],
         "kill_switches": [
             "config mode=manual",

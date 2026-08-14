@@ -19,6 +19,25 @@
     "auto_merge": true,
     "merge_method": "squash"
   },
+  "critical_audit": {
+    "label": "pipeline/critical-audit",
+    "task_ids": [
+      "M3-FH-02",
+      "M3-FH-03",
+      "M3-FH-04",
+      "M3-FH-05",
+      "M3-FH-07",
+      "M4-FH-LOD-01",
+      "M4-FH-SYNC-01",
+      "M4-FH-STREAM-01",
+      "M4-FH-SAVE-01",
+      "M6-GAME-01",
+      "M6-SAVE-01",
+      "REL-PERF",
+      "REL-QA",
+      "REL-SHIP"
+    ]
+  },
   "protected_prefixes": [
     ".github/workflows/",
     "harness/pipeline/",

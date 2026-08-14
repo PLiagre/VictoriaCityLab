@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "com.unity.test-framework": "1.4.6",
+    "com.victoria.citymode.contracts": "file:../../../../Packages/com.victoria.citymode.contracts",
+    "com.victoria.citymode.presentation": "file:../../../../Packages/com.victoria.citymode.presentation"
+  },
+  "testables": [
+    "com.victoria.citymode.presentation"
+  ]
+}

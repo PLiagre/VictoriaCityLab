@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "com.unity.render-pipelines.universal": "17.0.4",
+    "com.unity.test-framework": "1.4.6",
+    "com.unity.modules.imageconversion": "1.0.0",
+    "com.victoria.citymode.assets": "file:../../../../Packages/com.victoria.citymode.assets"
+  },
+  "testables": [
+    "com.victoria.citymode.assets"
+  ]
+}
