@@ -8,29 +8,29 @@
 
 ## Pull requests
 
+- [#25 — Implement the ForgeHistory City Mode package boundary](https://github.com/PLiagre/VictoriaCityLab/pull/25) — MERGED
+- [#24 — Define the ForgeHistory city mode boundary](https://github.com/PLiagre/VictoriaCityLab/pull/24) — MERGED
+- [#23 — fix: stream large evaluator prompts safely](https://github.com/PLiagre/VictoriaCityLab/pull/23) — MERGED
+- [#22 — fix: recover detached actor interruption](https://github.com/PLiagre/VictoriaCityLab/pull/22) — MERGED
+- [#21 — fix: harden full-auto unicode output](https://github.com/PLiagre/VictoriaCityLab/pull/21) — MERGED
+- [#20 — feat: integrate M3 scaffolding roadmap](https://github.com/PLiagre/VictoriaCityLab/pull/20) — MERGED
+- [#19 — docs: record full-auto completion evidence](https://github.com/PLiagre/VictoriaCityLab/pull/19) — MERGED
+- [#18 — hermes: refresh owner dashboard](https://github.com/PLiagre/VictoriaCityLab/pull/18) — MERGED
 - [#17 — fix: bootstrap Hermes dashboard imports](https://github.com/PLiagre/VictoriaCityLab/pull/17) — MERGED
 - [#16 — audit: archive PR #14](https://github.com/PLiagre/VictoriaCityLab/pull/16) — MERGED
-- [#15 — audit: PR #14](https://github.com/PLiagre/VictoriaCityLab/pull/15) — MERGED
-- [#14 — proof: full-auto cycle CITYLAB-20260812T142818Z](https://github.com/PLiagre/VictoriaCityLab/pull/14) — MERGED
-- [#13 — fix: separate Cursor audit from Claude challenge](https://github.com/PLiagre/VictoriaCityLab/pull/13) — MERGED
-- [#12 — audit: PR #11](https://github.com/PLiagre/VictoriaCityLab/pull/12) — MERGED
-- [#11 — proof: full-auto cycle CITYLAB-20260812T142054Z](https://github.com/PLiagre/VictoriaCityLab/pull/11) — CLOSED
-- [#10 — fix: ground audits in GitHub SHA evidence](https://github.com/PLiagre/VictoriaCityLab/pull/10) — MERGED
-- [#9 — audit: PR #8](https://github.com/PLiagre/VictoriaCityLab/pull/9) — MERGED
-- [#8 — proof: full-auto cycle CITYLAB-20260812T141225Z](https://github.com/PLiagre/VictoriaCityLab/pull/8) — CLOSED
 
 ## Workflows
 
-- [merge-bot](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31607581842) — pending / -
-- [hermes-dashboard](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31607550530) — in_progress / -
-- [pipeline-verify](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31607544214) — completed / skipped
-- [full-auto-ci](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31607543888) — completed / success
-- [merge-bot](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31607533785) — queued / -
-- [merge-bot](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31607498204) — completed / success
-- [full-auto-ci](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31607492918) — completed / success
-- [pipeline-audit](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31607492912) — completed / skipped
-- [merge-bot](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31607384495) — completed / success
-- [hermes-dashboard](https://github.com/PLiagre/VictoriaCityLab/actions/runs/31607379314) — completed / failure
+- [citylab-full-auto](https://github.com/PLiagre/VictoriaCityLab/actions/runs/32226064086) — pending / -
+- [hermes-dashboard](https://github.com/PLiagre/VictoriaCityLab/actions/runs/32207413423) — in_progress / -
+- [citylab-full-auto](https://github.com/PLiagre/VictoriaCityLab/actions/runs/32206431634) — completed / cancelled
+- [hermes-dashboard](https://github.com/PLiagre/VictoriaCityLab/actions/runs/32175655749) — completed / cancelled
+- [citylab-full-auto](https://github.com/PLiagre/VictoriaCityLab/actions/runs/32173633473) — queued / -
+- [hermes-dashboard](https://github.com/PLiagre/VictoriaCityLab/actions/runs/32142615844) — completed / cancelled
+- [citylab-full-auto](https://github.com/PLiagre/VictoriaCityLab/actions/runs/32140418217) — completed / cancelled
+- [hermes-dashboard](https://github.com/PLiagre/VictoriaCityLab/actions/runs/32111270965) — completed / cancelled
+- [citylab-full-auto](https://github.com/PLiagre/VictoriaCityLab/actions/runs/32109519765) — completed / cancelled
+- [hermes-dashboard](https://github.com/PLiagre/VictoriaCityLab/actions/runs/32090539395) — completed / cancelled
 
 ## Derniers evenements d'audit
 
