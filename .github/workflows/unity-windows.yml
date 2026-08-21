@@ -1,0 +1,78 @@
+name: unity-windows
+
+# Worker Unity 6000.0.43f1. Dépôt public : jamais pull_request /
+# pull_request_target vers un runner personnel. Pilote : workflow_dispatch
+# d'un SHA appartenant à main, agent/* ou cursor/*.
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: SHA exact (40 hex) à valider
+        required: true
+        type: string
+      ref_name:
+        description: Branche PLiagre qui contient ce SHA (main, agent/*, cursor/*)
+        required: true
+        type: string
+
+concurrency:
+  group: citylab-unity-windows
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  unity-windows:
+    if: github.repository == 'PLiagre/VictoriaCityLab' && github.event.repository.fork == false
+    runs-on: [self-hosted, windows, x64, unity]
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.sha }}
+          fetch-depth: 0
+          lfs: true
+
+      - name: Fetch branches used to prove PLiagre ownership
+        shell: powershell
+        run: |
+          git fetch origin --prune
+          git fetch origin main 2>$null
+          git fetch origin '+refs/heads/agent/*:refs/remotes/origin/agent/*' 2>$null
+          git fetch origin '+refs/heads/cursor/*:refs/remotes/origin/cursor/*' 2>$null
+          exit 0
+
+      - name: Restore Git LFS objects
+        shell: powershell
+        run: git lfs pull
+
+      - name: Cache Unity Library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: unity-library-${{ runner.os }}-${{ hashFiles('Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}
+          restore-keys: |
+            unity-library-${{ runner.os }}-
+
+      - name: Run EditMode on the exact SHA
+        shell: powershell
+        run: >-
+          powershell -ExecutionPolicy Bypass -File Tools/run_unity_windows_worker.ps1
+          -Sha '${{ inputs.sha }}'
+          -RefName '${{ inputs.ref_name }}'
+          -Results '${{ runner.temp }}\editmode.xml'
+          -Log '${{ runner.temp }}\unity.log'
+          -Summary '${{ runner.temp }}\unity-windows-summary.json'
+
+      - name: Upload Unity proofs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unity-windows-${{ inputs.sha }}
+          path: |
+            ${{ runner.temp }}/editmode.xml
+            ${{ runner.temp }}/unity.log
+            ${{ runner.temp }}/unity-windows-summary.json
+          if-no-files-found: warn

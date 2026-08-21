@@ -119,16 +119,12 @@ ni simulation, ni horloge, ni sauvegarde. Le player miroir URP produit trois
 zooms lisibles et dix cycles mémoire bornés ; il ne constitue toujours pas une
 intégration dans le dépôt ForgeHistory.
 
-La production est pilotable par le harnais full-auto sous `harness/`. Hermes
-sélectionne l'unique incrément `EN_COURS`, Codex produit et Claude évalue dans
-des exécutions séparées. La CI et la politique de chemins restent obligatoires
-pour chaque PR. Cursor, son challenge Claude, la décision versionnée et
-l'archivage ne s'exécutent plus sur les lots courants : ils sont réservés aux
-frontières d'autorité/packaging, transitions, synchronisation/sauvegarde et
-portes performance/QA/release déclarées critiques, ou à un label critique
-posé explicitement. Les workflows, l'orchestrateur, la gouvernance et les
-sources Vendor restent protégés ; quatre coupe-circuits permettent un retour
-immédiat au mode manuel.
+La production est pilotée par Hermes (ADR-0002) : propositions sous
+`hermes/`, briefs sous `harness/queue/briefs/`, exécution Cursor dans
+`agent/*`, worker Unity Windows en `workflow_dispatch`. L'ancien
+full-auto Codex + merge bot est archivé (`mode: manual`). `LocalCitySimulation`
+reste l'adaptateur de laboratoire ; la simulation de production appartient
+à ForgeHistory `sim/`.
 
 L'économie forestière est exposée par `PlaceLumberCamp` et
 `ProductionSiteState`. L'affectation est physique : seuls les bûcherons présents
@@ -183,8 +179,9 @@ l'automatisation de production et ne remplace aucune porte Unity ou player.
 - le livrable est un vertical slice jouable et valide, pas un jeu AAA termine ;
 - ajouter objectifs, tutoriel et options completes, puis étendre la sauvegarde
   aux futurs systèmes au fil de leur intégration ;
-- attendre les décisions Hermes qui bloquent l'adaptateur autoritaire
-  (`M3-FH-05`) et la première ville ForgeHistory réelle (`M3-FH-07`) ; shell,
+- attendre la couche 2 « Villes » dans ForgeHistory `sim/` qui débloque
+  l'adaptateur autoritaire (`M3-FH-05`) et la première ville réelle
+  (`M3-FH-07`) ; le worker `unity-windows` est prêt mais manuel ; shell,
   URP et portage borné des assets sont prouvés uniquement dans des hôtes miroir ;
 - terminer la construction physique avec usure, réparation et démolition
   (`M3-BUILD-01`) seulement après fermeture de `M3-FH-07` ; terrassement,

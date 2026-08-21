@@ -80,12 +80,13 @@ class FullAutoTests(unittest.TestCase):
             config,
         )
 
-    def test_repository_config_is_full_auto_and_bounded(self) -> None:
+    def test_repository_config_is_manual_and_bounded(self) -> None:
         config = load_config()
-        self.assertEqual("full_auto", config["mode"])
+        self.assertEqual("manual", config["mode"])
         self.assertGreaterEqual(config["max_iterations"], 1)
         self.assertLessEqual(config["max_iterations"], 3)
-        self.assertTrue(config["publish"]["auto_merge"])
+        self.assertFalse(config["publish"]["auto_merge"])
+        self.assertFalse(config["publish"]["enabled"])
         self.assertEqual("pipeline/critical-audit", config["critical_audit"]["label"])
         self.assertIn("REL-SHIP", config["critical_audit"]["task_ids"])
 

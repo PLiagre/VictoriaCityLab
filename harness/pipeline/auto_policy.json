@@ -1,12 +1,11 @@
 {
   "schema": 1,
-  "mode": "full_auto",
+  "mode": "manual",
   "rules": [
-    {"event": "review_recorded", "condition": "confirmed_or_partial", "action": "approve_and_convert"},
+    {"event": "review_recorded", "condition": "confirmed_or_partial", "action": "leave_for_owner"},
     {"event": "review_recorded", "condition": "all_refuted", "action": "reject_and_archive"},
-    {"event": "gate_accept", "condition": "independent_verdict_pass", "action": "open_pr_and_enable_auto_merge"},
+    {"event": "gate_accept", "condition": "independent_verdict_pass", "action": "open_draft_pr_without_merge"},
     {"event": "three_rejects", "condition": "same_brief", "action": "open_pipeline_stuck_issue"},
-    {"event": "merge_completed", "condition": "ci_green_same_sha", "action": "verify_and_archive"}
+    {"event": "merge_completed", "condition": "owner_merged_same_sha", "action": "record_only"}
   ]
 }
-

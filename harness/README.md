@@ -1,34 +1,19 @@
-# Harnais full-auto CityLab
+# Harnais CityLab
 
-Ce dossier adapte l'architecture multi-roles de ForgeHistory a Victoria
-CityLab. La roadmap reste la source unique d'instruction. L'orchestrateur
-selectionne l'unique increment `EN_COURS`, lance un Generateur Codex, execute
-les portes mecaniques, puis confie le diff a une seconde invocation Codex en
-lecture seule. Seul un verdict structure `PASS` autorise la publication.
+Le harnais conserve les portes mécaniques (roadmap, chemins, ledger
+historique, parseur Unity). Il **ne produit plus** tout seul.
 
-La publication cree une branche `codex/auto/*`, un commit, une pull request,
-puis demande l'auto-merge GitHub. Elle exige un worktree propre au depart et
-refuse les chemins de CI, d'orchestration, de gouvernance et toutes les sources
-Vendor. Une modification de production exige la synchronisation de ROADMAP,
-PROTOTYPE_STATUS et VALIDATION.
+`harness/pipeline/config.json` est en `mode: manual` avec
+`auto_merge: false`. `full_auto.py` refuse de s'exécuter dans ce mode.
 
-Commandes :
+La source d'instruction d'un lot est un brief sous
+`harness/queue/briefs/`. Hermes propose ; Claude rédige ; Cursor exécute.
 
-```powershell
-# Preflight complet, sans agent ni ecriture
-powershell -ExecutionPolicy Bypass -File Tools/run_full_auto.ps1 -DryRun -AllowDirty
-
-# Execution locale sans publication
-powershell -ExecutionPolicy Bypass -File Tools/run_full_auto.ps1
-
-# Boucle complete avec branche, PR et auto-merge
-powershell -ExecutionPolicy Bypass -File Tools/run_full_auto.ps1 -Publish
-
-# Tests du harnais
-py -m unittest discover -s harness/tests -v
+```bash
+python3 -m unittest discover -s harness/tests -v
+python3 -m unittest Tools.tests.test_unity_windows_worker -v
+python3 Tools/unity_nunit.py <editmode.xml> --summary /tmp/unity-windows-summary.json
 ```
 
-Arret d'urgence : passer `mode` a `manual`, definir
-`CITYLAB_FULL_AUTO_PAUSE=1`, creer `.git/citylab-full-auto.pause`, ou poser le
-label GitHub `pipeline/pause` sur une issue ouverte.
-
+Arrêt d'urgence : laisser `mode` à `manual`. Réactiver `full_auto` est
+une décision propriétaire, pas un défaut d'agent.

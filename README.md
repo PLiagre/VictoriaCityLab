@@ -1,13 +1,16 @@
 # Victoria CityLab
 
-Vertical slice Unity autonome du mode ville de Victoria. Ce depot ne partage ni
-`Library/`, ni caches d'import, ni verrou avec les projets Victoria. Il valide
-une boucle de construction et une premiere economie forestiere ; ce n'est pas
-encore un jeu AAA complet.
+Laboratoire Unity et vue ville de ForgeHistory. Ce dépôt ne partage ni
+`Library/`, ni caches d'import, ni verrou avec d'autres projets Unity. Il
+valide une boucle de construction et une économie de village **de
+laboratoire** ; ce n'est pas un second jeu ni une seconde source de
+vérité. La simulation de production vit dans `PLiagre/ForgeHistory`
+(`sim/`, couche 2 « Villes »).
 
-La source de vérité du développement est `Docs/ROADMAP.md`. Toute session doit
-la lire et exécuter `Tools/check_roadmap.ps1` avant de modifier le projet ; les
-règles permanentes correspondantes sont définies dans `AGENTS.md`.
+La mémoire produit est `Docs/ROADMAP.md`. Le pilotage est ADR-0002
+(Hermes propose, Claude briefe et relit, Cursor exécute, le propriétaire
+fusionne). Toute session lit `AGENTS.md` et exécute
+`Tools/check_roadmap.ps1` avant de modifier le projet.
 
 ## Ouvrir le projet
 
@@ -90,7 +93,19 @@ CityLab autorisee.
 
 Le package embarque `Packages/com.victoria.citymode` expose
 `ICityStateSource` et `ICityCommandSink`. La simulation locale n'est qu'un
-adaptateur de prototype et devra etre remplacee par un adaptateur Victoria.
+adaptateur de laboratoire ; la production urbaine appartient à ForgeHistory
+`sim/`.
+
+## Pilotage et worker Unity
+
+Hermes pilote (ADR-0002). Pas d'auto-fusion. Le check EditMode manuel :
+
+```bash
+gh workflow run unity-windows.yml --repo PLiagre/VictoriaCityLab \
+  -f sha=<40-hex> -f ref_name=cursor/exemple
+```
+
+Détail : `Docs/Automation/UNITY_WINDOWS_WORKER.md`.
 
 ## Assets tiers
 

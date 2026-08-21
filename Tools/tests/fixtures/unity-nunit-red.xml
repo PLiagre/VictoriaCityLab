@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="2" result="Failed" total="2" passed="1" failed="1" inconclusive="0" skipped="0" asserts="2">
+  <test-suite type="Assembly" id="1000" name="Victoria.CityMode.EditorTests.dll" result="Failed" total="2" passed="1" failed="1" skipped="0">
+    <test-case id="1001" name="Bootstrap_HasNoAutomaticRuntimeInitializer" result="Passed" />
+    <test-case id="1002" name="Broken_Test" result="Failed" />
+  </test-suite>
+</test-run>

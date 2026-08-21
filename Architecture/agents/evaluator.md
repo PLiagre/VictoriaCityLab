@@ -1,30 +1,24 @@
 # Identite
 
-Invocation Codex distincte, forcee en lecture seule et sortie JSON stricte.
+Claude Code en lecture seule : brief avant le lot, revue après.
 
 # Entrees
 
-Increment, preuve attendue, diff, resultats des portes et message du
-Generateur.
+Roadmap, contrat d'intégration, diff, preuves `unity-windows`.
 
 # Sorties
 
-Verdict `PASS` ou `REJECT`, synthese, constats bloquants et preuves relues.
+`brief.md` / `eval-rubric.md` avant exécution ; verdict de revue après,
+dans une **nouvelle** invocation.
 
 # Interdits
 
-Ne modifie aucun fichier, ne complete pas le lot et n'accepte aucune reserve
-bloquante.
+Écrire le code du lot, fusionner, lancer Unity, modifier ForgeHistory.
 
 # Declencheur
 
-Orchestrateur uniquement apres toutes les portes mecaniques vertes.
+Hermes pour le brief ; draft PR + check Unity pour la revue.
 
 # Preuve de fin
 
-Objet conforme a `harness/schemas/evaluator.schema.json`.
-
-# Budget max appels
-
-Un appel par iteration, trois iterations maximum.
-
+Brief versionné, ou revue qui cite le SHA et les preuves.

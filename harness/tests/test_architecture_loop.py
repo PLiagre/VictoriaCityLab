@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import tempfile
 import unittest
 from unittest import mock
@@ -18,6 +19,8 @@ from harness.verdict_audit import validate_brief
 
 class ArchitectureLoopTests(unittest.TestCase):
     def test_windows_wrappers_are_resolved_without_a_shell(self) -> None:
+        if os.name != "nt":
+            self.skipTest("pathlib.WindowsPath n'existe que sous Windows")
         with mock.patch("harness.pipeline.actors.os.name", "nt"), mock.patch(
             "harness.pipeline.actors.shutil.which",
             side_effect=lambda value: {
@@ -207,20 +210,21 @@ class ArchitectureLoopTests(unittest.TestCase):
         )
         self.assertLess(source.index("sys.path.insert"), source.index("from harness.audit_ledger"))
 
-    def test_pr_audit_only_runs_on_explicit_critical_label(self) -> None:
+    def test_pr_audit_workflow_is_retired_and_manual(self) -> None:
         workflow = (Path(__file__).resolve().parents[2] / ".github" / "workflows" /
                     "pipeline-audit.yml").read_text(encoding="utf-8")
-        self.assertIn("types: [labeled]", workflow)
-        self.assertIn("pipeline/critical-audit", workflow)
-        self.assertNotIn("opened, reopened, synchronize", workflow)
-        self.assertNotIn("contains(github.event.pull_request.labels.*.name, 'pipeline/auto-merge')", workflow)
+        self.assertIn("retired", workflow.lower())
+        self.assertIn("workflow_dispatch:", workflow)
+        self.assertNotIn("pull_request:", workflow)
+        self.assertNotIn("gh pr merge", workflow)
 
-    def test_merge_bot_requires_audit_only_for_critical_prs(self) -> None:
+    def test_merge_bot_workflow_is_retired(self) -> None:
         workflow = (Path(__file__).resolve().parents[2] / ".github" / "workflows" /
                     "merge-bot.yml").read_text(encoding="utf-8")
-        self.assertIn("$criticalAudit", workflow)
-        self.assertIn("pipeline/critical-audit", workflow)
-        self.assertIn("Audit Cursor non requis", workflow)
+        self.assertIn("retired", workflow.lower())
+        self.assertIn("workflow_dispatch:", workflow)
+        self.assertNotIn("gh pr merge", workflow)
+        self.assertNotIn("self-hosted", workflow)
 
 
 if __name__ == "__main__":

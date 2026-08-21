@@ -1,41 +1,30 @@
 # Architecture d'automatisation CityLab
 
-Cette architecture reproduit les principes de ForgeHistory au lieu d'en
-copier les historiques de briefs : orchestration deterministe, roles separes,
-preuve ecrite avant execution, budget borne, decision fermee et publication
-conditionnelle.
+Le modèle vivant est ADR-0002 : Hermes pilote, Claude Code briefe et
+relit, Cursor exécute, le worker Unity valide l'EditMode, le propriétaire
+fusionne.
 
 ```text
-ROADMAP (unique EN_COURS)
+Hermes (proposition, cadence)
         |
         v
-orchestrateur deterministe -- kill switch / verrou / budget 3 iterations
+Claude Code (brief + critères, lecture seule)
         |
         v
-Hermes (planification, jamais de code ni de verdict)
+Cursor dans agent/* (draft PR)
         |
         v
-Generateur Codex (ecriture, jamais de verdict)
+portes mécaniques (roadmap, tests Python, diff-check)
+        |
+        +-- si le lot touche le jeu --> unity-windows (workflow_dispatch)
         |
         v
-portes mecaniques (roadmap + tests harnais + diff-check)
+Claude Code (nouvelle invocation, revue)
         |
         v
-Evaluateur Claude distinct (lecture seule, JSON PASS/REJECT)
-        |
-        +-- REJECT --> feedback versionne dans Logs/FullAuto --> nouvelle iteration
-        |
-        +-- PASS --> PR codex/* --> audit Cursor --> challenge Claude
-                                            |
-                                            v
-                       decision + ledger --> merge bot --> archive
+propriétaire fusionne
 ```
 
-Les contrats de role sont dans `Architecture/agents/`. Les dossiers
-`inbox/`, `reviews/`, `decisions/` et `archive/` matérialisent les frontières
-d'écriture Cursor, Claude, politique déterministe et archivage. Le ledger JSONL
-est append-only et refuse toute transition hors de la machine d'état.
-
-Le mode operatoire,
-les prerequis de secrets et les limites sont dans
-`Docs/Automation/FULL_AUTO.md`.
+L'ancien graphe Codex → merge bot est archivé. Les dossiers `inbox/`,
+`reviews/`, `decisions/` et le ledger restent lisibles. `mode: manual`
+interdit de relancer `full_auto.py`.

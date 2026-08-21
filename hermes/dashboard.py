@@ -1,4 +1,8 @@
-"""Dashboard Markdown deterministe de la boucle full-auto CityLab."""
+"""Dashboard Markdown deterministe du pilote Hermes CityLab.
+
+Vue générée, jamais éditée à la main. Le workflow hermes-dashboard est
+manuel (workflow_dispatch) et ne fusionne pas (ADR-0002).
+"""
 
 from __future__ import annotations
 

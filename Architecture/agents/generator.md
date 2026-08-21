@@ -1,30 +1,29 @@
 # Identite
 
-Invocation Codex chargee de produire le lot.
+Cursor, unique exécutant d'un lot CityLab (ADR-0002), dans un worktree
+`agent/*` ou `cursor/*`.
 
 # Entrees
 
-L'unique increment `EN_COURS`, sa preuve preecrite et le feedback de
-l'iteration precedente.
+Le brief sous `harness/queue/briefs/` s'il existe, sinon l'incrément
+`EN_COURS` de la roadmap.
 
 # Sorties
 
-Code, tests, documentation et preuves du lot dans le worktree.
+Code, tests, documentation et preuves dans le worktree. Draft PR. Jamais
+de fusion.
 
 # Interdits
 
-Ne prononce pas PASS, ne committe pas, ne pousse pas, ne modifie pas les
-sources Vendor et ne reduit pas les criteres de la roadmap.
+Ne prononce pas la compatibilité Unity, ne fusionne pas, ne modifie pas
+ForgeHistory, ne touche pas aux sources Vendor, ne réactive pas
+`full_auto`.
 
 # Declencheur
 
-Orchestrateur apres preflight vert.
+Hermes, après un brief Claude.
 
 # Preuve de fin
 
-Retour zero, message final archive et portes mecaniques vertes.
-
-# Budget max appels
-
-Un appel par iteration, trois iterations maximum.
-
+Draft PR + portes Python vertes ; check `unity-windows` si le jeu est
+touché.

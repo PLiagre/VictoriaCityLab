@@ -10,25 +10,31 @@ Avant toute modification :
 2. lire `Docs/PROTOTYPE_STATUS.md` et `Docs/VALIDATION.md` ;
 3. exécuter `powershell -ExecutionPolicy Bypass -File Tools/check_roadmap.ps1` ;
 4. vérifier `git status --short` et préserver les changements déjà présents ;
-5. travailler d'abord sur la tâche `ACTIVE` de la roadmap et l'unique incrément
-   `EN_COURS` dans « Sessions Codex ordonnées », puis sur la première tâche
-   `NEXT` non bloquée ;
-6. citer l'identifiant de roadmap choisi dans la première mise à jour de session.
+5. si un brief existe sous `harness/queue/briefs/`, c'est l'instruction du
+   lot ; sinon prendre la tâche `ACTIVE` de la roadmap puis l'unique
+   incrément `EN_COURS` ;
+6. citer l'identifiant de roadmap (et le brief s'il y en a un) dans la
+   première mise à jour de session.
 
-Une demande explicite de l'utilisateur peut changer la priorité, mais la
+Une demande explicite du propriétaire peut changer la priorité, mais la
 roadmap doit alors être mise à jour pour refléter cette décision.
 
-## Boucle full-auto
+## Pilotage (ADR-0002)
 
-- Le pipeline autoritaire est décrit dans `Docs/Automation/FULL_AUTO.md`.
-- Une seule ligne `EN_COURS` est admise dans « Sessions Codex ordonnées ».
-- Hermes orchestre, Codex produit et Claude évalue chaque lot dans une invocation
-  distincte ; Cursor audite seulement les points critiques définis dans
-  `Docs/Automation/FULL_AUTO.md`.
-- La fusion automatique exige toujours CI verte et politique de chemins fermée ;
-  une PR marquée `pipeline/critical-audit` exige en plus un verdict Cursor puis
-  un challenge Claude `PASS` enregistré sur `main`.
-- Une issue ouverte portant `pipeline/pause` neutralise les générations.
+- Hermes propose, cadance et lance. Il n'écrit pas le code produit, ni un
+  brief, ni un verdict, et il ne fusionne pas.
+- Claude Code rédige le brief et les critères, puis relit en lecture
+  seule dans une nouvelle invocation.
+- Cursor exécute dans un worktree `agent/*` (les lots Cloud Agent de ce
+  dépôt peuvent porter le préfixe `cursor/`).
+- Si le lot touche le jeu : worker Unity Windows, `workflow_dispatch`,
+  check `unity-windows`, SHA d'une branche `main` / `agent/*` / `cursor/*`.
+- Le propriétaire fusionne. Pas d'auto-fusion. Pas de cron producteur.
+- Ne pas modifier ForgeHistory depuis ici ; une demande amont s'écrit
+  dans `hermes/requests/`.
+
+L'ancien pipeline full-auto est archivé (`mode: manual`). Voir
+`Docs/Automation/FULL_AUTO.md`.
 
 ## Suivi obligatoire
 
@@ -54,3 +60,5 @@ documentation de production doit, avant sa conclusion :
   variante sous `Assets/CityLabHost/Adapted` et mettre à jour l'audit.
 - Toute nouvelle mécanique de simulation doit être déterministe ou documenter
   explicitement pourquoi elle ne peut pas l'être.
+- `LocalCitySimulation` reste un adaptateur de laboratoire ; la production
+  économique urbaine appartient à ForgeHistory `sim/`.
