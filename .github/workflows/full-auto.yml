@@ -1,63 +1,19 @@
-name: citylab-full-auto
+name: citylab-full-auto-retired
 
+# ADR-0002 : plus de production ni de fusion automatique. Le fichier reste
+# déclenchable pour rendre le retrait visible et réversible.
 on:
   workflow_dispatch:
-    inputs:
-      mode:
-        description: Cycle à exécuter
-        required: true
-        default: proof
-        type: choice
-        options: [proof, roadmap]
-  schedule:
-    - cron: '17 */6 * * *'
 
-concurrency:
-  group: citylab-full-auto
-  cancel-in-progress: false
+permissions:
+  contents: read
 
 jobs:
-  orchestrate:
-    runs-on: [self-hosted, Windows, X64, citylab-full-auto]
-    timeout-minutes: 180
+  retired:
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Use local subscription-backed actor credentials
-        shell: powershell
-        run: |
-          git config --local --unset-all http.https://github.com/.extraheader 2>$null
-          gh auth setup-git
-          git config user.name citylab-codex
-          git config user.email citylab-codex@users.noreply.github.com
-          codex login status
-          claude auth status
-          agent status
-          hermes -p citylab-local-orchestrator status
-      - name: Emergency pause check
-        id: pause
-        shell: powershell
-        run: |
-          $count = gh issue list --repo PLiagre/VictoriaCityLab --state open --label pipeline/pause --json number --jq 'length'
-          if ([int]$count -gt 0) {
-            'paused=true' >> $env:GITHUB_OUTPUT
-            Write-Warning 'Pipeline neutralisé par pipeline/pause.'
-          } else {
-            'paused=false' >> $env:GITHUB_OUTPUT
-          }
-      - name: Structural gates
-        if: steps.pause.outputs.paused != 'true'
-        shell: powershell
-        run: |
-          py -m unittest discover -s harness/tests -v
-          powershell -ExecutionPolicy Bypass -File Tools/check_roadmap.ps1
-          git diff --check
-      - name: Run controlled proof cycle
-        if: steps.pause.outputs.paused != 'true' && (github.event_name == 'workflow_dispatch' && inputs.mode == 'proof')
-        shell: powershell
-        run: py harness/pipeline/proof_cycle.py --publish
-      - name: Run active roadmap increment
-        if: steps.pause.outputs.paused != 'true' && (github.event_name == 'schedule' || inputs.mode == 'roadmap')
-        shell: powershell
-        run: powershell -ExecutionPolicy Bypass -File Tools/run_full_auto.ps1 -Publish
+      - run: |
+          echo "Pipeline full-auto retiré (ADR-0002)."
+          echo "Hermes propose ; Claude écrit le brief ; Cursor exécute ;"
+          echo "le propriétaire fusionne. Aucun cron ne produit."
+          exit 0

@@ -2,7 +2,7 @@
 
 <!-- CITYLAB_ROADMAP
 schema: 1
-last_updated: 2026-08-13
+last_updated: 2026-08-21
 active_milestone: M3
 roadmap_status: BLOCKED
 -->
@@ -10,24 +10,30 @@ roadmap_status: BLOCKED
 Ce document est la source de vérité du développement de CityLab. Le produit
 cible n'est plus un jeu autonome : CityLab doit devenir la vue **ville jouable**
 ouverte depuis la carte principale de ForgeHistory. Le dépôt autonome reste un
-laboratoire, un harnais de validation et la source du package de présentation ;
-le runtime de production est `PLiagre/ForgeHistory/unity/game_unity`.
+laboratoire Unity, un harnais de validation et la source du package de
+présentation. La simulation de production vit dans `PLiagre/ForgeHistory`
+sous `sim/` (`python -m sim`), couche 2 « Villes ». `unity/` côté
+ForgeHistory est en veille ; on n'y écrit pas depuis ici.
 
 ForgeHistory est la source de vérité du monde, du temps, de la simulation et de
 la sauvegarde. CityLab rend cet état, collecte des intentions joueur et présente
-leurs résultats ; il ne possède jamais une seconde simulation de production. Le
-dépôt ForgeHistory est une dépendance amont en lecture seule pour CityLab.
-L'audit initial est épinglé à `PLiagre/ForgeHistory@268e8aab151452b0c740a44a7cc97ca3fd37e311`
-(`master`, 13 août 2026). Toute évolution nécessaire côté ForgeHistory doit
-faire l'objet d'une demande à son propriétaire Hermes, jamais d'une modification
-implicite depuis ce dépôt.
+leurs résultats ; il ne possède jamais une seconde simulation de production.
+Le dépôt ForgeHistory est une dépendance amont en lecture seule. Toute
+évolution de `sim/` ou du contrat d'intégration s'écrit d'abord comme une
+demande Hermes (`hermes/requests/` ici, à recopier côté ForgeHistory), jamais
+comme un patch implicite.
+
+L'audit initial reste épinglé à `PLiagre/ForgeHistory@268e8aab151452b0c740a44a7cc97ca3fd37e311`
+(`master`, 13 août 2026) pour le contrat v1. Le modèle de **pilotage** vivant
+n'est plus le full-auto du 12 août : voir ADR-0002.
 
 Les deux projets utilisent Unity `6000.0.43f1`, ce qui rend le portage de code
 possible sans upgrade moteur. En revanche, le chargement de scènes, le pipeline
 de rendu, les packages, l'autorité de simulation, les identifiants, l'horloge et
 la persistance doivent converger avant tout ajout majeur de gameplay. La file
-« Sessions Codex ordonnées » place désormais cette intégration avant la suite
-des fonctionnalités locales.
+ordonnée place l'intégration `sim/` (couche 2) avant la suite des fonctionnalités
+locales. Le 21 août 2026, le pilotage CityLab est réeligné : plus de full-auto
+Codex, plus d'auto-fusion.
 
 Le projet actuel reste un vertical slice autonome jouable et validé. Il sert de
 preuve et de banc d'essai, pas de second jeu ni de seconde source de vérité.
@@ -36,13 +42,13 @@ preuve et de banc d'essai, pas de second jeu ni de seconde source de vérité.
 
 | Champ | Valeur |
 |---|---|
-| Dernière mise à jour | 13 août 2026 |
-| Jalon actif | `M3` — bloqué sur les décisions runtime/backend Hermes après fermeture du port d'assets |
+| Dernière mise à jour | 21 août 2026 |
+| Jalon actif | `M3` — produit toujours bloqué sur la couche villes `sim/` ; le pilotage CityLab est réeligné (ADR-0002) |
 | Dernier jalon validé | `M2` — économie de village jouable dans le laboratoire autonome |
-| Priorité immédiate | aucune : attendre Hermes pour débloquer `M3-FH-05` puis `M3-FH-07` |
-| Prochaine tâche prête | aucune ; `M3-BUILD-01` reste interdit avant la fin de `M3-FH-07` |
-| Cible produit | Vue ville jouable de ForgeHistory, issue de sa carte principale et de sa simulation unique |
-| Hôte de production | `PLiagre/ForgeHistory/unity/game_unity` — dépendance amont en lecture seule |
+| Priorité immédiate | recopier `hermes/requests/DEMANDE-20260821-couche-villes-sim.md` côté ForgeHistory ; coller le label `unity` sur le runner Windows ; ne pas reprendre `M3-BUILD-01` |
+| Prochaine tâche prête | aucune tâche produit ; `M3-FH-05` attend `sim/` ; le worker `unity-windows` est prêt en `workflow_dispatch` |
+| Cible produit | Vue ville jouable de ForgeHistory, alimentée par `sim/` (couche 2), pas par une économie locale |
+| Hôte de production | `PLiagre/ForgeHistory` moteur `sim/` — CityLab reste le laboratoire / la vue Unity |
 | Hôte laboratoire | `PLiagre/VictoriaCityLab` — branche `main` |
 | Build de référence actuel | `Builds/Windows/VictoriaCityLab.exe` — preuve autonome, non build intégré |
 | Preuves de référence | `Docs/VALIDATION.md`, `Logs/` et futurs tests de contrat d'intégration |
@@ -169,7 +175,8 @@ Ces cibles guident CityLab sans lui redonner l'autorité du monde :
 | `META-ROADMAP-01` | Pilotage persistant du projet | DONE | `AGENTS.md`, `Tools/check_roadmap.ps1` et contrôle `CITYLAB_ROADMAP_OK`. |
 | `META-REPO-01` | Publication GitHub et Git LFS | DONE | Dépôt privé `PLiagre/VictoriaCityLab`, branche `main` et 790 objets LFS publiés. |
 | `META-CODEX-01` | Plan de production exécutable par sessions Codex | DONE | Cible premium, contrat de session, file ordonnée et prompt de lancement consignés ; `AGENTS.md` sélectionne l'unique incrément `EN_COURS` ; le vérificateur contrôle ordre, définition et concordance avec la tâche active ; `CITYLAB_ROADMAP_OK` et `git diff --check`. |
-| `META-AUTO-01` | Architecture full-auto adaptée de ForgeHistory | DONE | Runner `citylab-full-auto-pe` en ligne ; chaque lot conserve CI, chemins fermés et évaluation Claude séparée ; Cursor/Claude et le ledger sont réservés aux points critiques déterministes ou au label explicite `pipeline/critical-audit` ; le cycle critique témoin #14→#15→#16 reste la preuve de référence. |
+| `META-AUTO-01` | Architecture full-auto adaptée de ForgeHistory | DONE | Preuve historique du 12 août 2026 conservée (cycle #14→#16). **Remplacée** le 21 août par ADR-0002 : plus d'auto-fusion ni de cron producteur. |
+| `META-PILOT-01` | Alignement Hermes + worker Unity Windows | DONE | `mode: manual`, `auto_merge: false` ; workflows producteurs/merge/audit/verify en retired ; cron quotidien lecture seule ; `unity-windows.yml` en `workflow_dispatch` ; parseur NUnit rouge/vert ; demande `sim/` couche 2 rédigée sans écrire dans ForgeHistory. |
 
 ## M1 — fondations de production
 
@@ -215,7 +222,7 @@ la première tâche `ACTIVE`, puis la première tâche `NEXT` non bloquée.
 | `M3-FH-02` | Package portable et bootstrap explicite | DONE | Séparer contrats, présentation, assets et adaptateur de laboratoire ; supprimer le bootstrap global `AfterSceneLoad` du chemin de production ; l'hôte crée et détruit explicitement une instance par contexte de ville ; aucune dépendance à une scène ou fixture CityLab. | Packages contrats/présentation isolés ; bundle historique marqué laboratoire ; hôte Unity minimal sans scène/fixture 3/3 ; 9/9 Python, 89/89 EditMode, 1/1 PlayMode, build 308 862 268 octets et smoke GPU 20/30/30 verts. |
 | `M3-FH-03` | Convergence rendu et dépendances | DONE | Comparer Built-in actuel de ForgeHistory et URP CityLab ; choisir une stratégie unique après prototype ; résoudre Input System, AI Navigation, Entities/Burst/Collections et shaders sans casser la carte. | URP 17.0.4 retenu ; matrice versionnée et 3/3 tests ; trois goldens carte Built-in/URP bit-identiques, player Forge miroir 178 175 782 octets, carte/ville 0 pixel magenta et chemins GPU sous 1,5 ms/image. |
 | `M3-FH-04` | Shell de transition asynchrone | DONE | Depuis un hôte miroir de `Main.unity`, sélectionner une ville puis charger la scène ville de façon asynchrone ; progression, timeout, annulation, erreur et retour ; préserver viewport/sélection et empêcher les entrées concurrentes. | Shell host-owned ; 9/9 EditMode, 5/5 PlayMode minimal et 7/7 miroir ; 50 scènes réelles +118 439 octets, 3,017/0,728/2,159 ms ; player 50 cycles 15,783/1,222/3,882 ms. |
-| `M3-FH-05` | Adaptateur ForgeHistory snapshot/intention | BLOCKED | Remplacer `LocalCitySimulation` en production par un adaptateur au backend ForgeHistory ; commandes corrélées/idempotentes, ordre par tick/révision, refus explicites, reconnexion et resynchronisation. Dépend de la couche villes et du transport runtime décidés par Hermes dans ForgeHistory. | Tests de contrat avec backend factice puis réel, latence/ordre/perte simulés, aucune écriture métier Unity et demande amont ForgeHistory acceptée. |
+| `M3-FH-05` | Adaptateur ForgeHistory snapshot/intention | BLOCKED | Remplacer `LocalCitySimulation` en production par un adaptateur au backend ForgeHistory `sim/` (couche 2 Villes) ; commandes corrélées/idempotentes, ordre par tick/révision, refus explicites, reconnexion et resynchronisation. Dépend de la couche villes dans `sim/` — demande `DEMANDE-20260821-couche-villes-sim.md`, aucun patch amont depuis ici. | Tests de contrat avec backend factice puis réel, latence/ordre/perte simulés, aucune écriture métier Unity et demande amont ForgeHistory acceptée. |
 | `M3-FH-06` | Portage des assets et catalogues | DONE | Porter uniquement les assets approuvés avec GUID, LFS, provenance et licences ; retirer les `Resources.Load` structurants du chemin intégré ; partitionner socle/biome/ville et charger/libérer selon le budget mesuré. | 11 assets avec GUID cible/LFS/licence et hashes source→cible identiques ; 4/4 EditMode, 2/2 PlayMode, 10 cycles ; build 165 565 540 octets, trois zooms sans magenta, profils sous budgets et régression CityLab 99/99 + 6/6. |
 | `M3-FH-07` | Première ville intégrée jouable | BLOCKED | Entrer depuis un marqueur ForgeHistory réel, recevoir l'état autoritaire, jouer une boucle construction/logistique via intentions, sortir et observer les conséquences sur la carte ; aucune sauvegarde ou horloge parallèle. | Parcours player enregistré, tests carte→ville→carte, restart/reload, hash d'état avant/après et régressions carte/sim/ville vertes. |
 | `M3-PLOT-01` | Parcelles organiques de laboratoire | DONE | Preuve historique conservée ; le comportement de production devra être réémis par le backend ForgeHistory avant intégration. | 3/3 tests dédiés, 67/67 Editor, 1/1 PlayMode, build et smoke player verts. |
@@ -300,42 +307,40 @@ aucune tâche.
 Une session Codex de production doit livrer une tranche verticale, pas seulement
 un squelette de code. Ce contrat complète `AGENTS.md` :
 
-1. prendre la tâche `ACTIVE`, puis l'unique incrément `EN_COURS` ;
+1. prendre le brief sous `harness/queue/briefs/` s'il existe, sinon la
+   tâche `ACTIVE` puis l'unique incrément `EN_COURS` ;
 2. traiter ForgeHistory comme une dépendance amont en lecture seule ; toute
-   évolution amont devient une demande Hermes documentée ;
+   évolution amont devient une demande sous `hermes/requests/` ;
 3. distinguer explicitement code portable, présentation, adaptateur de
    laboratoire et contrat d'hôte ;
 4. ne jamais ajouter de logique métier de production dans Unity : les fixtures
    et `LocalCitySimulation` peuvent prouver le protocole, pas devenir l'autorité ;
+   la production économique urbaine appartient à `sim/` ;
 5. pour une intégration, livrer ensemble schéma versionné, gestion du cycle de
    vie, erreurs, annulation, observabilité, tests de contrat et budget mesuré ;
 6. pour un asset, conserver source immuable, provenance, licence et SHA-256,
    publier seulement une variante approuvée puis valider import, rendu, LOD,
    mémoire et déchargement ;
-7. exécuter tests ciblés puis régression proportionnée ; toute modification
-   visuelle ou de transition exige une capture ou une vidéo player inspectable ;
+7. exécuter tests ciblés puis régression proportionnée ; un lot qui touche le
+   jeu exige le check `unity-windows` sur le SHA exact ;
 8. ne jamais réduire silencieusement un critère ; conserver `EN_COURS` tant
    que la preuve manque, puis promouvoir l'incrément suivant ;
 9. synchroniser roadmap, statut et validation uniquement avec des capacités
    réellement prouvées ; terminer par le contrôle de roadmap et
-   `git diff --check`. Aucun commit, push, achat ou changement ForgeHistory
-   n'est implicite.
+   `git diff --check`. Aucun commit, push, achat, fusion ou changement
+   ForgeHistory n'est implicite. Codex n'est plus le producteur.
 
 ### Prompt de lancement recommandé
 
 ```text
-Continue Victoria CityLab depuis la roadmap. Respecte AGENTS.md et prends la
-tâche ACTIVE puis l'unique incrément EN_COURS. La cible est une ville jouable de
-ForgeHistory, chargée depuis sa carte principale. ForgeHistory reste en lecture
-seule et possède simulation, horloge et sauvegarde ; CityLab est un client de
-présentation et un laboratoire. Livre contrats versionnés, cycle de chargement,
-adaptateur/mocks, tests et preuves sans créer de seconde autorité. Mets à jour
-les documents uniquement selon ce qui est réellement validé. Travaille depuis
-un worktree propre basé sur `origin/main`, préserve le dossier principal s'il
-est sale et poursuis jusqu'à fermer l'incrément ou prouver un blocage réel.
-N'invoque Cursor que pour les points critiques définis dans
-`Docs/Automation/FULL_AUTO.md` ; les autres PR conservent Claude, CI et la
-politique de chemins sans audit Cursor.
+Continue Victoria CityLab depuis la roadmap. Respecte AGENTS.md et ADR-0002.
+S'il existe un brief sous harness/queue/briefs/, c'est l'instruction.
+Sinon prends la tâche ACTIVE puis l'unique incrément EN_COURS. La cible est
+une vue ville alimentée par ForgeHistory sim/, pas une seconde économie.
+ForgeHistory reste en lecture seule. Livre contrats, tests et preuves sans
+créer de seconde autorité. Ne fusionne pas. Si le jeu est touché, le check
+unity-windows sur le SHA exact est obligatoire. N'invoque pas l'ancien
+full-auto.
 ```
 
 ## Sessions Codex ordonnées
@@ -351,7 +356,7 @@ explicite ; il n'autorise aucune écriture amont implicite.
 | 03 | PROUVÉ | `M3-FH-02` | Découper package, présentation et adaptateur laboratoire ; remplacer le bootstrap global par un démarrage hôte explicite. | Hôte minimal 3/3, zéro auto-démarrage/double instance, 89/89 Editor, 1/1 PlayMode et laboratoire player vert. |
 | 04 | PROUVÉ | `M3-FH-03` | Prototype de convergence Built-in/URP et matrice de packages Unity. | Trois captures carte bit-identiques, player Forge miroir URP, carte/ville 0 pixel magenta et profil GPU sous budget. |
 | 05 | PROUVÉ | `M3-FH-04` | Transition asynchrone carte→ville→carte avec progression, annulation, erreur et restauration du viewport. | 9/9 EditMode, 5/5 PlayMode minimal, 7/7 miroir, 50 scènes Editor/player et budgets/mémoire verts. |
-| 06 | BLOQUÉ | `M3-FH-05` | Adaptateur snapshot/intention vers le backend ForgeHistory. | Dépendance : contrat runtime et couche villes acceptés par Hermes côté ForgeHistory. |
+| 06 | BLOQUÉ | `M3-FH-05` | Adaptateur snapshot/intention vers le backend ForgeHistory. | Dépendance : couche 2 « Villes » dans `sim/` et transport runtime acceptés côté ForgeHistory (demande `DEMANDE-20260821-couche-villes-sim.md`). |
 | 07 | PROUVÉ | `M3-FH-06` | Manifeste de portage assets/catalogues et chargement borné. | 11 hashes source→cible, GUID/LFS/licences, 4/4 + 2/2 Unity, build, trois zooms, profil 10 cycles et régression 99/99 + 6/6. |
 | 08 | BLOQUÉ | `M3-FH-07` | Première ville réelle jouable depuis un marqueur ForgeHistory. | Dépend de 03–07 et d'un hôte ForgeHistory modifiable par son propriétaire. |
 | 09 | À_FAIRE | `M3-BUILD-01` | Reprendre usure, panne et réparation via le backend autoritaire. | Contrats, conservation/reload monde, HUD et capture intégrée. |
@@ -383,6 +388,7 @@ explicite ; il n'autorise aucune écriture amont implicite.
 | 35 | À_FAIRE | `REL-ACCESS` | Accessibilité complète. | Checklist et tests utilisateurs. |
 | 36 | À_FAIRE | `REL-LOC` | Français et anglais. | Pseudo-localisation et relecture. |
 | 37 | À_FAIRE | `REL-SHIP` | Packaging City Mode dans ForgeHistory. | RC reproductible, licences et rollback. |
+| 38 | PROUVÉ | `META-PILOT-01` | Aligner le pilote sur Hermes (ADR-0002) et implémenter le worker Unity Windows. | `mode: manual` ; aucun `gh pr merge` ni `pull_request_target` ; parseur NUnit rouge/vert ; `unity-windows.yml` en dispatch ; demande `sim/` couche 2. |
 
 ## Stratégie d'assets 3D de qualité
 
@@ -422,7 +428,8 @@ l'Asset Factory, et création/commande sur mesure pour les silhouettes héroïqu
 | Dérive de la dépendance ForgeHistory | Moyen | Audit épinglé à un commit et revalidation du delta avant chaque lot d'intégration. |
 | Assets hétérogènes ou non redistribuables | Élevé | Provenance, licences, hashes, GUID/LFS et portage par manifeste. |
 | Régression performance par transition/contenu | Élevé | 50 transitions, soak deux heures, profil 250 puis 500 habitants. |
-| File Codex devenue obsolète | Moyen | La session qui ferme une tâche promeut la suivante et documente toute dépendance nouvelle. |
+| File Codex devenue obsolète | Moyen | La session qui ferme une tâche promeut la suivante et documente toute dépendance nouvelle. Les lots s'exécutent depuis un brief, plus depuis un cron Codex. |
+| Ancien pipeline full-auto réactivé | Critique | Garder `mode: manual` et `auto_merge: false` ; aucun `pull_request` vers le runner personnel ; le propriétaire fusionne. |
 
 ## Protocole de mise à jour
 
@@ -457,6 +464,7 @@ Avant de terminer une session qui a modifié le projet :
 
 | Date | Tâches | Résultat | Preuves | Prochaine priorité |
 |---|---|---|---|---|
+| 2026-08-21 | `META-PILOT-01` | Pilotage réeligné sur le modèle Hermes vivant : plus de full-auto ni d'auto-fusion. Worker Unity Windows implémenté ici (`workflow_dispatch`, SHA `main`/`agent/*`/`cursor/*`, check `unity-windows`). Demande couche 2 `sim/` rédigée, ForgeHistory non modifié. | ADR-0002 ; `harness/pipeline/config.json` `mode=manual` `auto_merge=false` ; tests `test_pilot_alignment` et parseur NUnit rouge/vert ; workflows retired + `unity-windows.yml` + `hermes-daily.yml`. | Recopier la demande villes dans ForgeHistory `hermes/requests/` ; coller le label `unity` sur le runner ; ne pas reprendre `M3-BUILD-01`. |
 | 2026-08-13 | `M3-FH-06` | Port d'assets fermé : un package sans dépendance porte 6 textures communes, 2 textures biome et 3 FBX ville admis. Les GUID cible Unity sont distincts et versionnés ; hashes source→cible, LFS, provenance et licences sont contrôlés. Le loader impose `Common→Biome→City`, libère en sens inverse et rollback la partition courante sans `Resources.Load` ni autorité locale. | 11/11 hashes identiques ; 4/4 EditMode, 2/2 PlayMode ; 10 cycles Editor +19 731 octets ; player common/biome/city 16 779 984/1 431 216/22 393 444 octets, +3 449 975 après GC ; build 165 565 540 octets ; trois PNG 1280×720 distincts, 0 magenta ; régressions 99/99 EditMode, 6/6 PlayMode, 17/17 outils et 30/30 harnais. | Roadmap `BLOCKED` : attendre Hermes pour `M3-FH-05` puis `M3-FH-07`; ne pas reprendre `M3-BUILD-01`. |
 | 2026-08-13 | `M3-FH-04` | Shell asynchrone fermé : le package orchestre progression, annulation, timeout, échec récupérable, double entrée et rollback via un port hôte ; `SceneManager`, sélection et viewport restent côté miroir. Présentation/session sont libérées avant le déchargement et la carte est restaurée même après échec. Aucun runtime ou save local n'entre dans le chemin. | 9/9 EditMode, 5/5 PlayMode minimal et 7/7 PlayMode miroir ; 50 transitions réelles, froid 3,017 ms, chaud max 0,728 ms, retour max 2,159 ms, +118 439 octets ; build 118 362 839 octets ; player GPU 50 cycles 15,783/1,222/3,882 ms, cellule restaurée. | `M3-FH-06` : établir le manifeste de portage et les catalogues chargés/libérés selon des budgets bornés. |
 | 2026-08-13 | `M3-FH-03` | URP `17.0.4` retenu comme pipeline de l'hôte intégré après comparaison de deux archives jetables du même commit ForgeHistory. Les packages hôte convergent sur Entities `1.3.15`, Burst `1.8.19`, Collections `2.5.7` et Mathematics `1.3.2` ; Input System/AI Navigation restent hors du cœur portable. Le shader politique et le framebuffer UI Toolkit fonctionnent sous URP sans écriture amont. | 3/3 goldens Built-in/URP SHA-256 identiques ; six verdicts carte verts ; player URP 178 175 782 octets ; carte et ville 1920×1080 avec 0 pixel magenta ; chemin GPU câblé 1,475 ms Built-in / 0,266 ms URP ; validateur et 3/3 Python verts, `upstream_writes=0`. | `M3-FH-04` : construire le shell asynchrone carte→ville→carte sans reprendre la simulation locale. |

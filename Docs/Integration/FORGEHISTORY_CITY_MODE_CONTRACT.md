@@ -6,6 +6,14 @@ auditée en lecture seule :
 `PLiagre/ForgeHistory@268e8aab151452b0c740a44a7cc97ca3fd37e311`
 (`master`, observé le 13 août 2026).
 
+**Amendement 21 août 2026 (ADR-0002).** La simulation de production des
+villes appartient à ForgeHistory `sim/` (couche 2), pas à
+`unity/game_unity` ni à `LocalCitySimulation`. CityLab reste le
+laboratoire Unity et la vue. Le protocole v1 ci-dessous (contexte,
+snapshot, intention, révision) ne change pas ; seul le propriétaire
+amont de l'autorité économique est rappelé. Toute évolution de `sim/`
+passe par `hermes/requests/`, jamais par un patch depuis ce dépôt.
+
 ## Décision
 
 City Lab n'est plus un jeu autonome à porter scène par scène. Il devient une vue

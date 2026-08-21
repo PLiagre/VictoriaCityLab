@@ -1,82 +1,16 @@
-name: pipeline-audit
+name: pipeline-audit-retired
 
+# ADR-0002 : Cursor exécute dans agent/* ; Claude relit dans une invocation
+# distincte. Plus d'audit GitHub auto-fusionné, plus de pull_request vers
+# un runner personnel.
 on:
-  pull_request:
-    types: [labeled]
   workflow_dispatch:
-    inputs:
-      pr_number:
-        description: Pull request critique à auditer
-        required: true
-        type: number
-      head_sha:
-        description: SHA attendu (optionnel, verrou anti-course)
-        required: false
-        type: string
 
-concurrency:
-  group: pipeline-audit-${{ github.event.pull_request.number || inputs.pr_number }}
-  cancel-in-progress: true
+permissions:
+  contents: read
 
 jobs:
-  cursor-claude-audit:
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.label.name == 'pipeline/critical-audit' &&
-      github.event.pull_request.draft == false)
-    runs-on: [self-hosted, Windows, X64, citylab-full-auto]
-    timeout-minutes: 90
+  retired:
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
-      - name: Restore local GitHub identity
-        shell: powershell
-        run: |
-          git config --local --unset-all http.https://github.com/.extraheader 2>$null
-          gh auth setup-git
-      - name: Resolve immutable critical target
-        id: target
-        shell: powershell
-        env:
-          EVENT_PR: ${{ github.event.pull_request.number }}
-          MANUAL_PR: ${{ inputs.pr_number }}
-          EXPECTED_SHA: ${{ inputs.head_sha }}
-        run: |
-          $number = if ($env:EVENT_PR) { $env:EVENT_PR } else { $env:MANUAL_PR }
-          $pr = gh pr view $number --repo PLiagre/VictoriaCityLab --json number,headRefOid,isDraft,state | ConvertFrom-Json
-          if ($pr.state -ne 'OPEN' -or $pr.isDraft) { throw "PR #$number non ouverte ou encore draft" }
-          if ($env:EXPECTED_SHA -and $pr.headRefOid -ne $env:EXPECTED_SHA) {
-            throw "SHA critique inattendu: $($pr.headRefOid) != $env:EXPECTED_SHA"
-          }
-          "number=$($pr.number)" >> $env:GITHUB_OUTPUT
-          "head_sha=$($pr.headRefOid)" >> $env:GITHUB_OUTPUT
-      - name: Cursor audit and Claude challenge
-        shell: powershell
-        run: >-
-          py harness/pipeline/pr_audit.py
-          --pr '${{ steps.target.outputs.number }}'
-          --head-sha '${{ steps.target.outputs.head_sha }}'
-      - name: Validate generated audit
-        shell: powershell
-        run: |
-          $audit = Get-ChildItem Architecture/inbox/CURSOR-*.md | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-          py harness/audit_schema.py $audit.FullName
-          py harness/audit_ledger.py Architecture/audit-ledger.jsonl --validate
-      - name: Publish immutable audit record PR
-        id: record
-        shell: powershell
-        run: |
-          $stamp = Get-Date -Format 'yyyyMMddHHmmss'
-          $branch = "forge-bot/audit-record-${{ steps.target.outputs.number }}-$stamp"
-          git switch -c $branch
-          git add Architecture/inbox Architecture/reviews Architecture/decisions Architecture/audit-ledger.jsonl
-          git -c user.name='citylab-pipeline' -c user.email='citylab-pipeline@users.noreply.github.com' commit -m "audit: PR #${{ steps.target.outputs.number }}"
-          git push -u origin $branch
-          $url = gh pr create --base main --head $branch --title "audit: PR #${{ steps.target.outputs.number }}" --body "Audit critique Cursor, challenge Claude et décision déterministe pour le SHA `${{ steps.target.outputs.head_sha }}`."
-          gh pr edit $url --add-label pipeline/record
-          "url=$url" >> $env:GITHUB_OUTPUT
-      - name: Merge audit record PR automatically
-        shell: powershell
-        run: gh pr merge '${{ steps.record.outputs.url }}' --squash --delete-branch
+      - run: echo "pipeline-audit retiré (ADR-0002) ; revue Claude hors fusion automatique."

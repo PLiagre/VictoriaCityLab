@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="3" result="Passed" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="3">
+  <test-suite type="Assembly" id="1000" name="Victoria.CityMode.EditorTests.dll" result="Passed" total="3" passed="3" failed="0" skipped="0">
+    <test-case id="1001" name="Bootstrap_HasNoAutomaticRuntimeInitializer" result="Passed" />
+    <test-case id="1002" name="LaboratoryScene_OwnsItsGameExplicitly" result="Passed" />
+    <test-case id="1003" name="Worker_Smoke" result="Passed" />
+  </test-suite>
+</test-run>

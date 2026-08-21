@@ -1,4 +1,5 @@
-Exécute le pipeline CityLab via `powershell -ExecutionPolicy Bypass -File
-Tools/run_full_auto.ps1`. Ne contourne jamais le mode, les budgets, la roadmap,
-les audits Cursor ou le verdict indépendant.
-
+Exécute un lot CityLab **uniquement** s'il existe un brief sous
+`harness/queue/briefs/` et que `harness/pipeline/config.json` est en
+`mode: manual`. Ne lance jamais `Tools/run_full_auto.ps1`. Ne fusionne
+pas. Si le jeu est touché, demander `workflow_dispatch` de
+`unity-windows.yml`.

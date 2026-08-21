@@ -1,7 +1,8 @@
 # ADR-0001 : adaptation de l'architecture full-auto ForgeHistory
 
 Date : 12 aout 2026  
-Statut : accepte par demande explicite du proprietaire
+Statut : **remplacé** par ADR-0002 (21 août 2026) — le full-auto Codex +
+auto-fusion n'est plus le modèle vivant. Conservé comme archive.
 
 ## Contexte
 

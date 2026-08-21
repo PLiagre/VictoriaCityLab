@@ -1,47 +1,15 @@
-name: pipeline-verify
+name: pipeline-verify-retired
 
+# ADR-0002 : plus d'archivage auto-fusionné, plus de pull_request_target
+# vers un runner personnel sur un dépôt public.
 on:
-  pull_request_target:
-    types: [closed]
+  workflow_dispatch:
 
-concurrency:
-  group: pipeline-verify-${{ github.event.pull_request.number }}
-  cancel-in-progress: false
+permissions:
+  contents: read
 
 jobs:
-  verify-and-archive:
-    if: >-
-      github.event.pull_request.merged == true &&
-      startsWith(github.event.pull_request.head.ref, 'codex/') &&
-      contains(github.event.pull_request.labels.*.name, 'pipeline/auto-merge') &&
-      contains(github.event.pull_request.labels.*.name, 'pipeline/critical-audit')
-    runs-on: [self-hosted, Windows, X64, citylab-full-auto]
-    timeout-minutes: 30
+  retired:
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
-      - name: Restore local GitHub identity
-        shell: powershell
-        run: |
-          git config --local --unset-all http.https://github.com/.extraheader 2>$null
-          gh auth setup-git
-      - name: Verify merged SHA and archive audit
-        shell: powershell
-        run: >-
-          py harness/pipeline/verify_merge.py
-          --merged-sha '${{ github.event.pull_request.merge_commit_sha }}'
-          --source-sha '${{ github.event.pull_request.head.sha }}'
-      - name: Publish terminal archive PR
-        shell: powershell
-        run: |
-          $stamp = Get-Date -Format 'yyyyMMddHHmmss'
-          $branch = "forge-bot/archive-${{ github.event.pull_request.number }}-$stamp"
-          git switch -c $branch
-          git add Architecture/archive Architecture/audit-ledger.jsonl
-          git -c user.name='citylab-pipeline' -c user.email='citylab-pipeline@users.noreply.github.com' commit -m "audit: archive PR #${{ github.event.pull_request.number }}"
-          git push -u origin $branch
-          $url = gh pr create --base main --head $branch --title "audit: archive PR #${{ github.event.pull_request.number }}" --body "Vérification post-merge et archivage terminal du cycle."
-          gh pr edit $url --add-label pipeline/record
-          gh pr merge $url --squash --delete-branch
+      - run: echo "pipeline-verify retiré (ADR-0002)."

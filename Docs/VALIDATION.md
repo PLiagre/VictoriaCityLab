@@ -134,7 +134,37 @@ La preuve utilise des adresses de scène factices et ne revendique aucun backend
 urbain. L'import du package et le rejeu des budgets dans `Main.unity` restent
 une action amont Hermes.
 
-## Architecture full-auto — 12 août 2026
+## Pilotage Hermes et worker Unity Windows — 21 août 2026
+
+Cette porte `META-PILOT-01` aligne CityLab sur le modèle vivant ForgeHistory
+(ADR-0013/0014/0016) sans cloner ni modifier ce dépôt. Elle ne relance
+aucun EditMode Unity : le worker est livré, pas encore exécuté sur le PC
+Windows.
+
+| Porte | Résultat | Preuve |
+|---|---|---|
+| Décision | Hermes pilote ; Claude briefe/relit ; Cursor exécute ; le propriétaire fusionne | `Docs/Automation/ADR-0002-hermes-pilot-et-worker-unity.md` |
+| Harnais | `mode: manual`, `auto_merge: false`, publication désactivée | `harness/pipeline/config.json` |
+| Auto-fusion | aucun `gh pr merge` dans les workflows | `test_personal_runner_workflows_are_dispatch_only` |
+| Runner personnel | jamais `pull_request` / `pull_request_target` | `unity-windows.yml`, workflows retired |
+| Worker | script versionné, Unity `6000.0.43f1`, pas de `-quit` avec `-runTests` | `Tools/run_unity_windows_worker.ps1` |
+| Preuve rouge/verte | XML vert accepté ; rouge, vide et absent refusés | `Tools/tests/test_unity_windows_worker.py` |
+| Check | job `unity-windows`, labels `self-hosted, windows, x64, unity`, LFS, cache Library | `.github/workflows/unity-windows.yml` |
+| Cron | quotidien lecture/mesure seulement, `ubuntu-latest` | `hermes-daily.yml`, `hermes/crons/quotidien.sh` |
+| Amont | demande couche 2 `sim/` rédigée, zéro écriture ForgeHistory | `hermes/requests/DEMANDE-20260821-couche-villes-sim.md` |
+
+Commandes :
+
+```bash
+python3 -m unittest discover -s harness/tests -v
+python3 -m unittest Tools.tests.test_unity_windows_worker -v
+```
+
+## Architecture full-auto — 12 août 2026 (archive)
+
+Cette validation structurelle historique ne remplace aucune preuve Unity.
+Le 21 août 2026, ADR-0002 retire la production automatique ; les preuves
+ci-dessous documentent l'ancien cycle, pas le modèle vivant.
 
 Cette validation structurelle ne remplace aucune preuve Unity ou player.
 

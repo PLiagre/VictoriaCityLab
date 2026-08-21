@@ -1,57 +1,14 @@
-name: merge-bot
+name: merge-bot-retired
 
+# ADR-0002 : le propriétaire fusionne. Aucun bot ne fusionne une PR CityLab.
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'Architecture/decisions/**'
-      - 'Architecture/audit-ledger.jsonl'
-  workflow_run:
-    workflows: [full-auto-ci, pipeline-audit]
-    types: [completed]
   workflow_dispatch:
 
-concurrency:
-  group: citylab-merge-bot
-  cancel-in-progress: false
+permissions:
+  contents: read
 
 jobs:
-  conditional-merge:
-    runs-on: [self-hosted, Windows, X64, citylab-full-auto]
-    timeout-minutes: 30
+  retired:
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
-      - name: Restore local GitHub identity
-        shell: powershell
-        run: |
-          git config --local --unset-all http.https://github.com/.extraheader 2>$null
-          gh auth setup-git
-      - name: Merge every fully proven PR
-        shell: powershell
-        run: |
-          $prs = gh pr list --repo PLiagre/VictoriaCityLab --state open --label pipeline/auto-merge --json number,headRefOid,url,labels | ConvertFrom-Json
-          foreach ($pr in $prs) {
-            $sha = $pr.headRefOid
-            $checks = gh api "repos/PLiagre/VictoriaCityLab/commits/$sha/check-runs" | ConvertFrom-Json
-            $ci = $checks.check_runs | Where-Object { $_.name -eq 'harness' -and $_.conclusion -eq 'success' }
-            if (-not $ci) { Write-Warning "PR #$($pr.number): CI verte absente"; continue }
-            $criticalAudit = @($pr.labels | ForEach-Object { $_.name }) -contains 'pipeline/critical-audit'
-            if ($criticalAudit) {
-              $decision = Get-ChildItem Architecture/decisions/DECISION-*.json | ForEach-Object {
-                $value = Get-Content $_.FullName -Raw | ConvertFrom-Json
-                if ($value.target_commit -eq $sha -and $value.decision -eq 'PASS') { $value }
-              } | Select-Object -First 1
-              if (-not $decision) { Write-Warning "PR #$($pr.number): décision audit critique PASS absente"; continue }
-            } else {
-              Write-Host "PR #$($pr.number): Audit Cursor non requis (lot courant)."
-            }
-            $paths = gh pr view $pr.number --json files --jq '.files[].path'
-            @($paths) | Set-Content .git/citylab-pr-paths.txt
-            py -c "from pathlib import Path; from harness.merge_bot_policy import validate_paths; p=Path('.git/citylab-pr-paths.txt').read_text().splitlines(); ok,bad=validate_paths(p); print('CITYLAB_MERGE_PATHS',ok,bad); raise SystemExit(0 if ok else 2)"
-            if ($LASTEXITCODE -ne 0) { continue }
-            gh pr merge $pr.url --squash --delete-branch
-            if ($LASTEXITCODE -ne 0) { throw "Fusion automatique échouée pour $($pr.url)" }
-          }
+      - run: echo "Merge bot retiré (ADR-0002) ; aucune auto-fusion."

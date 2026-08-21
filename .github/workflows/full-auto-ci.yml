@@ -18,6 +18,8 @@ jobs:
           python-version: '3.13'
       - name: Harness and architecture tests
         run: py -m unittest discover -s harness/tests -v
+      - name: Unity worker red/green
+        run: py -m unittest Tools.tests.test_unity_windows_worker -v
       - name: Roadmap contract
         shell: powershell
         run: powershell -ExecutionPolicy Bypass -File Tools/check_roadmap.ps1

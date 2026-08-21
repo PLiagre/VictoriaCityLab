@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="0" result="Passed" total="0" passed="0" failed="0" skipped="0">
+  <test-suite type="Assembly" id="1000" name="Empty.dll" result="Passed" total="0" passed="0" failed="0" />
+</test-run>

@@ -1,11 +1,11 @@
 {
   "schema": 1,
-  "mode": "full_auto",
+  "mode": "manual",
   "roadmap": "Docs/ROADMAP.md",
   "max_iterations": 3,
-  "branch_prefix": "codex/auto",
+  "branch_prefix": "agent",
   "generator": {
-    "model": "gpt-5.6-sol",
+    "model": "composer-2.5",
     "timeout_seconds": 7200
   },
   "evaluator": {
@@ -13,10 +13,10 @@
     "timeout_seconds": 3600
   },
   "publish": {
-    "enabled": true,
+    "enabled": false,
     "remote": "origin",
     "base_branch": "main",
-    "auto_merge": true,
+    "auto_merge": false,
     "merge_method": "squash"
   },
   "critical_audit": {
@@ -43,6 +43,7 @@
     "harness/pipeline/",
     "harness/schemas/",
     "AGENTS.md",
+    "CLAUDE.md",
     "Tools/check_roadmap.ps1",
     "Assets/Vendor/",
     "Assets/URP GanzSe Free Modular Character Pack/",

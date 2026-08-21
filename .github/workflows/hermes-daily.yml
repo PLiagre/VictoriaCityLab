@@ -1,0 +1,39 @@
+name: hermes-daily
+
+# Veille quotidienne : lecture, mesure, proposition. Jamais de fusion,
+# jamais de code produit, jamais de brief.
+on:
+  schedule:
+    - cron: '15 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: citylab-hermes-daily
+  cancel-in-progress: true
+
+jobs:
+  observe:
+    if: github.repository == 'PLiagre/VictoriaCityLab'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Mesure quotidienne
+        run: bash hermes/crons/quotidien.sh
+      - name: Upload veille
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hermes-veille
+          path: hermes/propositions/DERNIERE-VEILLE.md
+          if-no-files-found: warn
